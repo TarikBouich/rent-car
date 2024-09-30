@@ -1,3 +1,9 @@
 body {
-  @apply font-medium bg-green-300;
+  @apply font-medium font-mulish bg-primary-90 text-white;
+}
+.sidebar-links a {
+  @apply block p-2 pl-6 tracking-widest capitalize font-light;
+}
+.sidebar-links .router-link-active {
+  @apply bg-primary-70 border-r-[3px] border-secondary-100;
 }

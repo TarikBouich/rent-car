@@ -13,6 +13,11 @@ const router = createRouter({
       name: "cars",
       component: () => import("../views/CarsView.vue"),
     },
+    {
+      path: "/cars/add",
+      name: "cars-add",
+      component: () => import("../views/AddCarView.vue"),
+    },
   ],
 });
 export default router;
