@@ -1,49 +1,242 @@
-
-<script setup></script>
 <template>
-  <main class="min-h-screen">
-    <div class="fixed top-0 left-0 h-screen w-[300px] bg-primary-50">
-      <div class="flex items-center px-4 py-6 gap-2">
-        <div class="w-10 h-10">
-          <steering-icon/>
+  <div
+    class="min-h-screen"
+    :class="
+      mode === 'dark'
+        ? 'bg-dark-80 opacity-100 is-dark text-white-100'
+        : 'bg-gray-20 bg-opacity-20 text-body-100'
+    "
+  >
+    <div
+      ref="sidebar"
+      class="fixed top-0 left-0 z-[998] h-full px-2 duration-300 transition-all origin-left transform border-r without-scrollbar"
+      :class="[
+        isOpen === true
+          ? 'w-70 overflow-visible'
+          : ' w-60 overflow-x-hidden overflow-y-auto',
+        mode === 'dark' ? 'bg-dark-90 border-dark-70' : 'bg-white-100',
+        isCollapsed ? '-left-full' : 'left-0',
+      ]"
+    >
+      <div
+        class="sidebar-links font-semibold py-2 flex flex-col justify-between h-full"
+        :class="[mode === 'dark' ? 'text-white-100' : 'text-gray-600']"
+      >
+        <div class="grid" :class="[isOpen ? 'gap-3' : 'gap-3']">
+          <RouterLink
+            :to="{ name: 'dashboard' }"
+            v-slot="{ navigate, isActive, isExactActive }"
+            :title="isOpen ? 'Dashboard' : ''"
+            @click="redirect"
+          >
+            <div
+              class="flex items-center p-2 relative rounded-md bg-opacity-5 gap-2 group"
+              :class="[
+                (isActive || isExactActive) && 'active',
+                isOpen && 'is-open',
+                mode === 'dark'
+                  ? 'text-white-100 hover:bg-dark-70'
+                  : 'hover:bg-primary-100 hover:text-body-100 hover:bg-opacity-5',
+              ]"
+              role="link"
+              @click="navigate"
+            >
+              <span class="flex-shrink-0 w-6 h-6">
+                <DashboardDots />
+              </span>
+              <div
+                class="leading-none mt-1"
+                :class="isOpen === true ? 'hidden' : ''"
+              >
+                Dashboard
+              </div>
+            </div>
+          </RouterLink>
+          <RouterLink
+            :to="{ name: 'cars' }"
+            v-slot="{ navigate, isActive, isExactActive }"
+            :title="isOpen ? 'Cars' : ''"
+            @click="redirect"
+          >
+            <div
+              class="flex items-center p-2 relative rounded-md bg-opacity-5 gap-2 group"
+              :class="[
+                (isActive || isExactActive) && 'active',
+                isOpen && 'is-open',
+                mode === 'dark'
+                  ? 'text-white-100 hover:bg-dark-70'
+                  : 'hover:bg-primary-100 hover:text-body-100 hover:bg-opacity-5',
+              ]"
+              role="link"
+              @click="navigate"
+            >
+              <span class="flex-shrink-0 w-6 h-6">
+                <Car />
+              </span>
+              <div
+                class="leading-none mt-1"
+                :class="isOpen === true ? 'hidden' : ''"
+              >
+                Cars
+              </div>
+            </div>
+          </RouterLink>
+          <RouterLink
+            :to="{ name: 'reservations' }"
+            v-slot="{ navigate, isActive, isExactActive }"
+            :title="isOpen ? 'Reservations' : ''"
+            @click="redirect"
+          >
+            <div
+              class="flex items-center p-2 relative rounded-md bg-opacity-5 gap-2 group"
+              :class="[
+                (isActive || isExactActive) && 'active',
+                isOpen && 'is-open',
+                mode === 'dark'
+                  ? 'text-white-100 hover:bg-dark-70'
+                  : 'hover:bg-primary-100 hover:text-body-100 hover:bg-opacity-5',
+              ]"
+              role="link"
+              @click="navigate"
+            >
+              <span class="flex-shrink-0 w-6 h-6">
+                <Calendar />
+              </span>
+              <div
+                class="leading-none mt-1"
+                :class="isOpen === true ? 'hidden' : ''"
+              >
+                Reservations
+              </div>
+            </div>
+          </RouterLink>
+          <RouterLink
+            :to="{ name: 'clients' }"
+            v-slot="{ navigate, isActive, isExactActive }"
+            :title="isOpen ? 'Clients' : ''"
+            @click="redirect"
+          >
+            <div
+              class="flex items-center p-2 relative rounded-md bg-opacity-5 gap-2 group"
+              :class="[
+                (isActive || isExactActive) && 'active',
+                isOpen && 'is-open',
+                mode === 'dark'
+                  ? 'text-white-100 hover:bg-dark-70'
+                  : 'hover:bg-primary-100 hover:text-body-100 hover:bg-opacity-5',
+              ]"
+              role="link"
+              @click="navigate"
+            >
+              <span class="flex-shrink-0 w-6 h-6">
+                <Group />
+              </span>
+              <div
+                class="leading-none mt-1"
+                :class="isOpen === true ? 'hidden' : ''"
+              >
+                Clients
+              </div>
+            </div>
+          </RouterLink>
         </div>
-        <p class="text-lg">Location Voitures</p>
-      </div>
-      <ul class="p-0 grid gap-3 sidebar-links">
-        <li>
-          <RouterLink :to="{ name: 'dashboard' }">Dashboard</RouterLink>
-        </li>
-        <li>
-          <RouterLink :to="{ name: 'cars' }">List Voitures</RouterLink>
-        </li>
-        <li>
-          <RouterLink :to="{ name: 'cars-add' }">Ajouter Voiture</RouterLink>
-        </li>
-      </ul>
-    </div>
-    <div class="ml-[300px] min-h-screen">
-      <div class="h-[70px] bg-primary-90 flex items-center justify-between p-6">
-        <div>Page Title</div>
-        <div class="grid grid-cols-2 gap-4">
-          <a href="#" class="flex items-center justify-center w-[40px] p-1 rounded-full bg-primary-50 border-[3px] border-primary-70"><notification-icon/></a>
-          <a href="#" class="flex items-center justify-center w-[40px] h-[40px] p-1 rounded-full bg-primary-50 border-[3px] border-primary-70"><user-icon/></a>
+        <div
+          class="flex items-center justify-center p-2 rounded-md gap-2 cursor-pointer"
+          @click="toggleOpen"
+          :title="isOpen ? 'Collapse' : ''"
+          :class="[
+            mode === 'dark'
+              ? 'text-white-100 bg-dark-70'
+              : 'bg-primary-100 hover:text-body-100 bg-opacity-5',
+          ]"
+        >
+          <span class="w-6 h-6">
+            <svg
+              v-if="isOpen"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                d="M12.75 3.5a.75.75 0 0 0 0 1.5h1.19l-3.22 3.22a.75.75 0 0 0 1.06 1.06l3.22-3.22v1.19a.75.75 0 0 0 1.5 0v-3a.75.75 0 0 0-.75-.75h-3Z"
+              />
+              <path
+                d="M7.25 16.5a.75.75 0 0 0 0-1.5h-1.19l3.22-3.22a.75.75 0 1 0-1.06-1.06l-3.22 3.22v-1.19a.75.75 0 0 0-1.5 0v3c0 .414.336.75.75.75h3Z"
+              />
+            </svg>
+            <svg
+              v-else
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                d="M13.75 9.5a.75.75 0 0 0 0-1.5h-.69l3.22-3.22a.75.75 0 0 0-1.06-1.06l-3.22 3.22v-.69a.75.75 0 0 0-1.5 0v2.5c0 .414.336.75.75.75h2.5Z"
+              />
+              <path
+                d="M6.25 10.5a.75.75 0 0 0 0 1.5h.69l-3.22 3.22a.75.75 0 1 0 1.06 1.06l3.22-3.22v.69a.75.75 0 0 0 1.5 0v-2.5a.75.75 0 0 0-.75-.75h-2.5Z"
+              />
+            </svg>
+          </span>
         </div>
       </div>
-      <div class="p-5">
-        <RouterView :key="$route.path" />
-      </div>
     </div>
-  </main>
+    <div
+      class="transition flex-1"
+      :class="[isOpen === true ? 'ml-70' : 'ml-60']"
+    >
+      <RouterView :mode="mode" @toggle="toggle" :key="$route.path" />
+    </div>
+  </div>
 </template>
 <script>
 import steeringIcon from "./components/icons/steering.vue";
 import userIcon from "./components/icons/user.vue";
 import notificationIcon from "./components/icons/notification.vue";
+import { Car, DashboardDots, Calendar, Group } from "@iconoir/vue";
 export default {
   components: {
     steeringIcon,
     userIcon,
-    notificationIcon
+    notificationIcon,
+    Car,
+    DashboardDots,
+    Calendar,
+    Group,
+  },
+  data() {
+    return {
+      mode: localStorage.getItem("mode") || "light",
+      isOpen: false,
+      isCollapsed: false,
+    };
+  },
+  methods: {
+    toggleOpen() {
+      if (this.isOpen == false) {
+        this.isOpen = true;
+      } else {
+        this.isOpen = false;
+      }
+    },
+    toggle() {
+      if (this.mode === "dark") {
+        this.mode = "light";
+      } else {
+        this.mode = "dark";
+      }
+      localStorage.setItem("mode", this.mode);
+    },
+    redirect() {
+      this.isCollapsed = false;
+      window.dispatchEvent(
+        new CustomEvent("isCollapsed", {
+          detail: {
+            isCollapsed: this.isCollapsed,
+          },
+        })
+      );
+    },
   },
 };
 </script>

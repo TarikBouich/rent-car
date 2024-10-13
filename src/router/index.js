@@ -18,6 +18,26 @@ const router = createRouter({
       name: "cars-add",
       component: () => import("../views/AddCarView.vue"),
     },
+    {
+      path: "/reservations",
+      name: "reservations",
+      component: () => import("../views/ReservationsView.vue"),
+    },
+    {
+      path: "/reservations/add",
+      name: "reservations-add",
+      component: () => import("../views/AddReservationView.vue"),
+    },
+    {
+      path: "/clients",
+      name: "clients",
+      component: () => import("../views/ClientsView.vue"),
+    },
+    {
+      path: "/clients/add",
+      name: "clients-add",
+      component: () => import("../views/AddClientView.vue"),
+    },
   ],
 });
 export default router;

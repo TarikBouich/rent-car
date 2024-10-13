@@ -1,9 +1,212 @@
+@font-face {
+  font-family: "Space Grotesk";
+  font-weight: 400;
+  src: url("../fonts/Inter/SpaceGrotesk-Regular.woff2") format("woff");
+}
+@font-face {
+  font-family: "Space Grotesk";
+  font-weight: 500;
+  src: url("../fonts/Inter/SpaceGrotesk-Medium.woff2") format("woff");
+}
+@font-face {
+  font-family: "Space Grotesk";
+  font-weight: 600;
+  src: url("../fonts/Inter/SpaceGrotesk-SemiBold.woff2") format("woff");
+}
+@font-face {
+  font-family: "Space Grotesk";
+  font-weight: 700;
+  src: url("../fonts/Inter/SpaceGrotesk-Bold.woff2") format("woff");
+}
+
 body {
-  @apply font-medium font-mulish bg-primary-90 text-white;
+  @apply antialiased !font-main overflow-y-auto !leading-normal !m-0 text-[16px];
 }
-.sidebar-links a {
-  @apply block p-2 pl-6 tracking-widest capitalize font-light;
+.sidebar-links .active {
+  @apply text-body-100 bg-primary-100 bg-opacity-5;
 }
-.sidebar-links .router-link-active {
-  @apply bg-primary-70 border-r-[3px] border-secondary-100;
+.sidebar-links .active:after {
+  content: '';
+  left: -0.45rem;
+  @apply bg-primary-100 rounded-r-full w-1 h-full absolute top-0;
+}
+.sidebar-links .is-open .w-6 {
+  @apply ml-1.5;
+}
+.is-dark .sidebar-links .active {
+  @apply text-white-100 bg-dark-70;
+}
+@layer components {
+  .form-field {
+    @apply w-full h-11 rounded-md border bg-white-100 border-gray-30 border-opacity-50 focus:ring-2 focus:ring-primary-100 px-3 py-2 focus:outline-none shadow-sm focus:border-0;
+  }
+  .form-field::placeholder {
+    @apply text-gray-0 text-[15px];
+  }
+  .form-field .multiselect-search {
+    @apply p-0 bg-transparent;
+  }
+  .form-field.multiselect.is-active {
+    @apply border-0;
+  }
+  .form-field .multiselect-placeholder,
+  .form-field .multiselect-single-label {
+    @apply p-0;
+  }
+  .form-field .multiselect-caret {
+    @apply m-0;
+  }
+  .is-dark .form-field {
+    @apply bg-dark-70 border-dark-50;
+  }
+  .button {
+    @apply transition duration-300 ease-in-out inline-flex justify-center items-center text-white-100 capitalize font-semibold focus:outline-none rounded-md py-2.5 px-4 h-11 hover:text-white-100 text-center cursor-pointer;
+  }
+  .primary-button {
+    @apply bg-primary-100;
+  }
+  .primary-button:not(:disabled) {
+    @apply hover:brightness-125;
+  }
+  .close-button {
+    @apply bg-gray-100 text-gray-900 hover:text-gray-900;
+  }
+  .secondary-button {
+    @apply bg-transparent border border-primary-100 text-primary-100 hover:text-white-100 hover:bg-primary-100;
+  }
+  .button:disabled,
+  button:disabled {
+    @apply !bg-gray-20 !text-body-100 !opacity-50 !cursor-not-allowed;
+  }
+  table.form-table thead th {
+    @apply py-3 px-1.5 font-semibold text-gray-900 uppercase text-left cursor-pointer text-[15px];
+    border-width: 0 !important;
+  }
+  table.form-table thead th:first-child,
+  table.form-table tbody tr td:first-child {
+    @apply !pl-4;
+  }
+  table.form-table thead th:last-child,
+  table.form-table tbody tr td:last-child {
+    @apply pr-4;
+  }
+  table.form-table tbody tr td {
+    @apply py-3 px-1.5 text-gray-700 text-left tracking-normal whitespace-nowrap font-medium;
+    border-width: 0 !important;
+  }
+  table.form-table tbody tr {
+    @apply hover:bg-gray-20 hover:bg-opacity-20 text-gray-800;
+  }
+  table.form-table .progress {
+    @apply rounded-lg h-[5px];
+  }
+  .is-dark table.form-table thead th {
+    @apply text-gray-100 text-opacity-90;
+  }
+  .is-dark table.form-table tbody tr td {
+    @apply py-3 px-1.5 text-gray-100 text-opacity-70;
+    border-width: 0 !important;
+  }
+  .is-dark table.form-table tbody tr {
+    @apply hover:bg-dark-90 hover:bg-opacity-20 text-dark-15;
+  }
+  .checkbox,
+  .radio {
+    @apply inline-flex relative;
+  }
+  .checkbox input,
+  .radio input {
+    @apply absolute;
+    left: -9999px;
+  }
+  .checkbox input:disabled + label {
+    @apply cursor-not-allowed pointer-events-none opacity-60;
+  }
+  .checkbox label,
+  .radio label {
+    @apply text-[13px] cursor-pointer leading-normal font-medium relative min-h-5;
+    padding: 0 0 0 30px;
+  }
+  .checkbox label:before,
+  .checkbox label:after,
+  .radio label:before,
+  .radio label:after {
+    content: '';
+    @apply absolute;
+    transition: all 0.25s;
+  }
+  .checkbox label:before {
+    border: 2px solid #b6b8c0;
+    border-radius: 3px;
+    @apply bg-white-100 left-0 w-5 h-5 top-0;
+  }
+  .radio label:before {
+    @apply w-5 h-5 rounded-full left-0;
+    border: 2px solid #b6b8c0;
+  }
+  .radio label:after {
+    @apply w-2.5 h-2.5 rounded-full bg-primary-100 transition-transform transform scale-0;
+    left: 5px;
+    top: 5px;
+  }
+  .radio input:checked + label:after {
+    @apply scale-100;
+  }
+  .is-dark .checkbox label:before,
+  .is-dark .radio label:before {
+    @apply bg-dark-70 border-gray-100 border-opacity-70;
+  }
+  .checkbox input:checked + label {
+    @apply text-primary-100;
+  }
+  .checkbox input:checked + label:before{
+    @apply bg-primary-100 border-primary-100;
+  }
+  .checkbox input:checked + label:after,
+  .checkbox input:disabled + label:after {
+    transform: rotate(-45deg) scale(1);
+    @apply border-white-100;
+  }
+  .checkbox label:after {
+    top: 6.5px;
+    left: 6px;
+    width: 8px;
+    height: 5px;
+    border-style: solid;
+    @apply border-body-100;
+    border-width: 0 0 2px 2px;
+    transform: rotate(-45deg) scale(0);
+  }
+  .spinner {
+    animation: spin 1s linear infinite;
+    @apply w-5 h-5 rounded-full border-2 border-t-transparent border-primary-100;
+  }
+  .switcher {
+    @apply flex;
+  }
+  .switcher label {
+    @apply cursor-pointer leading-normal font-semibold relative inline-flex items-center gap-2;
+  }
+  .switcher input {
+    @apply hidden;
+  }
+  .switcher label:before {
+    content: "";
+    @apply w-11 h-6 bg-gray-20 block rounded-full;
+  }
+  .switcher label:after {
+    content: "";
+    top: 2px;
+    left: 2px;
+    @apply w-5 h-5 bg-white-100 rounded-full transition-all absolute;
+  }
+  .switcher input:checked + label:before {
+    @apply bg-primary-100;
+  }
+  .switcher input:checked + label:after {
+    left: calc(44px - 22px);
+  }
+  .is-dark .switcher label:before {
+    @apply bg-dark-50;
+  }
 }

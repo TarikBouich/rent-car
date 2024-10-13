@@ -8,18 +8,21 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@iconoir/vue": "^7.9.0",
+    "apexcharts": "^3.54.0",
     "vue": "^3.4.37",
-    "vue-router": "^4.4.5"
+    "vue-router": "^4.4.5",
+    "vue3-apexcharts": "^1.7.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.1.2",
-    "autoprefixer": "^10.4.20",
-    "postcss": "^8.4.47",
-    "tailwindcss": "^3.4.13",
-    "vite": "^5.4.1",
     "@vue/eslint-config-prettier": "^7.0.0",
+    "autoprefixer": "^10.4.20",
     "eslint": "^8.34.0",
     "eslint-plugin-vue": "^9.9.0",
-    "prettier": "^2.7.1"
+    "postcss": "^8.4.47",
+    "prettier": "^2.7.1",
+    "tailwindcss": "^3.4.13",
+    "vite": "^5.4.1"
   }
 }
