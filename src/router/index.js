@@ -1,4 +1,11 @@
 import { createRouter, createWebHistory } from "vue-router";
+import DashboardView from "../views/DashboardView.vue";
+import CarsView from "../views/CarsView.vue";
+import ReservationsView from "../views/ReservationsView.vue";
+import ClientsView from "../views/ClientsView.vue";
+import AddClientView from "../views/AddClientView.vue";
+import AddReservationView from "../views/AddReservationView.vue";
+import ActiveRentalsView from "../views/ActiveRentalsView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -6,12 +13,12 @@ const router = createRouter({
     {
       path: "/",
       name: "dashboard",
-      component: () => import("../views/DashboardView.vue"),
+      component: DashboardView,
     },
     {
       path: "/cars",
       name: "cars",
-      component: () => import("../views/CarsView.vue"),
+      component: CarsView,
     },
     {
       path: "/cars/add",
@@ -21,23 +28,34 @@ const router = createRouter({
     {
       path: "/reservations",
       name: "reservations",
-      component: () => import("../views/ReservationsView.vue"),
+      component: ReservationsView,
     },
     {
       path: "/reservations/add",
       name: "reservations-add",
-      component: () => import("../views/AddReservationView.vue"),
+      component: AddReservationView,
     },
     {
       path: "/clients",
       name: "clients",
-      component: () => import("../views/ClientsView.vue"),
+      component: ClientsView,
     },
     {
       path: "/clients/add",
       name: "clients-add",
-      component: () => import("../views/AddClientView.vue"),
+      component: AddClientView,
+    },
+    {
+      path: "/active-rentals",
+      name: "active-rentals",
+      component: ActiveRentalsView,
+    },
+    {
+      path: "/archived-reservations",
+      name: "archived-reservations",
+      component: () => import("../views/ArchivedReservationsView.vue"),
     },
   ],
 });
+
 export default router;

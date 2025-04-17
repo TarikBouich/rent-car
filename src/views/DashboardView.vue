@@ -1,8 +1,5 @@
 <template>
   <div>
-    <TopBar :mode="mode" @toggle="$emit('toggle')">
-      <span class="text-[21px] font-bold">Dashboard</span>
-    </TopBar>
     <div class="p-5">
       <div class="grid gap-5">
         <div class="grid grid-cols-6 gap-5">
@@ -29,7 +26,7 @@
               </svg>
             </span>
             <span class="text-lg font-semibold block my-2">Reservations</span>
-            <span class="text-4xl font-bold">20</span>
+            <span class="text-4xl font-bold">{{ totalReservations }}</span>
           </div>
           <div
             class="rounded-xl shadow-card overflow-hidden bg-white-100 p-6 flex items-center justify-center flex-col"
@@ -54,7 +51,7 @@
               </svg>
             </span>
             <span class="text-lg font-semibold block my-2">Clients</span>
-            <span class="text-4xl font-bold">30</span>
+            <span class="text-4xl font-bold">{{ totalClients }}</span>
           </div>
           <div
             class="rounded-xl shadow-card overflow-hidden bg-white-100 p-6 flex items-center justify-center flex-col"
@@ -96,7 +93,7 @@
               </svg>
             </span>
             <span class="text-lg font-semibold block my-2">Agents</span>
-            <span class="text-4xl font-bold">20</span>
+            <span class="text-4xl font-bold">{{ totalAgents }}</span>
           </div>
           <div
             class="rounded-xl shadow-card overflow-hidden bg-white-100 p-6 flex items-center justify-center flex-col"
@@ -121,7 +118,7 @@
               </svg>
             </span>
             <span class="text-lg font-semibold block my-2">Cars</span>
-            <span class="text-4xl font-bold">20</span>
+            <span class="text-4xl font-bold">{{ totalCars }}</span>
           </div>
           <div
             class="rounded-xl shadow-card overflow-hidden bg-white-100 p-6 flex items-center justify-center flex-col"
@@ -160,7 +157,7 @@
               </svg>
             </span>
             <span class="text-lg font-semibold block my-2">Agences</span>
-            <span class="text-4xl font-bold">20</span>
+            <span class="text-4xl font-bold">{{ totalAgencies }}</span>
           </div>
           <div
             class="rounded-xl shadow-card overflow-hidden bg-white-100 p-6 flex items-center justify-center flex-col"
@@ -185,7 +182,7 @@
               </svg>
             </span>
             <span class="text-lg font-semibold block my-2">Alerts</span>
-            <span class="text-4xl font-bold">20</span>
+            <span class="text-4xl font-bold">{{ totalAlerts }}</span>
           </div>
         </div>
         <div class="rounded-xl shadow-card overflow-hidden bg-white-100">
@@ -224,52 +221,162 @@ export default {
   },
   data() {
     return {
-      series: [
-        {
-          name: "Earnings",
-          data: this.getLast7DaysEarnings(),
-        },
-      ],
+      mode: localStorage.getItem("mode") || "light",
       chartOptions: {
         chart: {
-          height: 350,
-          type: "line",
-          zoom: {
-            enabled: false,
-          },
+          id: "vuechart-example",
           toolbar: {
             show: false,
           },
-          fontFamily: "Space Grotesk, sans-serif",
+        },
+        stroke: {
+          curve: "smooth",
         },
         xaxis: {
-          categories: this.getLast7DaysLabels(),
+          categories: [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec",
+          ],
+        },
+        yaxis: {
+          title: {
+            text: "Earnings (د.م.)"
+          }
         },
         tooltip: {
-          shared: true,
-          intersect: false,
-        },
-        colors: ["#3f78e0"],
-        legend: {
-          show: false,
-        },
+          y: {
+            formatter: function(value) {
+              return value + " د.م.";
+            }
+          }
+        }
       },
+      series: [],
     };
   },
-  methods: {
-    getLast7DaysEarnings() {
-      return [120, 150, 170, 130, 200, 180, 220];
+  computed: {
+    totalReservations() {
+      const reservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+      return reservations.length;
     },
-    getLast7DaysLabels() {
-      const today = new Date();
-      const labels = [];
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(today.getDate() - i);
-        labels.push(date.toLocaleDateString());
-      }
-      return labels;
+    totalClients() {
+      const clients = JSON.parse(localStorage.getItem('clients') || '[]');
+      return clients.length;
     },
+    totalCars() {
+      const cars = JSON.parse(localStorage.getItem('cars') || '[]');
+      return cars.length;
+    },
+    totalAgents() {
+      const agents = JSON.parse(localStorage.getItem('agents') || '[]');
+      return agents.length;
+    },
+    totalAgencies() {
+      const agencies = JSON.parse(localStorage.getItem('agencies') || '[]');
+      return agencies.length;
+    },
+    totalAlerts() {
+      const alerts = JSON.parse(localStorage.getItem('alerts') || '[]');
+      return alerts.length;
+    }
   },
+  methods: {
+    calculateCarEarnings() {
+      try {
+        const cars = JSON.parse(localStorage.getItem('cars') || '[]');
+        const reservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+        
+        console.log('Cars:', cars);
+        console.log('Reservations:', reservations);
+
+        if (!cars.length) {
+          console.log('No cars found in localStorage');
+          this.series = [{
+            name: 'No Data',
+            data: Array(12).fill(0)
+          }];
+          return;
+        }
+
+        // Initialize monthly earnings for each car
+        const monthlyEarnings = {};
+        cars.forEach(car => {
+          if (car && car.licensePlate) {
+            monthlyEarnings[car.licensePlate] = Array(12).fill(0);
+          }
+        });
+
+        // Calculate earnings for each reservation
+        reservations.forEach(reservation => {
+          if (!reservation || !reservation.startDate || !reservation.endDate || !reservation.carId) {
+            console.log('Invalid reservation:', reservation);
+            return;
+          }
+
+          const startDate = new Date(reservation.startDate);
+          const endDate = new Date(reservation.endDate);
+          const month = startDate.getMonth();
+          const carId = reservation.carId;
+          
+          // Calculate number of days
+          const days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+          
+          // Find the car's daily rate
+          const car = cars.find(c => c && c.licensePlate === carId);
+          if (car && car.pricePerDay) {
+            const earnings = days * car.pricePerDay;
+            if (monthlyEarnings[carId]) {
+              monthlyEarnings[carId][month] += earnings;
+            }
+          }
+        });
+
+        // Convert to series format for the chart
+        const seriesData = cars
+          .filter(car => car && car.licensePlate && car.name)
+          .map(car => ({
+            name: `${car.name}${car.model ? ' ' + car.model : ''}`,
+            data: monthlyEarnings[car.licensePlate] || Array(12).fill(0)
+          }));
+
+        console.log('Series Data:', seriesData);
+
+        if (seriesData.length === 0) {
+          this.series = [{
+            name: 'No Data',
+            data: Array(12).fill(0)
+          }];
+        } else {
+          this.series = seriesData;
+        }
+      } catch (error) {
+        console.error('Error calculating car earnings:', error);
+        this.series = [{
+          name: 'Error',
+          data: Array(12).fill(0)
+        }];
+      }
+    }
+  },
+  mounted() {
+    // Add test data to verify chart works
+    this.series = [{
+      name: 'Test Car',
+      data: [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200]
+    }];
+    
+    // Then calculate real data
+    this.calculateCarEarnings();
+  }
 };
 </script>

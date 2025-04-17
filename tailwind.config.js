@@ -1,16 +1,24 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
-  content: ["./src/**/*.{vue,js}"],
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{vue,js,ts,jsx,tsx}",
+  ],
+  darkMode: 'class',
   theme: {
     fontFamily: {
       main: ["Space Grotesk", "sans-serif"],
     },
     extend: {
+      screens: {
+        'xs': '480px',
+      },
       colors: {
         primary: {
-          100: "#3f78e0",
-          1: "#F7F7FE",
+          90: '#1a56db',
+          100: '#1e40af',
         },
+        white: '#ffffff',
         green: {
           100: "#8fdcc6",
         },
@@ -19,10 +27,6 @@ module.exports = {
         },
         yellow: {
           100: "#fcd49b",
-        },
-        white: {
-          100: "#FFF",
-          50: "#F2F2F2",
         },
         body: {
           100: "#343f52",
@@ -55,15 +59,15 @@ module.exports = {
           100: "#ffab00",
         },
         success: {
-          100: "#00AB66",
-          50: "#d6efe1",
+          50: '#f0fdf4',
+          100: '#059669',
         },
         dark: {
           90: "#1B1E27",
           80: "#17191D",
           70: "#272A33",
           60: "#393D49",
-          50: "#4C5160",
+          50: '#374151',
           30: "#6B7185",
           20: "#7C8399",
           15: "#8E96AE",
@@ -82,6 +86,9 @@ module.exports = {
         400: "400px",
         70: "70px",
         450: "450px",
+      },
+      maxHeight: {
+        'modal': 'calc(100vh - 200px)',
       },
     },
   },

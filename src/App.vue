@@ -135,7 +135,73 @@
                 class="leading-none mt-1"
                 :class="isOpen === true ? 'hidden' : ''"
               >
-                Clients
+                Archived Clients
+              </div>
+            </div>
+          </RouterLink>
+          <!-- <RouterLink
+              :to="{ name: 'active-rentals' }"
+              v-slot="{ navigate, isActive, isExactActive }"
+              :title="isOpen ? 'Active Rentals' : ''"
+              @click="redirect"
+            >
+            <div
+              class="flex items-center p-2 relative rounded-md bg-opacity-5 gap-2 group"
+              :class="[
+                (isActive || isExactActive) && 'active',
+                isOpen && 'is-open',
+                mode === 'dark'
+                  ? 'text-white-100 hover:bg-dark-70'
+                  : 'hover:bg-primary-100 hover:text-body-100 hover:bg-opacity-5',
+              ]"
+              role="link"
+              @click="navigate"
+            >
+              <span class="flex-shrink-0 icon-container">
+                <img 
+                  src="https://cdn-icons-png.flaticon.com/128/7867/7867059.png" 
+                  alt="Active Rentals" 
+                  class="sidebar-icon"
+                />
+              </span>
+              <div
+                class="leading-none mt-1"
+                :class="isOpen === true ? 'hidden' : ''"
+              >
+                Active Rentals
+              </div>
+            </div>
+          </RouterLink> -->
+          <RouterLink
+            :to="{ name: 'archived-reservations' }"
+            v-slot="{ navigate, isActive, isExactActive }"
+            :title="isOpen ? 'Archived Reservations' : ''"
+            @click="redirect"
+          >
+            <div
+              class="flex items-center p-2 relative rounded-md bg-opacity-5 gap-2 group"
+              :class="[
+                (isActive || isExactActive) && 'active',
+                isOpen && 'is-open',
+                mode === 'dark'
+                  ? 'text-white-100 hover:bg-dark-70'
+                  : 'hover:bg-primary-100 hover:text-body-100 hover:bg-opacity-5',
+              ]"
+              role="link"
+              @click="navigate"
+            >
+              <span class="flex-shrink-0 icon-container">
+                <img 
+                  src="https://cdn-icons-png.flaticon.com/512/9746/9746150.png" 
+                  alt="Archived Reservations" 
+                  class="sidebar-icon"
+                />
+              </span>
+              <div
+                class="leading-none mt-1"
+                :class="isOpen === true ? 'hidden' : ''"
+              >
+                Archived Reservations
               </div>
             </div>
           </RouterLink>
@@ -185,6 +251,7 @@
       class="transition flex-1"
       :class="[isOpen === true ? 'ml-70' : 'ml-60']"
     >
+      <TopBar :mode="mode" @toggle="toggleMode" />
       <RouterView :mode="mode" @toggle="toggle" :key="$route.path" />
     </div>
   </div>
@@ -193,12 +260,17 @@
 import steeringIcon from "./components/icons/steering.vue";
 import userIcon from "./components/icons/user.vue";
 import notificationIcon from "./components/icons/notification.vue";
+import TopBar from "./components/TopBar.vue";
 import { Car, DashboardDots, Calendar, Group } from "@iconoir/vue";
+import { initializeDefaultData } from './utils/initializeData';
+
 export default {
+  name: 'App',
   components: {
     steeringIcon,
     userIcon,
     notificationIcon,
+    TopBar,
     Car,
     DashboardDots,
     Calendar,
@@ -210,6 +282,10 @@ export default {
       isOpen: false,
       isCollapsed: false,
     };
+  },
+  created() {
+    // Initialize default data if needed
+    initializeDefaultData();
   },
   methods: {
     toggleOpen() {
@@ -240,3 +316,18 @@ export default {
   },
 };
 </script>
+<style scoped>
+.icon-container {
+  width: 25px;
+  height: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-icon {
+  width: 25px;
+  height: 25px;
+  object-fit: contain;
+}
+</style>
