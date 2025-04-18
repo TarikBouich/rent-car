@@ -163,10 +163,6 @@ export default {
       const tomorrowYear = tomorrow.getFullYear();
       const tomorrowFormatted = `${tomorrowDay}/${tomorrowMonth}/${tomorrowYear}`;
       
-      console.log('Today\'s date:', todayFormatted);
-      console.log('Tomorrow\'s date:', tomorrowFormatted);
-      console.log('All cars:', cars);
-      
       this.notifications = [];
 
       // Check for cars that need to be returned today
@@ -194,7 +190,7 @@ export default {
         }
       });
 
-      // Check for technical inspection due tomorrow
+      // Check for technical inspection due tomorrow or expired
       cars.forEach(car => {
         if (car.visiteTechniqueEndDate) {
           const inspectionDate = new Date(car.visiteTechniqueEndDate);
@@ -203,7 +199,20 @@ export default {
           const insYear = inspectionDate.getFullYear();
           const formattedInspectionDate = `${insDay}/${insMonth}/${insYear}`;
           
-          if (formattedInspectionDate === tomorrowFormatted) {
+          // Check if expired
+          if (inspectionDate < today) {
+            this.notifications.push({
+              id: `inspection-expired-${car.licensePlate}`,
+              type: 'inspection',
+              message: `⚠️ Visite Technique EXPIRED for ${car.name} (${car.licensePlate}) <br>Expired on: <b>${formattedInspectionDate}</b>`,
+              time: 'Today',
+              unread: true,
+              icon: car.image || 'https://cdn-icons-png.flaticon.com/128/7867/7867059.png',
+              priority: 1 // Higher priority for expired items
+            });
+          }
+          // Check if due tomorrow
+          else if (formattedInspectionDate === tomorrowFormatted) {
             this.notifications.push({
               id: `inspection-${car.licensePlate}`,
               type: 'inspection',
@@ -239,7 +248,20 @@ export default {
           const insYear = insuranceDate.getFullYear();
           const formattedInsuranceDate = `${insDay}/${insMonth}/${insYear}`;
           
-          if (formattedInsuranceDate === tomorrowFormatted) {
+          // Check if expired
+          if (insuranceDate < today) {
+            this.notifications.push({
+              id: `insurance-expired-${car.licensePlate}`,
+              type: 'insurance',
+              message: `⚠️ Insurance EXPIRED for ${car.name} (${car.licensePlate}) <br>Expired on: <b>${formattedInsuranceDate}</b>`,
+              time: 'Today',
+              unread: true,
+              icon: car.image || 'https://cdn-icons-png.flaticon.com/128/7867/7867059.png',
+              priority: 1 // Higher priority for expired items
+            });
+          }
+          // Check if due tomorrow
+          else if (formattedInsuranceDate === tomorrowFormatted) {
             this.notifications.push({
               id: `insurance-${car.licensePlate}`,
               type: 'insurance',

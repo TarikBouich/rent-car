@@ -44,152 +44,130 @@
             </RouterLink>
           </div>
         </div>
-        <div class="w-full overflow-x-auto without-scrollbar">
-          <table class="w-full form-table">
-            <thead
-              class="border-b-2"
-              :class="mode === 'dark' ? 'border-dark-50' : ''"
-            >
-              <tr :class="mode === 'dark' ? 'bg-dark-1' : 'bg-gray-1'">
-                <th class="p-4 text-left">Voiture</th>
-                <th class="p-4 text-left">Prix</th>
-                <th class="p-4 text-left">Status</th>
-                <th class="p-4 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody
-              class="divide-y bg-opacity-40"
-              :class="
-                mode === 'dark'
-                  ? 'bg-dark-70 divide-dark-50'
-                  : 'bg-white-100 divide-gray-100'
-              "
-            >
-              <tr v-for="(car, index) in filteredCars" :key="index" class="hover:bg-gray-50 dark:hover:bg-dark-60 transition-colors">
-                <td class="py-6">
-                  <div class="flex items-center">
-                    <div class="flex-shrink-0 w-[150px] h-[150px] mr-4">
-                      <img
-                        class="w-full h-full rounded-lg object-contain"
-                        :src="car.image"
-                        alt="Car Image"
-                      />
-                    </div>
-                    <div class="flex flex-col">
-                      <p class="text-xl font-bold text-primary-100 mb-2">
-                        {{ car.name }}
-                      </p>
-                      <div class="flex flex-col gap-1 mb-2">
-                        <div v-if="car.assuranceEndDate" class="flex items-center gap-2">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
-                          </svg>
-                          <span :class="getDateColor(car.assuranceEndDate)">
-                            Assurance: {{ formatDate(car.assuranceEndDate) }}
-                          </span>
-                        </div>
-                        <div v-if="car.visiteTechniqueEndDate" class="flex items-center gap-2">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
-                          </svg>
-                          <span :class="getDateColor(car.visiteTechniqueEndDate)">
-                            Visite Technique: {{ formatDate(car.visiteTechniqueEndDate) }}
-                          </span>
-                        </div>
-                      </div>
-                      <div class="flex flex-col gap-2">
-                        <div class="flex items-center gap-2 text-black dark:text-white">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <circle cx="12" cy="12" r="9" stroke-width="2"/>
-                            <path d="M12 8v1" stroke-width="2"/>
-                            <path d="M12 15v1" stroke-width="2"/>
-                            <path d="M8 12h1" stroke-width="2"/>
-                            <path d="M15 12h1" stroke-width="2"/>
-                            <path d="M12 12L9 7" stroke-width="2.5" stroke-linecap="round"/>
-                            <path d="M12 12l4 1" stroke-width="1.5" stroke-linecap="round"/>
-                            <circle cx="12" cy="12" r="1" fill="currentColor"/>
-                          </svg>
-                          <p class="text-lg">{{ car.currentMileage }} km</p>
-                          <span v-if="car.nextVidangeKm" class="text-sm" :class="car.currentMileage >= car.nextVidangeKm ? 'text-red-500' : 'text-gray-500'">
-                            (Next vidange: {{ car.nextVidangeKm }} km)
-                          </span>
-                        </div>
-                        <div class="flex items-center gap-2 text-black dark:text-white">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1zM3 8a1 1 0 00-1.447.894l-2 1A1 1 0 000 10v4a1 1 0 001.447.894l2-1A1 1 0 003 13V8z" />
-                          </svg>
-                          <p class="text-lg">
-                        {{ car.licensePlate }}
-                      </p>
-                        </div>
-                      </div>
-                    </div>
+        <div class="p-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div v-for="(car, index) in filteredCars" 
+                 :key="index" 
+                 class="bg-white dark:bg-dark-70 rounded-xl overflow-hidden shadow-md relative group h-[500px]"
+                 :class="{'bg-black/50 dark:bg-black/50': hasExpiredItems(car)}">
+              <!-- Car Image -->
+              <img :src="car.image" 
+                   :alt="car.name"
+                   class="w-full h-full object-cover" />
+              
+              <!-- Car Info Overlay -->
+              <div class="absolute top-0 left-0 right-0 h-[50%] bg-black/50 p-4 overflow-y-auto z-10">
+                <div class="mb-2">
+                  <h3 class="text-xl font-bold text-white">{{ car.name }}</h3>
+                  <p class="text-sm text-white/90">{{ car.licensePlate }}</p>
+                </div>
+                
+                <!-- Features -->
+                <div class="flex flex-col gap-1.5 mb-2">
+                  <!-- Assurance -->
+                  <div v-if="car.assuranceEndDate" class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span class="text-sm font-semibold" :class="getDateColor(car.assuranceEndDate) || 'text-white'">
+                      Assurance: {{ formatDate(car.assuranceEndDate) }}
+                    </span>
                   </div>
-                </td>
-                <td class="py-6">
+
+                  <!-- Visite Technique -->
+                  <div v-if="car.visiteTechniqueEndDate" class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
+                    </svg>
+                    <span class="text-sm font-semibold" :class="getDateColor(car.visiteTechniqueEndDate) || 'text-white'">
+                      Visite Technique: {{ formatDate(car.visiteTechniqueEndDate) }}
+                    </span>
+                  </div>
+
+                  <!-- Vidange -->
                   <div class="flex items-center gap-2">
-                    <span class="text-2xl font-bold text-primary-100">{{ car.pricePerDay }}</span>
-                    <span class="text-black dark:text-white">MAD</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                    </svg>
+                    <span class="text-sm font-semibold text-white">
+                      {{ car.currentMileage }} km
+                      <span v-if="car.nextVidangeKm" class="text-sm ml-1" :class="car.currentMileage >= car.nextVidangeKm ? 'text-red-500' : 'text-white'">
+                        (Next: {{ car.nextVidangeKm }} km)
+                      </span>
+                    </span>
                   </div>
-                  <p class="text-sm text-black dark:text-white">per day</p>
-                </td>
-                <td class="py-6">
+
+                  <!-- Transmission -->
+                  <div class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" viewBox="0 0 24 24" fill="currentColor">
+                      <path v-if="car.transmission === 'manual'" d="M1.5 6.75v-3a.75.75 0 0 0-1.5 0v3a.75.75 0 0 0 1.5 0m2.85-.45-2.25-3a.75.75 0 1 0-1.2.9l2.25 3a.75.75 0 1 0 1.2-.9m18.9 13.95h-3L21 21v-.75A2.25 2.25 0 0 1 23.25 18l-.75-.75v6a.75.75 0 0 0 1.5 0v-6a.75.75 0 0 0-.75-.75 3.75 3.75 0 0 0-3.75 3.75V21c0 .414.336.75.75.75h3a.75.75 0 0 0 0-1.5M18.024 2.056A.75.75 0 1 1 18.75 3v1.5a.75.75 0 1 1-.722.95.75.75 0 1 0-1.446.4A2.25 2.25 0 1 0 18.75 3c-1 0-1 1.5 0 1.5a2.25 2.25 0 1 0-2.174-2.832.75.75 0 0 0 1.448.388M12 18.75a.75.75 0 0 1 1.5 0c0 .315-.107.622-.304.868l-2.532 3.163A.75.75 0 0 0 11.25 24h3a.75.75 0 0 0 0-1.5h-3l.586 1.219 2.532-3.164c.41-.513.632-1.15.632-1.805a2.25 2.25 0 0 0-4.5 0 .75.75 0 0 0 1.5 0M8.25 1.5H9v5.25a.75.75 0 0 0 1.5 0V1.5A1.5 1.5 0 0 0 9 0h-.75a.75.75 0 0 0 0 1.5m0 6h3a.75.75 0 0 0 0-1.5h-3a.75.75 0 0 0 0 1.5m-6-7.5H.75A.75.75 0 0 0 0 .75v3c0 .414.336.75.75.75h1.5a2.25 2.25 0 0 0 0-4.5m0 1.5a.75.75 0 0 1 0 1.5H.75l.75.75v-3l-.75.75zm8.25 11.25v-3a.75.75 0 0 0-1.5 0v3a.75.75 0 0 0 1.5 0m1.5 0v1.5a.75.75 0 0 0 1.5 0v-1.5a.75.75 0 0 0-1.5 0m7.5 0v-3a.75.75 0 0 0-1.5 0v3a.75.75 0 0 0 1.5 0m3 1.5A2.25 2.25 0 0 0 20.25 12h-15A2.25 2.25 0 0 1 3 9.75a.75.75 0 0 0-1.5 0 3.75 3.75 0 0 0 3.75 3.75h15a.75.75 0 0 1 .75.75.75.75 0 0 0 1.5 0"/>
+                      <path v-else d="M19.25 14.25v-4.5l-1.374.416 3 4.5c.412.617 1.374.326 1.374-.416v-4.5a.75.75 0 0 0-1.5 0v4.5l1.374-.416-3-4.5c-.412-.617-1.374-.326-1.374.416v4.5a.75.75 0 0 0 1.5 0m3 6a3.75 3.75 0 0 0-3.75-3.75.75.75 0 0 0-.75.75v6c0 .414.336.75.75.75a3.75 3.75 0 0 0 3.75-3.75m-1.5 0a2.25 2.25 0 0 1-2.25 2.25l.75.75v-6l-.75.75a2.25 2.25 0 0 1 2.25 2.25M18.5 4.5H20A2.25 2.25 0 0 0 20 0h-1.5a.75.75 0 0 0-.75.75v6a.75.75 0 0 0 1.5 0v-6l-.75.75H20A.75.75 0 0 1 20 3h-1.5a.75.75 0 0 0 0 1.5M4.25 6.75v4.5A2.25 2.25 0 0 0 6.5 13.5H8a.75.75 0 0 1 .75.75v4.5A2.25 2.25 0 0 0 11 21h3a.75.75 0 0 0 0-1.5h-3a.75.75 0 0 1-.75-.75v-4.5A2.25 2.25 0 0 0 8 12H6.5a.75.75 0 0 1-.75-.75v-4.5a.75.75 0 0 0-1.5 0m3-3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0m1.5 0a3.75 3.75 0 1 0-7.5 0 3.75 3.75 0 0 0 7.5 0"/>
+                    </svg>
+                    <span class="text-sm text-white font-semibold">{{ car.transmission === 'manual' ? 'Manual' : 'Automatic' }}</span>
+                  </div>
+                </div>
+
+                <!-- Status and Price -->
+                <div class="flex items-center justify-between">
                   <span
-                    class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium"
+                    class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
                     :class="{
-                      'text-green-800 bg-green-100 dark:bg-green-900 dark:text-green-100':
-                        car.status === 'Available',
-                      'text-red-800 bg-red-100 dark:bg-red-900 dark:text-red-100': car.status === 'Rented',
+                      'bg-green-500/20 text-white': car.status === 'Available',
+                      'bg-red-500/20 text-white': car.status === 'Rented',
                     }"
                   >
-                    <span class="w-2 h-2 rounded-full mr-2" :class="{
-                      'bg-green-500': car.status === 'Available',
-                      'bg-red-500': car.status === 'Rented'
+                    <span class="w-1.5 h-1.5 rounded-full mr-1.5" :class="{
+                      'bg-green-400': car.status === 'Available',
+                      'bg-red-400': car.status === 'Rented'
                     }"></span>
                     {{ car.status }}
                   </span>
-                </td>
-                <td class="py-6">
-                  <div class="flex items-center gap-3">
-                    <button
-                      @click="editCar(car)"
-                      class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-50 transition-colors"
-                      title="Edit"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-5 w-5 text-blue-500"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"
-                        />
-                      </svg>
-                    </button>
-                    <button
-                      @click="deleteCar(car)"
-                      class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-50 transition-colors"
-                      title="Delete"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-5 w-5 text-red-500"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fill-rule="evenodd"
-                          d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                          clip-rule="evenodd"
-                        />
-                      </svg>
-                    </button>
+                  <div class="text-right">
+                    <p class="text-2xl font-bold text-white">{{ car.pricePerDay }} MAD</p>
+                    <p class="text-sm text-white/80">per day</p>
                   </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                </div>
+              </div>
+              
+              <!-- Hover Overlay for Actions -->
+              <div class="absolute bottom-0 left-0 right-0 h-[50%] bg-black/50 flex items-center justify-center gap-4">
+                <button
+                  @click="editCar(car)"
+                  class="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-all opacity-0 group-hover:opacity-100"
+                  title="Edit"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-6 w-6 text-white"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"
+                    />
+                  </svg>
+                </button>
+                <button
+                  @click="deleteCar(car)"
+                  class="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-all opacity-0 group-hover:opacity-100"
+                  title="Delete"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-6 w-6 text-white"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -344,6 +322,33 @@
                 ></span>
               </div>
             </div>
+            <div>
+              <label class="block text-sm mb-1">Transmission</label>
+              <div class="flex items-center relative">
+                <select
+                  class="form-field appearance-none"
+                  v-model="currentCar.transmission"
+                >
+                  <option value="manual">Manual</option>
+                  <option value="automatic">Automatic</option>
+                </select>
+                <span class="absolute right-3 pointer-events-none"
+                  ><svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 512 512"
+                    class="w-4 rotate-90 transform"
+                  >
+                    <path
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="48"
+                      d="M184 112l144 144-144 144"
+                    ></path></svg
+                ></span>
+              </div>
+            </div>
           </div>
         </div>
         <div
@@ -397,7 +402,8 @@ export default {
         currentMileage: 0,
         needsVidange: false,
         lastVidangeKm: 0,
-        nextVidangeKm: 0
+        nextVidangeKm: 0,
+        transmission: "manual"
       },
       currentCarIndex: -1,
       fileInput: null,
@@ -479,12 +485,36 @@ export default {
       const diffTime = checkDate - today;
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       
-      if (diffDays <= 1 && diffDays >= 0) {
-        return 'text-red-500';
+      if (diffDays < 0) {
+        return 'text-red-500'; // Expired dates
+      } else if (diffDays <= 1 && diffDays >= 0) {
+        return 'text-red-500'; // Due today or tomorrow
       } else if (diffDays <= 3 && diffDays >= 0) {
-        return 'text-orange-500';
+        return 'text-orange-500'; // Due within 3 days
       }
       return '';
+    },
+    hasExpiredItems(car) {
+      const today = new Date();
+      
+      // Check assurance
+      if (car.assuranceEndDate) {
+        const assuranceDate = new Date(car.assuranceEndDate);
+        if (assuranceDate < today) return true;
+      }
+      
+      // Check visite technique
+      if (car.visiteTechniqueEndDate) {
+        const visiteDate = new Date(car.visiteTechniqueEndDate);
+        if (visiteDate < today) return true;
+      }
+      
+      // Check vidange
+      if (car.currentMileage && car.nextVidangeKm && car.currentMileage >= car.nextVidangeKm) {
+        return true;
+      }
+      
+      return false;
     },
     addCar() {
       const nextId = generateNextId(this.cars);
