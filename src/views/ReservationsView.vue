@@ -23,7 +23,7 @@
     </div>
 
     <!-- Remaining Amount Confirmation Modal -->
-    <div v-if="showRemainingAmountModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div v-if="showRemainingAmountModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
       <div class="bg-white dark:bg-dark-70 p-6 rounded-lg shadow-lg max-w-md w-full">
         <h3 class="text-lg font-bold mb-4">Remaining Amount Due</h3>
         <p class="mb-4">There is a remaining amount of <span class="font-bold text-red-500">{{ selectedReservation ? (selectedReservation.totalPrice - (selectedReservation.advance || 0)) : 0 }} MAD</span> to be paid by client <span class="font-bold">{{ selectedReservation ? getClientName(selectedReservation.clientId) : '' }}</span>.</p>
@@ -55,7 +55,7 @@
           :class="mode === 'dark' ? 'border-dark-50' : ''"
         >
           <div class="flex items-center gap-4">
-            <span class="text-lg font-bold leading-none">Reservations</span>
+          <span class="text-lg font-bold leading-none">Reservations</span>
           </div>
           <div class="flex items-center gap-2">
             <div class="w-[500px]">
@@ -179,16 +179,16 @@
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
                       </svg>
-                      <span 
+                  <span
                         class="text-sm font-medium"
-                        :class="{
+                    :class="{
                           'text-red-500': isEndDateToday(reservation.endDate),
                           'text-red-700 bg-red-100 px-2 py-1 rounded': isEndDatePast(reservation.endDate)
-                        }"
-                      >
+                    }"
+                  >
                         Return: {{ formatDate(reservation.endDate) }}
                         <span v-if="isEndDatePast(reservation.endDate)" class="ml-2">(Overdue)</span>
-                      </span>
+                  </span>
                       <a 
                         v-if="isEndDateToday(reservation.endDate) || isEndDatePast(reservation.endDate)"
                         :href="'tel:' + getClientPhone(reservation.clientId)"
@@ -250,38 +250,38 @@
                     @click="editReservation(reservation, index)"
                     class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-50 transition-colors"
                     title="Edit"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-5 w-5 text-blue-500"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
                     >
-                      <path
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5 text-blue-500"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
                         d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"
-                      />
-                    </svg>
+                        />
+                      </svg>
                   </button>
                   <button
                     v-if="reservation.status === 'Active'"
                     @click="makeCarAvailable(reservation, index)"
                     class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-50 transition-colors"
                     title="Make Available"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 24 24"
                       class="w-5 h-5 text-green-500"
                       fill="none"
                       stroke="currentColor"
-                    >
-                      <path
+                      >
+                        <path
                         stroke-linecap="round"
                         stroke-linejoin="round"
                         stroke-width="2"
                         d="M5 13l4 4L19 7"
-                      />
-                    </svg>
+                        />
+                      </svg>
                   </button>
                 </td>
               </tr>

@@ -4,6 +4,7 @@ import CarsView from './views/CarsView.vue'
 import ReservationsView from './views/ReservationsView.vue'
 import AddReservationView from './views/AddReservationView.vue'
 import ArchivedReservationsView from './views/ArchivedReservationsView.vue'
+import ClientsView from './views/ClientsView.vue'
 
 const routes = [
   {
@@ -17,6 +18,11 @@ const routes = [
     component: CarsView
   },
   {
+    path: '/cars/add',
+    name: 'cars-add',
+    component: () => import('./views/AddCarView.vue')
+  },
+  {
     path: '/car-events',
     name: 'car-events',
     component: () => import('./views/CarEventsView.vue')
@@ -27,9 +33,19 @@ const routes = [
     component: ReservationsView
   },
   {
-    path: '/add-reservation',
-    name: 'add-reservation',
+    path: '/reservations/add',
+    name: 'reservations-add',
     component: AddReservationView
+  },
+  {
+    path: '/clients',
+    name: 'clients',
+    component: ClientsView
+  },
+  {
+    path: '/clients/add',
+    name: 'clients-add',
+    component: () => import('./views/AddClientView.vue')
   },
   {
     path: '/archived-reservations',

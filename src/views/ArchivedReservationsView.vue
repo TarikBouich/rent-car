@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Delete Confirmation Modal -->
-    <div v-if="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div v-if="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
       <div class="bg-white dark:bg-dark-70 rounded-lg p-6 max-w-md w-full mx-4">
         <h3 class="text-lg font-bold mb-4">Delete Archived Reservation</h3>
         <p class="text-gray-600 dark:text-gray-300 mb-2">Are you sure you want to delete this archived reservation?</p>

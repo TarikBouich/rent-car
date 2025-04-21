@@ -1,255 +1,136 @@
 <template>
-  <div>
-    <div class="p-4">
-      <!-- Success Message -->
-      <div v-if="showSuccess" class="mb-4 p-4 rounded-lg bg-success-50 text-success-100">
-        Car added successfully! Redirecting...
+  <div class="p-4">
+    <div class="max-w-4xl mx-auto bg-white dark:bg-dark-70 rounded-lg shadow-sm">
+      <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">Add New Car</h2>
       </div>
-      
-      <div
-        class="rounded-xl shadow-card overflow-hidden"
-        :class="mode === 'dark' ? 'bg-dark-70' : 'bg-white-100'"
-      >
-        <div
-          class="p-4 border-b flex items-center justify-between"
-          :class="mode === 'dark' ? 'border-dark-50' : ''"
-        >
-          <span class="text-lg font-bold leading-none">Add Car</span>
-          <div class="flex items-center">
-            <RouterLink
-              :to="{ name: 'cars' }"
-              class="button primary-button small-button"
-            >
-              Cars
-            </RouterLink>
+      <form @submit.prevent="handleSubmit" class="p-4 space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Car Name -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Car Name</label>
+            <input
+              v-model="carData.name"
+              type="text"
+              required
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-dark-60 dark:border-dark-50 dark:text-gray-100 sm:text-sm"
+            />
+          </div>
+
+          <!-- Registration Number -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Registration Number</label>
+            <input
+              v-model="carData.registrationNumber"
+              type="text"
+              required
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-dark-60 dark:border-dark-50 dark:text-gray-100 sm:text-sm"
+            />
+          </div>
+
+          <!-- Current Mileage -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Current Mileage (km)</label>
+            <input
+              v-model.number="carData.currentMileage"
+              type="number"
+              required
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-dark-60 dark:border-dark-50 dark:text-gray-100 sm:text-sm"
+            />
+          </div>
+
+          <!-- Next Oil Change -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Next Oil Change (km)</label>
+            <input
+              v-model.number="carData.nextVidangeKm"
+              type="number"
+              required
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-dark-60 dark:border-dark-50 dark:text-gray-100 sm:text-sm"
+            />
+          </div>
+
+          <!-- Insurance End Date -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Insurance End Date</label>
+            <input
+              v-model="carData.assuranceEndDate"
+              type="date"
+              required
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-dark-60 dark:border-dark-50 dark:text-gray-100 sm:text-sm"
+            />
+          </div>
+
+          <!-- Technical Visit End Date -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Technical Visit End Date</label>
+            <input
+              v-model="carData.visiteTechniqueEndDate"
+              type="date"
+              required
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-dark-60 dark:border-dark-50 dark:text-gray-100 sm:text-sm"
+            />
           </div>
         </div>
-        <div class="p-4">
-          <div class="grid grid-cols-3 gap-4">
-            <div>
-              <label class="text-[15px] mb-1 block font-medium">Marque</label>
-              <input
-                v-model="newCar.name"
-                class="form-field"
-                required
-                placeholder="Marque"
-              />
-            </div>
-            <div>
-              <label class="text-[15px] mb-1 block font-medium">Matricule</label>
-              <input
-                v-model="newCar.licensePlate"
-                class="form-field"
-                placeholder="Matricule"
-                required
-              />
-            </div>
-            <div>
-              <label class="text-[15px] mb-1 block font-medium">Model</label>
-              <input
-                v-model="newCar.model"
-                type="text"
-                placeholder="Model"
-                class="form-field"
-                required
-              />
-            </div>
-            <div>
-              <label class="text-[15px] mb-1 block font-medium">Numero de chasse</label>
-              <input
-                v-model="newCar.chassisNumber"
-                type="text"
-                placeholder="Numero de chasse"
-                class="form-field"
-                required
-              />
-            </div>
-            <div>
-              <label class="text-[15px] mb-1 block font-medium">Carburant</label>
-              <input
-                v-model="newCar.fuelType"
-                type="text"
-                placeholder="Carburant"
-                class="form-field"
-                required
-              />
-            </div>
-            <div>
-              <label class="text-[15px] mb-1 block font-medium">Nombre porte</label>
-              <input
-                v-model="newCar.doors"
-                type="number"
-                placeholder="Nombre porte"
-                class="form-field"
-                required
-              />
-            </div>
-            <div>
-              <label class="text-[15px] mb-1 block font-medium">Compteur KM</label>
-              <input
-                v-model="newCar.currentMileage"
-                type="number"
-                placeholder="Compteur KM"
-                class="form-field"
-                required
-              />
-            </div>
-            <div>
-              <label class="text-[15px] mb-1 block font-medium">Prix/Jour</label>
-              <input
-                v-model="newCar.pricePerDay"
-                type="number"
-                placeholder="Prix/Jour"
-                class="form-field"
-                required
-              />
-            </div>
-            <div>
-              <label class="text-[15px] mb-1 block font-medium">Date fin d'assurance</label>
-              <input
-                v-model="newCar.assuranceEndDate"
-                type="date"
-                class="form-field"
-                required
-              />
-            </div>
-            <div>
-              <label class="text-[15px] mb-1 block font-medium">Date fin visite technique</label>
-              <input
-                v-model="newCar.visiteTechniqueEndDate"
-                type="date"
-                class="form-field"
-                required
-              />
-            </div>
-            <div>
-              <label class="text-[15px] mb-1 block font-medium">Dernier vidange (km)</label>
-              <input
-                v-model="newCar.lastVidangeKm"
-                type="number"
-                class="form-field"
-                @change="calculateNextVidange"
-                required
-              />
-            </div>
-            <div v-if="newCar.nextVidangeKm" class="mt-2 text-sm text-gray-500">
-              Prochain vidange à: {{ newCar.nextVidangeKm }} km
-            </div>
-            <div>
-              <label class="text-[15px] mb-1 block font-medium">Etat</label>
-              <select v-model="newCar.status" class="form-field" required>
-                <option value="Available">Available</option>
-                <option value="Rented">Rented</option>
-              </select>
-            </div>
-            <div class="col-span-3">
-              <label class="text-[15px] mb-1 block font-medium">Image</label>
-              <input
-                type="file"
-                @change="handleImageUpload"
-                class="form-field"
-                accept="image/*"
-              />
-            </div>
-          </div>
+
+        <div class="flex justify-end space-x-3 pt-4">
+          <button
+            type="button"
+            @click="$router.back()"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-dark-60 dark:border-dark-50 dark:text-gray-300 dark:hover:bg-dark-50"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            Add Car
+          </button>
         </div>
-        <div class="border-t-4 rounded-bl-xl rounded-br-xl bg-white-100 p-4">
-          <div class="flex items-center justify-end">
-            <button @click="addCar" class="button primary-button">Save</button>
-          </div>
-        </div>
-      </div>
+      </form>
     </div>
   </div>
 </template>
 
 <script>
-import { carStore } from "../store";
-import TopBar from "../components/TopBar.vue";
-import { useRouter } from 'vue-router';
-import { RouterLink } from 'vue-router';
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 export default {
-  components: {
-    TopBar,
-    RouterLink
-  },
-  props: {
-    mode: String,
-  },
-  data() {
+  name: 'AddCarView',
+  setup() {
+    const router = useRouter()
+    const carData = ref({
+      name: '',
+      registrationNumber: '',
+      currentMileage: null,
+      nextVidangeKm: null,
+      assuranceEndDate: '',
+      visiteTechniqueEndDate: '',
+    })
+
+    const handleSubmit = () => {
+      // Get existing cars from localStorage
+      const existingCars = JSON.parse(localStorage.getItem('cars') || '[]')
+      
+      // Add new car
+      existingCars.push({
+        id: Date.now(), // Simple way to generate unique ID
+        ...carData.value
+      })
+      
+      // Save back to localStorage
+      localStorage.setItem('cars', JSON.stringify(existingCars))
+      
+      // Navigate back to cars list
+      router.push({ name: 'cars' })
+    }
+
     return {
-      router: useRouter(),
-      newCar: {
-        name: "",
-        licensePlate: "",
-        model: "",
-        chassisNumber: "",
-        fuelType: "",
-        doors: 0,
-        currentMileage: 0,
-        pricePerDay: 0,
-        status: "Available",
-        image: "",
-        assuranceEndDate: "",
-        visiteTechniqueEndDate: "",
-        needsVidange: false,
-        lastVidangeKm: 0,
-        nextVidangeKm: 0
-      },
-      showSuccess: false,
-    };
-  },
-  methods: {
-    handleImageUpload(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          this.newCar.image = e.target.result;
-        };
-        reader.readAsDataURL(file);
-      }
-    },
-    addCar() {
-      // Add the new car to the global store
-      carStore.addCar({ ...this.newCar });
-      
-      // Show success message
-      this.showSuccess = true;
-      
-      // Reset form
-      this.resetForm();
-      
-      // Redirect after 2 seconds
-      setTimeout(() => {
-        this.router.push({ name: 'cars' });
-      }, 2000);
-    },
-    resetForm() {
-      this.newCar = {
-        name: "",
-        licensePlate: "",
-        model: "",
-        chassisNumber: "",
-        fuelType: "",
-        doors: 0,
-        currentMileage: 0,
-        pricePerDay: 0,
-        status: "Available",
-        image: "",
-        assuranceEndDate: "",
-        visiteTechniqueEndDate: "",
-        needsVidange: false,
-        lastVidangeKm: 0,
-        nextVidangeKm: 0
-      };
-    },
-    calculateNextVidange() {
-      if (this.newCar.lastVidangeKm) {
-        this.newCar.nextVidangeKm = parseInt(this.newCar.lastVidangeKm) + 9500;
-      }
-    },
-  },
-};
+      carData,
+      handleSubmit
+    }
+  }
+}
 </script>

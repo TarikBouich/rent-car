@@ -226,9 +226,7 @@
                 <input
                   :value="selectedCar ? selectedCar.pricePerDay : ''"
                   type="number"
-                  class="form-field bg-gray-50 dark:bg-dark-50 cursor-not-allowed"
-                  readonly
-                  disabled
+                  class="form-field bg-gray-50 dark:bg-dark-50"
                 />
               </div>
 

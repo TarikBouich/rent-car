@@ -8,6 +8,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fullcalendar/core": "^6.1.17",
+    "@fullcalendar/daygrid": "^6.1.17",
+    "@fullcalendar/interaction": "^6.1.17",
+    "@fullcalendar/vue3": "^6.1.17",
     "@iconoir/vue": "^7.9.0",
     "apexcharts": "^3.54.0",
     "jspdf": "^3.0.1",

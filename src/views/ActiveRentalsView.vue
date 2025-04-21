@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Confirmation Modal -->
-    <div v-if="showConfirmationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div v-if="showConfirmationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
       <div class="bg-white dark:bg-dark-70 p-6 rounded-lg shadow-lg max-w-md w-full">
         <h3 class="text-lg font-bold mb-4">Confirm Early Return</h3>
         <p class="mb-4">This car is scheduled to return on {{ formatDate(selectedReservation?.endDate) }}. Do you want to update the return date to today and make it available?</p>

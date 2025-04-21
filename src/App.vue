@@ -102,6 +102,45 @@
           </RouterLink>
 
           <RouterLink
+            :to="{ name: 'car-events' }"
+            v-slot="{ navigate, isActive, isExactActive }"
+            :title="isOpen ? 'Car Events' : ''"
+            @click="redirect"
+          >
+            <div
+              class="flex items-center p-2 relative rounded-md bg-opacity-5 gap-2 group"
+              :class="[
+                (isActive || isExactActive) && 'active',
+                isOpen && 'is-open',
+                mode === 'dark'
+                  ? 'text-white-100 hover:bg-dark-70'
+                  : 'hover:bg-primary-100 hover:text-body-100 hover:bg-opacity-5',
+              ]"
+              role="link"
+              @click="navigate"
+            >
+              <span class="flex-shrink-0 w-6 h-6">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path
+                    d="M19 4h-1V3c0-.6-.4-1-1-1s-1 .4-1 1v1H8V3c0-.6-.4-1-1-1s-1 .4-1 1v1H5C3.3 4 2 5.3 2 7v12c0 1.7 1.3 3 3 3h14c1.7 0 3-1.3 3-3V7c0-1.7-1.3-3-3-3zm1 15c0 .6-.4 1-1 1H5c-.6 0-1-.4-1-1v-3h16v3zm0-5H4V7c0-.6.4-1 1-1h1v1c0 .6.4 1 1 1s1-.4 1-1V6h8v1c0 .6.4 1 1 1s1-.4 1-1V6h1c.6 0 1 .4 1 1v6z"
+                  />
+                </svg>
+              </span>
+              <div
+                class="leading-none mt-1"
+                :class="isOpen === true ? 'hidden' : ''"
+              >
+                Car Events
+              </div>
+            </div>
+          </RouterLink>
+
+          <RouterLink
             :to="{ name: 'clients' }"
             v-slot="{ navigate, isActive, isExactActive }"
             :title="isOpen ? 'Clients' : ''"
