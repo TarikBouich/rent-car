@@ -4,7 +4,7 @@
       <div class="grid gap-5">
         <div class="grid grid-cols-6 gap-5">
           <div
-            class="rounded-xl shadow-card overflow-hidden bg-white-100 p-6 flex items-center justify-center flex-col"
+            class="rounded-xl shadow-card overflow-hidden bg-white p-6 flex items-center justify-center flex-col"
           >
             <span>
               <svg
@@ -29,7 +29,7 @@
             <span class="text-4xl font-bold">{{ totalReservations }}</span>
           </div>
           <div
-            class="rounded-xl shadow-card overflow-hidden bg-white-100 p-6 flex items-center justify-center flex-col"
+            class="rounded-xl shadow-card overflow-hidden bg-white p-6 flex items-center justify-center flex-col"
           >
             <span>
               <svg
@@ -54,7 +54,7 @@
             <span class="text-4xl font-bold">{{ totalClients }}</span>
           </div>
           <div
-            class="rounded-xl shadow-card overflow-hidden bg-white-100 p-6 flex items-center justify-center flex-col"
+            class="rounded-xl shadow-card overflow-hidden bg-white p-6 flex items-center justify-center flex-col"
           >
             <span>
               <svg
@@ -96,7 +96,7 @@
             <span class="text-4xl font-bold">{{ totalAgents }}</span>
           </div>
           <div
-            class="rounded-xl shadow-card overflow-hidden bg-white-100 p-6 flex items-center justify-center flex-col"
+            class="rounded-xl shadow-card overflow-hidden bg-white p-6 flex items-center justify-center flex-col"
           >
             <span>
               <svg
@@ -121,7 +121,7 @@
             <span class="text-4xl font-bold">{{ totalCars }}</span>
           </div>
           <div
-            class="rounded-xl shadow-card overflow-hidden bg-white-100 p-6 flex items-center justify-center flex-col"
+            class="rounded-xl shadow-card overflow-hidden bg-white p-6 flex items-center justify-center flex-col"
           >
             <span>
               <svg
@@ -160,7 +160,7 @@
             <span class="text-4xl font-bold">{{ totalAgencies }}</span>
           </div>
           <div
-            class="rounded-xl shadow-card overflow-hidden bg-white-100 p-6 flex items-center justify-center flex-col"
+            class="rounded-xl shadow-card overflow-hidden bg-white p-6 flex items-center justify-center flex-col"
           >
             <span>
               <svg
@@ -185,7 +185,7 @@
             <span class="text-4xl font-bold">{{ totalAlerts }}</span>
           </div>
         </div>
-        <div class="rounded-xl shadow-card overflow-hidden bg-white-100">
+        <div class="rounded-xl shadow-card overflow-hidden bg-white">
           <div
             class="p-4 border-b flex items-center justify-between xs:flex-col xs:items-start xs:gap-2"
             :class="mode === 'dark' ? 'border-dark-50' : ''"

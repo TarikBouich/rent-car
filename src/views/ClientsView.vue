@@ -3,7 +3,7 @@
     <div class="p-4">
       <div
         class="rounded-xl shadow-card overflow-hidden"
-        :class="mode === 'dark' ? 'bg-dark-70' : 'bg-white-100'"
+        :class="mode === 'dark' ? 'bg-dark-70' : 'bg-white'"
       >
         <div
           class="px-4 py-2.5 border-b flex items-center justify-between"
@@ -62,7 +62,7 @@
               :class="
                 mode === 'dark'
                   ? 'bg-dark-70 divide-dark-50'
-                  : 'bg-white-100 divide-gray-100'
+                  : 'bg-white divide-gray-100'
               "
             >
               <tr v-for="(client, index) in filteredClients" :key="index" 
@@ -106,7 +106,7 @@
                       </svg>
                       <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                         {{ getRentedCarInfo(client.nationalId) }}
-                      </div>
+                    </div>
                     </button>
                     <button
                       @click="editClient(client, index)"
@@ -159,7 +159,7 @@
     >
       <div
         class="max-w-2xl rounded-xl w-full mx-auto flex flex-col"
-        :class="mode === 'dark' ? 'bg-dark-70' : 'bg-white-100'"
+        :class="mode === 'dark' ? 'bg-dark-70' : 'bg-white'"
         style="max-height: 90vh;"
       >
         <div
@@ -295,7 +295,7 @@
     <div
       v-if="showEditModal"
       class="bg-opacity-40 fixed inset-0 z-[9999] flex items-center justify-center p-4"
-      :class="mode === 'dark' ? 'bg-white-100' : 'text-body-100'"
+      :class="mode === 'dark' ? 'bg-white' : 'text-body-100'"
     >
       <div
         class="max-w-2xl rounded-xl w-full mx-auto flex flex-col"
@@ -499,10 +499,10 @@
                 @click="closeEditModal"
               >
                 Cancel
-              </button>
-              <button
-                type="submit"
-                class="button primary-button small-button"
+          </button>
+          <button
+            type="submit"
+            class="button primary-button small-button"
               >
                 Save Changes
               </button>
@@ -516,11 +516,11 @@
     <div
       v-if="showImageModal"
       class="bg-opacity-40 fixed inset-0 z-[9999] flex items-center justify-center p-4"
-      :class="mode === 'dark' ? 'bg-white-100' : 'text-body-100'"
+      :class="mode === 'dark' ? 'bg-white' : 'text-body-100'"
     >
       <div
         class="max-w-4xl rounded-xl w-full mx-auto flex flex-col"
-        :class="mode === 'dark' ? 'bg-dark-70' : 'bg-white-100'"
+        :class="mode === 'dark' ? 'bg-dark-70' : 'bg-white'"
         style="max-height: 90vh;"
       >
         <div

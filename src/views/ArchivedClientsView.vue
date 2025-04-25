@@ -2,7 +2,7 @@
   <div class="p-4">
     <div
       class="rounded-xl shadow-card overflow-hidden"
-      :class="mode === 'dark' ? 'bg-dark-70' : 'bg-white-100'"
+      :class="mode === 'dark' ? 'bg-dark-70' : 'bg-white'"
     >
       <div
         class="px-4 py-2.5 border-b flex items-center justify-between"

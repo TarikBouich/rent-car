@@ -3,7 +3,7 @@
     <div class="p-4">
       <div
         class="rounded-xl shadow-card overflow-hidden"
-        :class="mode === 'dark' ? 'bg-dark-70' : 'bg-white-100'"
+        :class="mode === 'dark' ? 'bg-dark-70' : 'bg-white'"
       >
         <div
           class="px-4 py-2.5 border-b flex items-center justify-between"
@@ -175,10 +175,10 @@
     <div
       v-if="showModal"
       class="bg-opacity-40 fixed inset-0 z-[9999] flex items-center justify-center p-4"
-      :class="mode === 'dark' ? 'bg-white-100' : 'bg-body-100'"
+      :class="mode === 'dark' ? 'bg-white' : 'bg-body-100'"
     >
       <div
-        class="max-w-2xl rounded-xl w-full mx-auto bg-white-100"
+        class="max-w-2xl rounded-xl w-full mx-auto bg-white"
       >
         <div
           class="flex items-center justify-between px-4 py-3 border-b"

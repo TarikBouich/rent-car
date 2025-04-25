@@ -8,7 +8,7 @@
       
       <div
         class="rounded-xl shadow-card overflow-hidden"
-        :class="mode === 'dark' ? 'bg-dark-70' : 'bg-white-100'"
+        :class="mode === 'dark' ? 'bg-dark-70' : 'bg-white'"
       >
         <div
           class="p-4 border-b flex items-center justify-between"
@@ -288,7 +288,7 @@
             </div>
           </div>
         </div>
-        <div class="border-t-4 rounded-bl-xl rounded-br-xl bg-white-100 p-4">
+        <div class="border-t-4 rounded-bl-xl rounded-br-xl bg-white p-4">
           <div class="flex items-center justify-end">
             <button 
               @click="addReservation" 

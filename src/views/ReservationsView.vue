@@ -249,7 +249,7 @@
                   <button
                     @click="editReservation(reservation, index)"
                     class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-50 transition-colors"
-                    title="Edit"
+                      title="Edit"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"

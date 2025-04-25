@@ -1,67 +1,98 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import DashboardView from './views/DashboardView.vue'
-import CarsView from './views/CarsView.vue'
-import ReservationsView from './views/ReservationsView.vue'
-import AddReservationView from './views/AddReservationView.vue'
-import ArchivedReservationsView from './views/ArchivedReservationsView.vue'
-import ClientsView from './views/ClientsView.vue'
 
 const routes = [
   {
     path: '/',
+    redirect: '/login'
+  },
+  {
+    path: '/login',
+    name: 'login',
+    component: () => import('./views/LoginView.vue'),
+    meta: { 
+      layout: 'auth',
+      requiresAuth: false 
+    }
+  },
+  {
+    path: '/dashboard',
     name: 'dashboard',
-    component: DashboardView
+    component: () => import('./views/DashboardView.vue'),
+    meta: { requiresAuth: true }
   },
   {
     path: '/cars',
     name: 'cars',
-    component: CarsView
+    component: () => import('./views/CarsView.vue'),
+    meta: { requiresAuth: true }
   },
   {
     path: '/cars/add',
     name: 'cars-add',
-    component: () => import('./views/AddCarView.vue')
+    component: () => import('./views/AddCarView.vue'),
+    meta: { requiresAuth: true }
   },
   {
     path: '/car-events',
     name: 'car-events',
-    component: () => import('./views/CarEventsView.vue')
+    component: () => import('./views/CarEventsView.vue'),
+    meta: { requiresAuth: true }
   },
   {
     path: '/reservations',
     name: 'reservations',
-    component: ReservationsView
+    component: () => import('./views/ReservationsView.vue'),
+    meta: { requiresAuth: true }
   },
   {
     path: '/reservations/add',
     name: 'reservations-add',
-    component: AddReservationView
+    component: () => import('./views/AddReservationView.vue'),
+    meta: { requiresAuth: true }
   },
   {
     path: '/clients',
     name: 'clients',
-    component: ClientsView
+    component: () => import('./views/ClientsView.vue'),
+    meta: { requiresAuth: true }
   },
   {
     path: '/clients/add',
     name: 'clients-add',
-    component: () => import('./views/AddClientView.vue')
+    component: () => import('./views/AddClientView.vue'),
+    meta: { requiresAuth: true }
   },
   {
     path: '/archived-reservations',
     name: 'archived-reservations',
-    component: ArchivedReservationsView
+    component: () => import('./views/ArchivedReservationsView.vue'),
+    meta: { requiresAuth: true }
   },
   {
     path: '/archived-clients',
     name: 'archived-clients',
-    component: () => import('./views/ArchivedClientsView.vue')
+    component: () => import('./views/ArchivedClientsView.vue'),
+    meta: { requiresAuth: true }
   }
 ]
 
 const router = createRouter({
   history: createWebHistory(),
   routes
+})
+
+// Navigation guard
+router.beforeEach((to, from, next) => {
+  const currentUser = localStorage.getItem('currentUser')
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+
+  if (requiresAuth && !currentUser) {
+    next('/login')
+  } else if (to.path === '/login' && currentUser) {
+    next('/dashboard')
+  } else {
+    next()
+  }
 })
 
 export default router 

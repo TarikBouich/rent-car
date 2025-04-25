@@ -1,7 +1,7 @@
 <template>
   <div
     class="flex items-center justify-between border-b h-14 px-4 relative custom:sticky top-0 z-[999]"
-    :class="[mode === 'dark' ? 'bg-dark-90 border-dark-70' : 'bg-white-100']"
+    :class="[mode === 'dark' ? 'bg-dark-90 border-dark-70' : 'bg-white']"
   >
     <div class="flex items-center gap-4">
       <div
