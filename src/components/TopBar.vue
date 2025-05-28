@@ -1,106 +1,128 @@
 <template>
-  <div
-    class="flex items-center justify-between border-b h-14 px-4 relative custom:sticky top-0 z-[999]"
-    :class="[mode === 'dark' ? 'bg-dark-90 border-dark-70' : 'bg-white']"
-  >
-    <div class="flex items-center gap-4">
-      <div
-        @click="collapseSidebar"
-        class="w-6 h-6 cursor-pointer hidden custom:block"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            fill-rule="evenodd"
-            d="M3 4.75a.75.75 0 0 1 .75-.75h12.5a.75.75 0 0 1 0 1.5h-12.5a.75.75 0 0 1-.75-.75Z"
-          />
-          <path
-            fill-rule="evenodd"
-            d="M3 10a.75.75 0 0 1 .75-.75h12.5a.75.75 0 0 1 0 1.5h-12.5a.75.75 0 0 1-.75-.75Z"
-          />
-          <path
-            fill-rule="evenodd"
-            d="M3 15.25a.75.75 0 0 1 .75-.75h12.5a.75.75 0 0 1 0 1.5h-12.5a.75.75 0 0 1-.75-.75Z"
-          />
-        </svg>
+  <div class="p-4 border-b" :class="mode === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'">
+    <div class="flex justify-between items-center">
+      <div>
+        <h2 class="text-xl font-semibold" :class="mode === 'dark' ? 'text-white' : 'text-gray-900'">
+          {{ title }}
+        </h2>
+        <p class="text-sm mt-1" :class="mode === 'dark' ? 'text-gray-300' : 'text-gray-600'">
+          {{ userStore.currentAgency?.name }} - {{ userStore.currentUser?.role }}
+        </p>
       </div>
-      <slot></slot>
-    </div>
-    <div class="flex items-center gap-x-6 custom:gap-x-4">
-      <div class="relative">
+      <div class="flex items-center gap-4">
+        <!-- Alert Icon -->
+        <div class="relative">
         <button
-          class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-dark-70"
-          @click="toggleNotifications"
-        >
-          <notificationIcon />
-          <span
-            v-if="unreadCount > 0"
-            class="absolute top-0 right-0 flex items-center justify-center w-4 h-4 text-xs text-white bg-red-500 rounded-full"
+            class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-dark-70 dark:text-gray-200"
+            @click="toggleNotifications"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+              width="24" 
+              height="24" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              stroke-width="2" 
+              stroke-linecap="round" 
+              stroke-linejoin="round"
+                  class="w-6 h-6"
+                >
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              <path d="M12 2v1"></path>
+                </svg>
+            <span
+              v-if="unreadCount > 0"
+              class="absolute top-0 right-0 flex items-center justify-center w-4 h-4 text-xs text-white bg-red-500 rounded-full"
+            >
+              {{ unreadCount }}
+            </span>
+          </button>
+          <div
+            v-if="showNotifications"
+            ref="notificationMenu"
+            class="absolute right-0 w-80 mt-2 bg-white dark:bg-dark-90 rounded-lg shadow-lg z-50"
           >
-            {{ unreadCount }}
-          </span>
-        </button>
-        <div
-          v-if="showNotifications"
-          ref="notificationMenu"
-          class="absolute right-0 w-80 mt-2 bg-white dark:bg-dark-90 rounded-lg shadow-lg z-50"
-        >
-          <div class="p-4">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-lg font-semibold">Notifications</h3>
-              <button
-                class="text-sm text-primary-100 hover:text-primary-200"
-                @click="markAllAsRead"
-              >
-                Mark all as read
-              </button>
-            </div>
-            <div class="space-y-2 max-h-[400px] overflow-y-auto">
-              <div
-                v-for="notification in notifications"
-                :key="notification.id"
-                class="flex items-start p-4 border-b border-gray-200 dark:border-gray-700 gap-2.5"
-                :class="{ 'bg-red-50 dark:bg-red-900/20': notification.time === 'Today' }"
-              >
-                <img
-                  :src="notification.icon"
-                  :alt="notification.type"
-                  class="w-8 h-8 rounded-full"
-                />
-                <div class="flex-1">
-                  <p class="text-sm font-medium" v-html="notification.message"></p>
-                  <p class="text-xs text-gray-500 dark:text-gray-400">
-                    {{ notification.time }}
-                  </p>
+            <div class="p-4">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold dark:text-gray-200">Notifications</h3>
+                <button
+                  class="text-sm text-primary-100 hover:text-primary-200"
+                  @click="markAllAsRead"
+                >
+                  Mark all as read
+                </button>
+              </div>
+              <div class="space-y-2 max-h-[400px] overflow-y-auto">
+                <div
+                  v-for="notification in notifications"
+                  :key="notification.id"
+                  class="flex items-start p-4 border-b border-gray-200 dark:border-gray-700 gap-2.5"
+                  :class="{
+                    'bg-red-50 dark:bg-red-900/20': notification.priority === 'high',
+                    'bg-yellow-50 dark:bg-yellow-900/20': notification.priority === 'medium'
+                  }"
+                >
+                  <div class="flex-1">
+                    <p class="text-sm font-medium dark:text-gray-200" v-html="notification.message"></p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      {{ notification.type }}
+                    </p>
+                  </div>
+                </div>
+                <div v-if="notifications.length === 0" class="text-center py-4 text-gray-500 dark:text-gray-400">
+                  No notifications
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      <div class="flex items-center gap-4">
-        <button
-          @click="toggleDropdown"
-          class="flex items-center justify-center font-semibold tracking-wider text-base leading-none bg-primary-100 w-[40px] h-[40px] rounded-full text-white"
-          type="button"
+
+        <!-- <button 
+          @click="$emit('toggle-mode')"
+          class="px-3 py-1 rounded-md text-sm"
+          :class="mode === 'dark' ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'"
         >
-          {{ getUserInitials }}
-        </button>
-        <div
-          v-if="showDropdown"
-          ref="dropdownMenu"
-          class="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-dark-70 rounded-lg shadow-lg py-1 z-50"
-        >
-          <a
-            href="#"
-            class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-60"
-            @click="logout"
+          {{ mode === 'dark' ? '☀️ Light' : '🌙 Dark' }}
+        </button> -->
+
+        <div class="relative">
+          <button 
+            type="button"
+            @click="showUserMenu = !showUserMenu"
+            class="flex items-center space-x-2 focus:outline-none"
           >
-            Logout
-          </a>
+            <span class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center">
+              {{ userInitials }}
+            </span>
+          </button>
+          <!-- User Menu Dropdown -->
+          <div 
+            v-if="showUserMenu"
+            ref="dropdownMenu"
+            class="absolute right-0 mt-2 w-48 rounded-md shadow-lg"
+            :class="mode === 'dark' ? 'bg-gray-800 ring-1 ring-gray-700' : 'bg-white'"
+          >
+            <div class="py-1">
+              <div class="px-4 py-2 text-sm" :class="mode === 'dark' ? 'text-gray-300' : 'text-gray-700'">
+                {{ userStore.currentUser?.email }}
+              </div>
+              <div class="px-4 py-2 text-sm" :class="mode === 'dark' ? 'text-gray-300' : 'text-gray-700'">
+                {{ userStore.currentAgency?.name }}
+              </div>
+              <hr :class="mode === 'dark' ? 'border-gray-700' : 'border-gray-200'">
+              <button
+                @click="handleLogout"
+                class="block w-full text-left px-4 py-2 text-sm"
+                :class="mode === 'dark' 
+                  ? 'text-gray-300 hover:bg-gray-700' 
+                  : 'text-gray-700 hover:bg-gray-100'"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -108,33 +130,66 @@
 </template>
 
 <script>
-import notificationIcon from "./icons/notification.vue";
+import { useUserStore } from '../stores/userStore';
+import { useAlertStore } from '../stores/alertStore';
 
 export default {
-  components: {
-    notificationIcon,
-  },
+  name: 'TopBar',
   props: {
-    mode: String,
+    mode: {
+      type: String,
+      default: 'light'
+    },
+    title: {
+      type: String,
+      required: true
+    }
+  },
+  setup() {
+    const userStore = useUserStore();
+    const alertStore = useAlertStore();
+    return { userStore, alertStore };
   },
   data() {
     return {
-      dropdownClass: "hidden",
-      isCollapsed: false,
-      isDropDownOpen: false,
       showNotifications: false,
-      showDropdown: false,
-      notifications: [],
-      unreadCount: 0,
+      showUserMenu: false,
     };
   },
-  mounted() {
-    window.addEventListener("isCollapsed", (event) => {
-      this.isCollapsed = event.detail.isCollapsed;
-    });
-    this.checkCarNotifications();
-    // Check for notifications every hour
-    setInterval(this.checkCarNotifications, 3600000);
+  computed: {
+    notifications() {
+      return this.alertStore?.filteredAlerts || [];
+    },
+    unreadCount() {
+      return this.alertStore?.totalAlerts || 0;
+    },
+    userInitials() {
+      const email = this.userStore.currentUser?.email;
+      if (!email) return 'U';
+      return email
+        .split('@')[0]
+        .split('.')
+        .map(part => part && part[0] ? part[0].toUpperCase() : '')
+        .join('');
+    }
+  },
+  async mounted() {
+    try {
+      // Initialize alerts if not already initialized
+      if (this.alertStore && (!this.notifications || this.notifications.length === 0)) {
+        await this.alertStore.initialize();
+      }
+      
+      // Check for new alerts every hour
+      setInterval(() => {
+        if (this.alertStore) {
+          this.alertStore.checkAlerts();
+        }
+      }, 3600000);
+    } catch (error) {
+      console.error('Error initializing alerts:', error);
+    }
+    
     // Add click outside listener
     document.addEventListener('click', this.handleClickOutside);
   },
@@ -143,177 +198,17 @@ export default {
     document.removeEventListener('click', this.handleClickOutside);
   },
   methods: {
-    checkCarNotifications() {
-      const reservations = JSON.parse(localStorage.getItem('reservations') || '[]');
-      const cars = JSON.parse(localStorage.getItem('cars') || '[]');
-      const clients = JSON.parse(localStorage.getItem('clients') || '[]');
-      
-      // Get today's date in DD/MM/YYYY format
-      const today = new Date();
-      const day = String(today.getDate()).padStart(2, '0');
-      const month = String(today.getMonth() + 1).padStart(2, '0');
-      const year = today.getFullYear();
-      const todayFormatted = `${day}/${month}/${year}`;
-      
-      // Get tomorrow's date
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const tomorrowDay = String(tomorrow.getDate()).padStart(2, '0');
-      const tomorrowMonth = String(tomorrow.getMonth() + 1).padStart(2, '0');
-      const tomorrowYear = tomorrow.getFullYear();
-      const tomorrowFormatted = `${tomorrowDay}/${tomorrowMonth}/${tomorrowYear}`;
-      
-      this.notifications = [];
-
-      // Check for cars that need to be returned today
-      reservations.forEach(reservation => {
-        if (reservation.status === 'Active') {
-          const reservationDate = new Date(reservation.endDate);
-          const resDay = String(reservationDate.getDate()).padStart(2, '0');
-          const resMonth = String(reservationDate.getMonth() + 1).padStart(2, '0');
-          const resYear = reservationDate.getFullYear();
-          const formattedEndDate = `${resDay}/${resMonth}/${resYear}`;
-
-          if (formattedEndDate === todayFormatted) {
-            // Find the car details
-            const car = cars.find(c => c.name === reservation.carName);
-            this.notifications.push({
-              id: `return-${reservation.id}`,
-              type: 'return',
-              message: `${reservation.carName} [${car?.licensePlate || 'N/A'}] needs to be returned today by <br>client: <b>${reservation.clientName}</b> <br>phone: <b>${reservation.clientPhone}</b>`,
-              time: 'Today',
-              unread: true,
-              icon: car?.image || 'https://cdn-icons-png.flaticon.com/128/7867/7867059.png',
-              priority: 1 // Higher priority for today's notifications
-            });
-          }
-        }
-      });
-
-      // Check for technical inspection due tomorrow or expired
-      cars.forEach(car => {
-        if (car.visiteTechniqueEndDate) {
-          const inspectionDate = new Date(car.visiteTechniqueEndDate);
-          const insDay = String(inspectionDate.getDate()).padStart(2, '0');
-          const insMonth = String(inspectionDate.getMonth() + 1).padStart(2, '0');
-          const insYear = inspectionDate.getFullYear();
-          const formattedInspectionDate = `${insDay}/${insMonth}/${insYear}`;
-          
-          // Check if expired
-          if (inspectionDate < today) {
-            this.notifications.push({
-              id: `inspection-expired-${car.licensePlate}`,
-              type: 'inspection',
-              message: `⚠️ Visite Technique EXPIRED for ${car.name} (${car.licensePlate}) <br>Expired on: <b>${formattedInspectionDate}</b>`,
-              time: 'Today',
-              unread: true,
-              icon: car.image || 'https://cdn-icons-png.flaticon.com/128/7867/7867059.png',
-              priority: 1 // Higher priority for expired items
-            });
-          }
-          // Check if due tomorrow
-          else if (formattedInspectionDate === tomorrowFormatted) {
-            this.notifications.push({
-              id: `inspection-${car.licensePlate}`,
-              type: 'inspection',
-              message: `Visite Technique due tomorrow for ${car.name} (${car.licensePlate})`,
-              time: 'Tomorrow',
-              unread: true,
-              icon: car.image || 'https://cdn-icons-png.flaticon.com/128/7867/7867059.png',
-              priority: 2 // Lower priority for tomorrow's notifications
-            });
-          }
-        }
-
-        // Check for oil change needed based on current mileage
-        if (car.currentMileage && car.nextVidangeKm) {
-          if (car.currentMileage >= car.nextVidangeKm) {
-            this.notifications.push({
-              id: `oilchange-${car.licensePlate}`,
-              type: 'maintenance',
-              message: `Vidange needed for :<br>${car.name} (${car.licensePlate}) <br>- Current: <b>${car.currentMileage}km</b> <br>- Next: <b>${car.nextVidangeKm}km</b>`,
-              time: 'Today',
-              unread: true,
-              icon: car.image || 'https://cdn-icons-png.flaticon.com/128/7867/7867059.png',
-              priority: 1 // Higher priority for today's notifications
-            });
-          }
-        }
-
-        // Check for insurance expiration
-        if (car.assuranceEndDate) {
-          const insuranceDate = new Date(car.assuranceEndDate);
-          const insDay = String(insuranceDate.getDate()).padStart(2, '0');
-          const insMonth = String(insuranceDate.getMonth() + 1).padStart(2, '0');
-          const insYear = insuranceDate.getFullYear();
-          const formattedInsuranceDate = `${insDay}/${insMonth}/${insYear}`;
-          
-          // Check if expired
-          if (insuranceDate < today) {
-            this.notifications.push({
-              id: `insurance-expired-${car.licensePlate}`,
-              type: 'insurance',
-              message: `⚠️ Insurance EXPIRED for ${car.name} (${car.licensePlate}) <br>Expired on: <b>${formattedInsuranceDate}</b>`,
-              time: 'Today',
-              unread: true,
-              icon: car.image || 'https://cdn-icons-png.flaticon.com/128/7867/7867059.png',
-              priority: 1 // Higher priority for expired items
-            });
-          }
-          // Check if due tomorrow
-          else if (formattedInsuranceDate === tomorrowFormatted) {
-            this.notifications.push({
-              id: `insurance-${car.licensePlate}`,
-              type: 'insurance',
-              message: `Insurance expires tomorrow for ${car.name} (${car.licensePlate})`,
-              time: 'Tomorrow',
-              unread: true,
-              icon: car.image || 'https://cdn-icons-png.flaticon.com/128/7867/7867059.png',
-              priority: 2 // Lower priority for tomorrow's notifications
-            });
-          }
-        }
-      });
-
-      // Sort notifications by priority (today first, then tomorrow)
-      this.notifications.sort((a, b) => a.priority - b.priority);
-
-      console.log('Final notifications:', this.notifications);
-    },
-    toggleDropDown() {
-      this.isDropDownOpen = !this.isDropDownOpen;
-      this.showNotifications = false;
-    },
-    hideDropdown(event) {
-      if (this.dropdownClass === "block") {
-        this.dropdownClass = "hidden";
-      }
-    },
-    collapseSidebar() {
-      this.isCollapsed = !this.isCollapsed;
-      window.dispatchEvent(
-        new CustomEvent("collapseSidebar", {
-          detail: {
-            isCollapsed: this.isCollapsed,
-          },
-        })
-      );
-    },
     toggleNotifications() {
       this.showNotifications = !this.showNotifications;
-      this.isDropDownOpen = false;
+      this.showUserMenu = false;
     },
     markAllAsRead() {
-      this.notifications.forEach((notification) => {
-        notification.unread = false;
-      });
+      // For now, just close the notifications
+      this.showNotifications = false;
     },
-    toggleDropdown() {
-      this.showDropdown = !this.showDropdown;
-    },
-    logout() {
-      localStorage.removeItem('user');
-      window.location.href = '/';
+    handleLogout() {
+      this.userStore.logout();
+      this.$router.push('/login');
     },
     handleClickOutside(event) {
       const dropdownMenu = this.$refs.dropdownMenu;
@@ -321,26 +216,14 @@ export default {
       const userButton = event.target.closest('button[type="button"]');
       const notificationButton = event.target.closest('button[class*="hover:bg-gray-100"]');
       
-      if (dropdownMenu && !dropdownMenu.contains(event.target) && !userButton) {
-        this.showDropdown = false;
+      if (dropdownMenu && !dropdownMenu.contains(event.target) && !userButton?.closest('.relative')) {
+        this.showUserMenu = false;
       }
       
       if (notificationMenu && !notificationMenu.contains(event.target) && !notificationButton) {
         this.showNotifications = false;
       }
-    },
-  },
-  computed: {
-    getUserInitials() {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      if (user.firstName && user.lastName) {
-        return `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`;
-      }
-      return 'TB';
-    },
-    unreadCount() {
-      return this.notifications.filter((n) => n.unread).length;
     }
-  },
+  }
 };
 </script>

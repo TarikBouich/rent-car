@@ -56,7 +56,7 @@
                    class="w-full h-full object-cover" />
               
               <!-- Car Info Overlay -->
-              <div class="absolute top-0 left-0 right-0 h-[50%] bg-black/50 p-4 overflow-y-auto z-10">
+              <div class="absolute top-0 left-0 right-0 h-[80%] bg-black/50 p-4 overflow-y-auto z-10">
                 <div class="mb-2">
                   <h3 class="text-xl font-bold text-white">{{ car.name }}</h3>
                   <p class="text-sm text-white/90">{{ car.licensePlate }}</p>
@@ -130,7 +130,7 @@
               </div>
               
               <!-- Hover Overlay for Actions -->
-              <div class="absolute bottom-0 left-0 right-0 h-[50%] bg-black/50 flex items-center justify-center gap-4">
+              <div class="absolute bottom-0 left-0 right-0 h-[20%] bg-black/50 flex items-center justify-center gap-4">
                 <button
                   @click="editCar(car)"
                   class="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-all opacity-0 group-hover:opacity-100"

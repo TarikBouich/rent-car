@@ -191,87 +191,119 @@
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm text-gray-500">First Name</label>
-                <p class="text-lg font-semibold">{{ selectedClient.firstName }}</p>
+                <p class="text-lg font-semibold" :class="{'text-gray-400': !selectedClient.firstName}">
+                  {{ selectedClient.firstName || 'Not provided' }}
+                </p>
               </div>
               <div>
                 <label class="block text-sm text-gray-500">Last Name</label>
-                <p class="text-lg font-semibold">{{ selectedClient.lastName }}</p>
+                <p class="text-lg font-semibold" :class="{'text-gray-400': !selectedClient.lastName}">
+                  {{ selectedClient.lastName || 'Not provided' }}
+                </p>
               </div>
             </div>
             <div>
               <label class="block text-sm text-gray-500">National ID</label>
-              <p class="text-lg font-semibold">{{ selectedClient.nationalId }}</p>
+              <p class="text-lg font-semibold" :class="{'text-gray-400': !selectedClient.nationalId}">
+                {{ selectedClient.nationalId || 'Not provided' }}
+              </p>
             </div>
             <div>
               <label class="block text-sm text-gray-500">Phone Number</label>
-              <p class="text-lg font-semibold">{{ selectedClient.phoneNumber }}</p>
+              <p class="text-lg font-semibold" :class="{'text-gray-400': !selectedClient.phoneNumber}">
+                {{ selectedClient.phoneNumber || 'Not provided' }}
+              </p>
             </div>
             <div>
               <label class="block text-sm text-gray-500">Nationality</label>
-              <p class="text-lg font-semibold">{{ selectedClient.nationality }}</p>
+              <p class="text-lg font-semibold" :class="{'text-gray-400': !selectedClient.nationality}">
+                {{ selectedClient.nationality || 'Not provided' }}
+              </p>
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm text-gray-500">Birth Date</label>
-                <p class="text-lg font-semibold">{{ selectedClient.birthDate }}</p>
+                <p class="text-lg font-semibold" :class="{'text-gray-400': !selectedClient.birthDate}">
+                  {{ formatDisplayDate(selectedClient.birthDate) }}
+                </p>
               </div>
               <div>
                 <label class="block text-sm text-gray-500">Profession</label>
-                <p class="text-lg font-semibold">{{ selectedClient.profession }}</p>
+                <p class="text-lg font-semibold" :class="{'text-gray-400': !selectedClient.profession}">
+                  {{ selectedClient.profession || 'Not provided' }}
+                </p>
               </div>
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm text-gray-500">License Number</label>
-                <p class="text-lg font-semibold">{{ selectedClient.licenseNumber }}</p>
+                <p class="text-lg font-semibold" :class="{'text-gray-400': !selectedClient.licenseNumber}">
+                  {{ selectedClient.licenseNumber || 'Not provided' }}
+                </p>
               </div>
               <div>
                 <label class="block text-sm text-gray-500">License Issue Date</label>
-                <p class="text-lg font-semibold">{{ selectedClient.licenseDate }}</p>
+                <p class="text-lg font-semibold" :class="{'text-gray-400': !selectedClient.licenseDate}">
+                  {{ formatDisplayDate(selectedClient.licenseDate) }}
+                </p>
               </div>
             </div>
             <div>
               <label class="block text-sm text-gray-500">Address</label>
-              <p class="text-lg font-semibold">{{ selectedClient.address }}</p>
+              <p class="text-lg font-semibold" :class="{'text-gray-400': !selectedClient.address}">
+                {{ selectedClient.address || 'Not provided' }}
+              </p>
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm text-gray-500">ID Card Front</label>
-                <img 
-                  v-if="selectedClient.idCardFront" 
-                  :src="selectedClient.idCardFront" 
-                  class="w-full h-auto rounded-lg cursor-pointer"
-                  @click="showImage(selectedClient.idCardFront)"
-                />
+                <div v-if="selectedClient.idCardFront" class="mt-2">
+                  <img 
+                    :src="selectedClient.idCardFront" 
+                    class="w-full h-48 object-contain rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                    @click="showImage(selectedClient.idCardFront)"
+                    alt="ID Card Front"
+                  />
+                </div>
+                <p v-else class="text-gray-400 mt-2">No image provided</p>
               </div>
               <div>
                 <label class="block text-sm text-gray-500">ID Card Back</label>
-                <img 
-                  v-if="selectedClient.idCardBack" 
-                  :src="selectedClient.idCardBack" 
-                  class="w-full h-auto rounded-lg cursor-pointer"
-                  @click="showImage(selectedClient.idCardBack)"
-                />
+                <div v-if="selectedClient.idCardBack" class="mt-2">
+                  <img 
+                    :src="selectedClient.idCardBack" 
+                    class="w-full h-48 object-contain rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                    @click="showImage(selectedClient.idCardBack)"
+                    alt="ID Card Back"
+                  />
+                </div>
+                <p v-else class="text-gray-400 mt-2">No image provided</p>
               </div>
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm text-gray-500">Driver's License Front</label>
-                <img 
-                  v-if="selectedClient.driverLicenseFront" 
-                  :src="selectedClient.driverLicenseFront" 
-                  class="w-full h-auto rounded-lg cursor-pointer"
-                  @click="showImage(selectedClient.driverLicenseFront)"
-                />
+                <div v-if="selectedClient.driverLicenseFront" class="mt-2">
+                  <img 
+                    :src="selectedClient.driverLicenseFront" 
+                    class="w-full h-48 object-contain rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                    @click="showImage(selectedClient.driverLicenseFront)"
+                    alt="Driver's License Front"
+                  />
+                </div>
+                <p v-else class="text-gray-400 mt-2">No image provided</p>
               </div>
               <div>
                 <label class="block text-sm text-gray-500">Driver's License Back</label>
-                <img 
-                  v-if="selectedClient.driverLicenseBack" 
-                  :src="selectedClient.driverLicenseBack" 
-                  class="w-full h-auto rounded-lg cursor-pointer"
-                  @click="showImage(selectedClient.driverLicenseBack)"
-                />
+                <div v-if="selectedClient.driverLicenseBack" class="mt-2">
+                  <img 
+                    :src="selectedClient.driverLicenseBack" 
+                    class="w-full h-48 object-contain rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                    @click="showImage(selectedClient.driverLicenseBack)"
+                    alt="Driver's License Back"
+                  />
+                </div>
+                <p v-else class="text-gray-400 mt-2">No image provided</p>
               </div>
             </div>
           </div>
@@ -839,7 +871,22 @@ export default {
         licenseDate: '',
         licenseCity: '',
       };
-    }
+    },
+    formatDisplayDate(dateString) {
+      if (!dateString) return 'Not provided';
+      
+      try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) {
+          console.warn('Invalid date:', dateString);
+          return 'Invalid date';
+        }
+        return this.formatDate(dateString);
+      } catch (error) {
+        console.error('Error formatting date for display:', error);
+        return 'Invalid date';
+      }
+    },
   }
 };
 </script>

@@ -11,12 +11,30 @@
 <script>
 import DefaultLayout from './layouts/DefaultLayout.vue'
 import AuthLayout from './layouts/AuthLayout.vue'
+import { initializeDefaultData } from './utils/initDefaultData'
+import { useUserStore } from './stores/userStore'
+import { useCarStore } from './stores/carStore'
+import { useClientStore } from './stores/clientStore'
+import { useAlertStore } from './stores/alertStore'
 
 export default {
   name: 'App',
   components: {
     DefaultLayout,
     AuthLayout
+  },
+  setup() {
+    const userStore = useUserStore()
+    const carStore = useCarStore()
+    const clientStore = useClientStore()
+    const alertStore = useAlertStore()
+
+    return {
+      userStore,
+      carStore,
+      clientStore,
+      alertStore
+    }
   },
   data() {
     return {
@@ -34,12 +52,33 @@ export default {
     toggleMode() {
       this.mode = this.mode === 'light' ? 'dark' : 'light'
       localStorage.setItem('mode', this.mode)
+    },
+    async initializeStores() {
+      try {
+        // Initialize user store first
+        await this.userStore.initializeFromStorage();
+
+        // Only initialize other stores if user is authenticated
+        if (this.userStore.isAuthenticated) {
+          await this.carStore.initializeFromStorage();
+          await this.clientStore.initializeFromStorage();
+          await this.alertStore.initialize();
+          console.log('All stores initialized successfully');
+        }
+      } catch (error) {
+        console.error('Error initializing stores:', error);
+      }
     }
   },
   created() {
-    // Check authentication on app start
-    const currentUser = localStorage.getItem('currentUser')
-    if (!currentUser && this.$route.path !== '/login') {
+    // Initialize default data
+    initializeDefaultData()
+    
+    // Initialize stores
+    this.initializeStores()
+    
+    // Check if user is authenticated and not on login page
+    if (!this.userStore.isAuthenticated && this.$route.name !== 'login') {
       this.$router.push('/login')
     }
   }

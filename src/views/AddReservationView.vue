@@ -32,7 +32,7 @@
                 <select
                   class="form-field appearance-none"
                   v-model="reservation.clientId"
-                  required
+                required
                 >
                   <option value="" disabled>Select a client</option>
                   <option
@@ -82,73 +82,73 @@
               <!-- Second Driver Fields -->
               <div v-if="reservation.hasSecondDriver" class="grid gap-4">
                 <div class="grid grid-cols-2 gap-4">
-                  <div>
+            <div>
                     <label class="text-[15px] mb-1 block font-medium">First Name</label>
-                    <input
+              <input
                       v-model="reservation.secondDriver.firstName"
                       type="text"
-                      class="form-field"
-                      required
-                    />
-                  </div>
-                  <div>
+                class="form-field"
+                required
+              />
+            </div>
+            <div>
                     <label class="text-[15px] mb-1 block font-medium">Last Name</label>
-                    <input
+              <input
                       v-model="reservation.secondDriver.lastName"
-                      type="text"
-                      class="form-field"
-                      required
-                    />
-                  </div>
+                type="text"
+                class="form-field"
+                required
+              />
+            </div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                  <div>
+            <div>
                     <label class="text-[15px] mb-1 block font-medium">License Number</label>
-                    <input
+              <input
                       v-model="reservation.secondDriver.license"
-                      type="text"
-                      class="form-field"
-                      required
-                    />
-                  </div>
-                  <div>
+                type="text"
+                class="form-field"
+                required
+              />
+            </div>
+            <div>
                     <label class="text-[15px] mb-1 block font-medium">License Date</label>
-                    <input
+              <input
                       v-model="reservation.secondDriver.licenseDate"
                       type="date"
-                      class="form-field"
-                      required
-                    />
+                class="form-field"
+                required
+              />
                   </div>
-                </div>
-                <div>
+            </div>
+            <div>
                   <label class="text-[15px] mb-1 block font-medium">License City</label>
-                  <input
+              <input
                     v-model="reservation.secondDriver.licenseCity"
-                    type="text"
-                    class="form-field"
-                    required
-                  />
-                </div>
+                type="text"
+                class="form-field"
+                required
+              />
+            </div>
                 <div class="grid grid-cols-2 gap-4">
-                  <div>
+            <div>
                     <label class="text-[15px] mb-1 block font-medium">CIN</label>
-                    <input
+              <input
                       v-model="reservation.secondDriver.cin"
-                      type="text"
-                      class="form-field"
-                      required
-                    />
-                  </div>
-                  <div>
+                type="text"
+                class="form-field"
+                required
+              />
+            </div>
+            <div>
                     <label class="text-[15px] mb-1 block font-medium">Phone</label>
-                    <input
+              <input
                       v-model="reservation.secondDriver.phone"
                       type="tel"
-                      class="form-field"
-                      required
-                    />
-                  </div>
+                class="form-field"
+                required
+              />
+            </div>
                 </div>
               </div>
             </div>
@@ -232,23 +232,23 @@
 
               <div>
                 <label class="text-[15px] mb-1 block font-medium">Advance Payment</label>
-                <input
+              <input
                   v-model="reservation.advance"
                   type="number"
-                  class="form-field"
+                class="form-field"
                   placeholder="Enter advance amount"
-                  required
-                />
-              </div>
+                required
+              />
+            </div>
 
               <div class="grid grid-cols-2 gap-4">
                 <div>
                   <label class="text-[15px] mb-1 block font-medium">Start Date</label>
-                  <input
+              <input
                     v-model="reservation.startDate"
                     type="date"
-                    class="form-field"
-                    required
+                class="form-field"
+                required
                     @change="calculateDays"
                   />
                 </div>

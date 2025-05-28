@@ -53,7 +53,8 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { useCarStore } from '@/stores/carStore'
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
@@ -74,10 +75,11 @@ export default {
     const events = ref([])
     const showEventPopup = ref(false)
     const selectedEvent = ref(null)
+    const carStore = useCarStore()
 
     const generateEvents = () => {
-      const cars = JSON.parse(localStorage.getItem('cars') || '[]')
       const newEvents = []
+      const cars = carStore.filteredCars
 
       cars.forEach(car => {
         // Add insurance expiration event
@@ -145,7 +147,7 @@ export default {
       })
 
       // Add rental return events
-      const reservations = JSON.parse(localStorage.getItem('reservations') || '[]')
+      const reservations = carStore.filteredReservations
       reservations.forEach(reservation => {
         if (reservation.status === 'Active') {
           const icon = `<svg class="inline-block w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.08 3.11H5.77L6.85 7zM19 17H5v-5h14v5z"/><circle cx="7.5" cy="14.5" r="1.5"/><circle cx="16.5" cy="14.5" r="1.5"/></svg>`
@@ -169,8 +171,25 @@ export default {
       })
 
       events.value = newEvents
+      
+      // Update the calendar with new events
+      if (calendar.value) {
+        const calendarApi = calendar.value.getApi()
+        calendarApi.removeAllEvents()
+        calendarApi.addEventSource(newEvents)
+      }
+      
       return newEvents
     }
+
+    // Watch for changes in the car store
+    watch(
+      () => [carStore.filteredCars, carStore.filteredReservations],
+      () => {
+        generateEvents()
+      },
+      { deep: true }
+    )
 
     const calendarOptions = computed(() => ({
       plugins: [dayGridPlugin, interactionPlugin],
@@ -198,22 +217,24 @@ export default {
       }
     }))
 
-    watch(events, (newEvents) => {
-      if (calendar.value) {
-        const calendarApi = calendar.value.getApi()
-        calendarApi.removeAllEvents()
-        calendarApi.addEventSource(newEvents)
-      }
-    }, { deep: true })
-
     onMounted(() => {
-      const initialEvents = generateEvents()
-      events.value = initialEvents
+      // Initialize the car store
+      carStore.initializeFromStorage()
       
-      setInterval(() => {
-        const updatedEvents = generateEvents()
-        events.value = updatedEvents
-      }, 60000)
+      // Initial generation of events after a short delay to ensure the calendar is mounted
+      nextTick(() => {
+        generateEvents()
+      })
+
+      // Set up periodic refresh
+      const refreshInterval = setInterval(() => {
+        generateEvents()
+      }, 60000) // Refresh every minute
+
+      // Cleanup on component unmount
+      onUnmounted(() => {
+        clearInterval(refreshInterval)
+      })
     })
 
     return {

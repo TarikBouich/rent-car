@@ -47,6 +47,18 @@
       </svg>
       <span>Archived Reservations</span>
     </RouterLink>
+
+    <!-- Login -->
+    <RouterLink
+      :to="{ name: 'login' }"
+      class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors"
+      :class="route.name === 'login' ? 'bg-primary-100 text-white' : 'text-gray-100 hover:bg-gray-50'"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 15.5V17.5H6V15.5H12ZM16.6 13.5C17.5 12.5 18 11.3 18 10C18 7.2 15.8 5 13 5H6V13.5H13C14.1 13.5 15.2 14 16.6 13.5ZM13 11.5H8V7H13C14.7 7 16 8.3 16 10C16 10.8 15.7 11.5 15 12C14.5 12.5 13.9 12.8 13 13.5V11.5Z"/>
+      </svg>
+      <span>Login</span>
+    </RouterLink>
   </div>
 </template>
 

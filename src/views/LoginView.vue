@@ -52,6 +52,8 @@
 </template>
 
 <script>
+import { useUserStore } from '../stores/userStore'
+
 export default {
   name: 'LoginView',
   props: {
@@ -61,33 +63,26 @@ export default {
     return {
       email: '',
       password: '',
-      error: ''
+      error: '',
+      userStore: useUserStore()
     }
   },
   methods: {
     async handleLogin() {
       try {
-        // For demo purposes - replace with your actual authentication logic
-        if (this.email === 'admin@location.com' && this.password === 'password') {
-          localStorage.setItem('currentUser', JSON.stringify({
-            email: this.email,
-            role: 'admin'
-          }));
-          this.$router.push('/dashboard');
-        } else {
-          this.error = 'Invalid email or password';
-        }
+        await this.userStore.login(this.email, this.password)
+        // After successful login, redirect to dashboard
+        this.$router.push('/dashboard')
       } catch (error) {
-        this.error = 'An error occurred during login';
-        console.error('Login error:', error);
+        this.error = error.message || 'Invalid email or password'
+        console.error('Login error:', error)
       }
     }
   },
   created() {
     // If user is already logged in, redirect to dashboard
-    const currentUser = localStorage.getItem('currentUser');
-    if (currentUser) {
-      this.$router.push('/dashboard');
+    if (this.userStore.isAuthenticated) {
+      this.$router.push('/dashboard')
     }
   }
 }
