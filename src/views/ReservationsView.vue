@@ -107,6 +107,8 @@
                 <th class="py-4">Advance</th>
                 <th class="py-4">Remaining</th>
                 <th class="py-4">Status</th>
+                <th class="py-4">Agent</th>
+                <th class="py-4">Agency</th>
                 <th class="py-4">Actions</th>
               </tr>
             </thead>
@@ -240,6 +242,12 @@
                     </span>
                   </div>
                 </td>
+                <td class="p-2">
+                  <span class="text-black dark:text-white">{{ getAgentName(reservation.agentId) }}</span>
+                </td>
+                <td class="p-2">
+                  <span class="text-black dark:text-white">{{ getCarAgencyName(reservation.carId) }}</span>
+                </td>
                 <td class="px-6 py-4 whitespace-nowrap flex items-center space-x-2">
                   <ContractPDF
                     :reservation="reservation"
@@ -264,7 +272,7 @@
                   </button>
                   <button
                     v-if="reservation.status === 'Active'"
-                    @click="makeCarAvailable(reservation, index)"
+                    @click="initiateMakeCarAvailable(reservation, index)"
                     class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-50 transition-colors"
                     title="Make Available"
                     >
@@ -721,13 +729,30 @@
 
 <script>
 import { RouterLink } from "vue-router";
-import ContractPDF from '../components/ContractPDF.vue';
+import { useRouter } from 'vue-router'
+import { useCarStore } from '../stores/carStore'
+import { useClientStore } from '../stores/clientStore'
+import { useUserStore } from '../stores/userStore';
+import { useAgencyStore } from '../stores/agencyStore';
+import { generateNextId, sortByIdDesc } from '../utils/idGenerator'; // Assuming sortByIdDesc is still needed
+import ContractPDF from "../components/ContractPDF.vue"; // Assuming this component is used
 
 export default {
   name: "ReservationsView",
   components: {
     RouterLink,
-    ContractPDF,
+    ContractPDF, // Register the component
+  },
+  props: {
+    mode: String,
+  },
+  setup() {
+    const router = useRouter();
+    const carStore = useCarStore();
+    const clientStore = useClientStore();
+    const userStore = useUserStore();
+    const agencyStore = useAgencyStore();
+    return { router, carStore, clientStore, userStore, agencyStore }; // Expose stores and router
   },
   data() {
     return {
@@ -736,18 +761,7 @@ export default {
       showEditModal: false,
       showConfirmationModal: false,
       showRemainingAmountModal: false,
-      currentCarIndex: -1,
       currentReservationIndex: -1,
-      currentCar: {
-        name: "",
-        licensePlate: "",
-        pricePerDay: 0,
-        status: "Available",
-        currentMileage: 0,
-        needsVidange: false,
-        lastVidangeKm: 0,
-        nextVidangeKm: 0
-      },
       currentReservation: {
         clientId: "",
         clientName: "",
@@ -767,220 +781,139 @@ export default {
           cin: "",
           cinDeliveredAt: "",
         },
+        advance: 0, // Initialize advance here
       },
-      cars: [
-        {
-          name: 'Toyota Corolla',
-          licensePlate: 'ABC-1234',
-          pricePerDay: 500,
-          status: 'Available',
-          currentMileage: 50000,
-          needsVidange: false,
-          lastVidangeKm: 45000,
-          nextVidangeKm: 50000,
-          image: "https://images.unsplash.com/photo-1609521263047-f8f205293f24?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
-        },
-        {
-          name: 'Honda Accord',
-          licensePlate: 'DEF-5678',
-          pricePerDay: 600,
-          status: 'Available',
-          currentMileage: 35000,
-          needsVidange: false,
-          lastVidangeKm: 30000,
-          nextVidangeKm: 35000,
-          image: "https://images.unsplash.com/photo-1551830820-330a71b99659?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
-        },
-        {
-          name: 'Mercedes C-Class',
-          licensePlate: 'GHI-9012',
-          pricePerDay: 1200,
-          status: 'Available',
-          currentMileage: 25000,
-          needsVidange: false,
-          lastVidangeKm: 20000,
-          nextVidangeKm: 25000,
-          image: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
-        },
-        {
-          name: 'BMW 3 Series',
-          licensePlate: 'JKL-3456',
-          pricePerDay: 1100,
-          status: 'Available',
-          currentMileage: 30000,
-          needsVidange: false,
-          lastVidangeKm: 25000,
-          nextVidangeKm: 30000,
-          image: "https://images.unsplash.com/photo-1555215695-3004980ad54e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
-        }
-      ],
-      clients: [
-        {
-          firstName: 'Mohammed',
-          lastName: 'Alami',
-          nationalId: 'AB123456',
-          phoneNumber: '0612345678',
-          nationality: 'Moroccan',
-          birthDate: '1985-05-15',
-          profession: 'Business Owner',
-          licenseNumber: 'L123456',
-          licenseDate: '2010-06-01',
-          address: '123 Avenue Hassan II, Casablanca'
-        },
-        {
-          firstName: 'Fatima',
-          lastName: 'Benali',
-          nationalId: 'CD789012',
-          phoneNumber: '0623456789',
-          nationality: 'Moroccan',
-          birthDate: '1990-08-20',
-          profession: 'Doctor',
-          licenseNumber: 'L789012',
-          licenseDate: '2015-03-15',
-          address: '456 Boulevard Mohammed V, Rabat'
-        },
-        {
-          firstName: 'Ahmed',
-          lastName: 'El Fassi',
-          nationalId: 'EF345678',
-          phoneNumber: '0634567890',
-          nationality: 'Moroccan',
-          birthDate: '1988-03-10',
-          profession: 'Engineer',
-          licenseNumber: 'L345678',
-          licenseDate: '2012-09-20',
-          address: '789 Rue Atlas, Marrakech'
-        },
-        {
-          firstName: 'Amina',
-          lastName: 'Bouazza',
-          nationalId: 'GH901234',
-          phoneNumber: '0645678901',
-          nationality: 'Moroccan',
-          birthDate: '1992-11-25',
-          profession: 'Lawyer',
-          licenseNumber: 'L901234',
-          licenseDate: '2017-01-10',
-          address: '321 Avenue des FAR, Tangier'
-        }
-      ],
-      reservations: [],
-      completedReservations: [],
       editNumberOfDays: 0,
       selectedReservationIndex: null,
       selectedReservation: null,
-      newReservation: {
+      newReservation: { // This might be redundant if using currentReservation for editing/adding
         advance: 0,
       },
     };
   },
   computed: {
     mode() {
-      return 'light'; // Default to light mode
+      return this.mode; // Use prop mode
     },
     filteredReservations() {
-      // Only show active reservations where the car is still rented
-      const activeReservations = this.reservations.filter(reservation => {
-        const car = this.cars.find(c => c.licensePlate === reservation.carId);
-        return car && car.status === 'Rented' && reservation.status === 'Active';
+      // Use the filteredReservations getter from the car store
+      const allReservations = this.carStore.filteredReservations;
+
+      // Only show active reservations where the car status is not 'Completed' or 'Archived'
+      const activeReservations = allReservations.filter(reservation => {
+         // Find the car using carStore.cars (full list)
+        const car = this.carStore.cars.find(c => c.licensePlate === reservation.carId);
+        // Check if the car exists and its status is not Completed or Archived, and reservation is Active
+        return car && car.status !== 'Completed' && car.status !== 'Archived' && reservation.status === 'Active';
       });
 
-      if (!this.searchQuery) return activeReservations;
+      if (!this.searchQuery) return sortByIdDesc(activeReservations);
       
       const query = this.searchQuery.toLowerCase();
-      return activeReservations.filter(reservation => {
-        const client = this.clients.find(c => c.nationalId === reservation.clientId);
+      return sortByIdDesc(activeReservations.filter(reservation => {
+        // Find the client using clientStore.clients (full list)
+        const client = this.clientStore.clients.find(c => c.nationalId === reservation.clientId);
         const clientName = client ? `${client.firstName} ${client.lastName}`.toLowerCase() : '';
-        const car = this.cars.find(c => c.licensePlate === reservation.carId);
+        // Find the car using carStore.cars (full list)
+        const car = this.carStore.cars.find(c => c.licensePlate === reservation.carId);
         const carName = car ? car.name.toLowerCase() : '';
         
         return clientName.includes(query) || carName.includes(query);
-      });
+      }));
     },
     calculateTotalPrice() {
-      if (this.newReservation.startDate && this.newReservation.endDate) {
-        const start = new Date(this.newReservation.startDate);
-        const end = new Date(this.newReservation.endDate);
+      if (this.currentReservation.startDate && this.currentReservation.endDate && this.currentReservation.pricePerDay > 0) {
+        const start = new Date(this.currentReservation.startDate);
+        const end = new Date(this.currentReservation.endDate);
         const diffTime = Math.abs(end - start);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        const total = diffDays * this.newReservation.pricePerDay;
-        this.newReservation.totalPrice = total;
-        this.newReservation.advance = Math.round(total * 0.3); // Calculate 30% advance
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // Include end date
+        const total = diffDays * this.currentReservation.pricePerDay;
+        // We might not need to store totalPrice and advance in newReservation if using currentReservation
+        // this.newReservation.totalPrice = total;
+        // this.newReservation.advance = Math.round(total * 0.3); // Calculate 30% advance
         return total;
       }
       return 0;
     },
+    // Add computed property for clients if needed for dropdowns/lookups
+    allClients() {
+      return this.clientStore.clients; // Use the full client list for lookups
+    },
+     // Add computed property for cars if needed for dropdowns/lookups
+    allCars() {
+      return this.carStore.cars; // Use the full car list for lookups
+    }
+  },
+  mounted() {
+    // Initialize stores from localStorage
+    this.clientStore.initializeFromStorage();
+    this.carStore.initializeFromStorage();
+    this.agencyStore.initializeFromStorage();
+    this.userStore.initializeFromStorage();
+    // No need to load reservations/clients manually here if using store
   },
   methods: {
-    loadReservations() {
-      try {
-        const savedReservations = localStorage.getItem('reservations');
-        if (savedReservations) {
-          this.reservations = JSON.parse(savedReservations);
-        }
-      } catch (error) {
-        console.error('Error loading reservations:', error);
-      }
-    },
-    loadClients() {
-      try {
-        const savedClients = localStorage.getItem('clients');
-        if (savedClients) {
-          this.clients = JSON.parse(savedClients);
-        }
-      } catch (error) {
-        console.error('Error loading clients:', error);
-      }
-    },
-    loadCars() {
-      try {
-        const savedCars = localStorage.getItem('cars');
-        if (savedCars) {
-          this.cars = JSON.parse(savedCars);
-        }
-      } catch (error) {
-        console.error('Error loading cars:', error);
-      }
-    },
+     // Helper to get client name
     getClientName(clientId) {
-      const client = this.clients.find(c => c.nationalId === clientId);
+      const client = this.clientStore.clients.find(c => c.nationalId === clientId);
       return client ? `${client.firstName} ${client.lastName}` : 'Unknown Client';
     },
+    // Helper to get client phone
     getClientPhone(clientId) {
-      const client = this.clients.find(c => c.nationalId === clientId);
-      return client ? client.phoneNumber : 'Unknown Phone';
+       const client = this.clientStore.clients.find(c => c.nationalId === clientId);
+       return client ? client.phoneNumber : 'N/A';
     },
+    // Helper to get full client details
+    getClientDetails(clientId) {
+       return this.clientStore.clients.find(c => c.nationalId === clientId) || {};
+    },
+    // Helper to get car image
     getCarImage(carId) {
-      const car = this.cars.find(c => c.licensePlate === carId);
+      const car = this.carStore.cars.find(c => c.licensePlate === carId);
       return car ? car.image : '';
     },
-    formatDate(date) {
-      if (!date) return '';
-      const d = new Date(date);
-      const day = String(d.getDate()).padStart(2, '0');
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const year = d.getFullYear();
-      return `${day}/${month}/${year}`;
+    // Helper to get car object
+    getCar(carId) {
+      return this.carStore.cars.find(c => c.licensePlate === carId);
     },
-    isEndDateToday(endDate) {
+    formatDate(dateString) {
+      if (!dateString) return '';
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      return new Date(dateString).toLocaleDateString(undefined, options);
+    },
+     isEndDateToday(endDate) {
       const today = new Date();
-      today.setHours(0, 0, 0, 0);
       const end = new Date(endDate);
-      end.setHours(0, 0, 0, 0);
-      return today.getTime() === end.getTime();
+      return today.toDateString() === end.toDateString();
     },
     isEndDatePast(endDate) {
       const today = new Date();
-      today.setHours(0, 0, 0, 0);
       const end = new Date(endDate);
+      // Set both dates to midnight to compare just the date part
+      today.setHours(0, 0, 0, 0);
       end.setHours(0, 0, 0, 0);
-      return today.getTime() > end.getTime();
+      return end < today;
     },
-    editReservation(reservation, index) {
-      this.currentReservationIndex = index;
+     editReservation(reservation) {
+      this.currentReservation = { ...reservation };
+      this.showEditModal = true;
+       // Calculate initial number of days for editing
+       this.calculateEditDays();
+    },
+     closeEditModal() {
+      this.showEditModal = false;
+      // Reset currentReservation
       this.currentReservation = {
-        ...reservation,
-        secondDriver: reservation.secondDriver || {
+        clientId: "",
+        clientName: "",
+        carId: "",
+        carName: "",
+        currentMileage: "",
+        pricePerDay: "",
+        startDate: "",
+        endDate: "",
+        hasSecondDriver: false,
+        secondDriver: {
           firstName: "",
           lastName: "",
           license: "",
@@ -988,265 +921,103 @@ export default {
           licenseCity: "",
           cin: "",
           cinDeliveredAt: "",
-        }
+        },
+        advance: 0,
       };
-      this.showEditModal = true;
-      this.calculateEditDays();
+       this.editNumberOfDays = 0;
     },
-    makeCarAvailable(reservation, index) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const returnDate = new Date(reservation.endDate);
-      returnDate.setHours(0, 0, 0, 0);
-      
-      // Check for remaining amount
-      const remainingAmount = reservation.totalPrice - (reservation.advance || 0);
-      
-      if (remainingAmount > 0) {
-        // Show remaining amount modal
-        this.selectedReservationIndex = index;
-        this.selectedReservation = reservation;
-        this.showRemainingAmountModal = true;
-      } else if (returnDate > today) {
-        // Show early return confirmation modal
-        this.selectedReservationIndex = index;
-        this.selectedReservation = reservation;
-        this.showConfirmationModal = true;
-      } else {
-        this.processCarReturn(reservation);
-      }
-    },
-    confirmRemainingAmount() {
-      if (this.selectedReservation) {
-        // Set advance to total price to clear the remaining amount
-        this.selectedReservation.advance = this.selectedReservation.totalPrice;
-        this.processCarReturn(this.selectedReservation);
-        this.showRemainingAmountModal = false;
-        this.selectedReservationIndex = null;
-        this.selectedReservation = null;
-      }
-    },
-    confirmMakeCarAvailable() {
-      if (this.selectedReservation) {
-        this.processCarReturn(this.selectedReservation);
-        this.showConfirmationModal = false;
-        this.selectedReservationIndex = null;
-        this.selectedReservation = null;
-      }
-    },
-    processCarReturn(reservation) {
-      const car = this.cars.find(c => c.licensePlate === reservation.carId);
-      
-      if (car) {
-        // Update car status to Available
-        car.status = 'Available';
-        
-        // Update the reservation with today's date and Archived status
-        const today = new Date().toISOString().split('T')[0];
-        const startDate = new Date(reservation.startDate);
-        const endDate = new Date(today);
-        const timeDiff = endDate.getTime() - startDate.getTime();
-        const numberOfDays = Math.ceil(timeDiff / (1000 * 60 * 60 * 24)) + 1;
-        
-        // Find the highest existing ID and increment it
-        const archivedReservations = this.reservations.filter(r => r.status === 'Archived');
-        const maxId = archivedReservations.reduce((max, r) => Math.max(max, r.id || 0), 0);
-        const nextId = maxId + 1;
-        
-        const updatedReservations = this.reservations.map(r => {
-          if (r.clientId === reservation.clientId && 
-              r.carId === reservation.carId &&
-              r.startDate === reservation.startDate) {
-            return { 
-              ...r, 
-              status: 'Archived',
-              endDate: today,
-              numberOfDays: numberOfDays,
-              totalPrice: numberOfDays * r.pricePerDay,
-              id: nextId,
-              updatedAt: new Date().toISOString(),
-              archivedAt: new Date().toISOString()
-            };
-          }
-          return r;
-        });
-        
-        // Save changes to localStorage
-        this.reservations = updatedReservations;
-        localStorage.setItem('cars', JSON.stringify(this.cars));
-        localStorage.setItem('reservations', JSON.stringify(updatedReservations));
-        
-        // Force reload of data
-        this.loadCars();
-        this.loadReservations();
-        
-        // Dispatch event to notify other components
-        window.dispatchEvent(new CustomEvent('reservation-updated', {
-          detail: {
-            type: 'car-returned',
-            reservation: updatedReservations.find(r => 
-              r.clientId === reservation.clientId && 
-              r.carId === reservation.carId &&
-              r.startDate === reservation.startDate
-            )
-          }
-        }));
-        
-        // Show success message
-        this.$toast.success('Car has been made available and reservation archived successfully');
-        
-        // Close the confirmation modal
-        this.showConfirmationModal = false;
-        this.selectedReservationIndex = null;
-        this.selectedReservation = null;
-      }
-    },
-    updateVidangeInfo() {
-      if (this.currentCar.needsVidange && this.currentCar.lastVidangeKm) {
-        this.currentCar.nextVidangeKm = this.currentCar.lastVidangeKm + 5000;
-      }
-    },
-    calculateNextVidange() {
-      if (this.currentCar.lastVidangeKm) {
-        this.currentCar.nextVidangeKm = this.currentCar.lastVidangeKm + 5000;
-      }
-    },
-    calculateEditDays() {
-      if (this.currentReservation.startDate && this.currentReservation.endDate) {
+     calculateEditDays() {
+       if (this.currentReservation.startDate && this.currentReservation.endDate) {
         const start = new Date(this.currentReservation.startDate);
         const end = new Date(this.currentReservation.endDate);
         const diffTime = Math.abs(end - start);
-        this.editNumberOfDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        this.editNumberOfDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // Include end date
       } else {
         this.editNumberOfDays = 0;
       }
     },
-    saveReservation() {
-      if (this.currentReservationIndex > -1) {
-        // Format second driver dates if they exist
-        let secondDriverInfo = null;
-        if (this.currentReservation.hasSecondDriver) {
-          secondDriverInfo = {
-            ...this.currentReservation.secondDriver,
-            licenseDate: this.formatDate(this.currentReservation.secondDriver.licenseDate),
-            cinDeliveredAt: this.formatDate(this.currentReservation.secondDriver.cinDeliveredAt)
-          };
+    saveEditedReservation() {
+      // Find the index of the reservation in the store's reservations array
+      const index = this.carStore.reservations.findIndex(res => res.id === this.currentReservation.id);
+      if (index !== -1) {
+        // Update the reservation in the store
+        this.carStore.updateReservation(index, this.currentReservation);
+        this.closeEditModal();
+      }
+    },
+     initiateMakeCarAvailable(reservation) {
+      this.selectedReservation = reservation;
+      this.showConfirmationModal = true;
+    },
+     confirmMakeCarAvailable() {
+      if (this.selectedReservation) {
+        // Update reservation status to Completed
+        // Update car status to Available
+        // Find reservation and car in stores
+        const reservationIndex = this.carStore.reservations.findIndex(res => res.id === this.selectedReservation.id);
+        if (reservationIndex !== -1) {
+           // Check if remaining amount is due before archiving
+           const remaining = this.selectedReservation.totalPrice - (this.selectedReservation.advance || 0);
+           if (remaining > 0) {
+             this.showConfirmationModal = false; // Close the current modal
+             this.showRemainingAmountModal = true; // Show remaining amount modal
+             return; // Stop here and wait for the next confirmation
+           } else {
+              // If no remaining amount, proceed to archive and make car available
+              this.archiveReservation(this.selectedReservation);
+           }
         }
-
-        const updatedReservation = {
-          ...this.currentReservation,
-          numberOfDays: this.editNumberOfDays,
-          totalPrice: this.currentReservation.pricePerDay * this.editNumberOfDays,
-          hasSecondDriver: this.currentReservation.hasSecondDriver,
-          secondDriver: secondDriverInfo,
-          advance: this.currentReservation.advance || 0
-        };
-
-        // Update the existing reservation
-        this.reservations[this.currentReservationIndex] = updatedReservation;
-        
-        // Save to localStorage
-        localStorage.setItem('reservations', JSON.stringify(this.reservations));
-        
-        // Close the modal
-        this.showEditModal = false;
-        
-        // Reload the reservations to reflect changes
-        this.loadReservations();
+      }
+       this.showConfirmationModal = false;
+    },
+     confirmRemainingAmount() {
+       if (this.selectedReservation) {
+         this.archiveReservation(this.selectedReservation);
+       }
+       this.showRemainingAmountModal = false;
+     },
+     archiveReservation(reservationToArchive) {
+       // Use the action from the car store to move the reservation to completed
+       this.carStore.completeReservation(reservationToArchive.id);
+       
+       // Find the car and update its status to 'Available'
+       const car = this.carStore.cars.find(c => c.licensePlate === reservationToArchive.carId);
+       if (car) {
+         // Create a new car object with updated status
+         const updatedCar = {
+           ...car,
+           status: 'Available'
+         };
+         this.carStore.updateCar(updatedCar);
+       }
+     },
+     deleteReservation(reservation) {
+      if (confirm('Are you sure you want to delete this reservation?')) {
+        try {
+          // Use the action from the car store to delete the reservation
+          this.carStore.deleteReservation(reservation.id);
+           // Optional: If you want to change car status back to available on delete, add that logic here
+           const car = this.carStore.cars.find(c => c.licensePlate === reservation.carId);
+           if(car && car.status === 'Rented') { // Only change status if it was rented
+             this.carStore.updateCar(car.id, { status: 'Available' });
+           }
+        } catch (error) {
+          console.error('Error deleting reservation:', error);
+          // Optionally show an error message to the user
+        }
       }
     },
-    updateCar() {
-      if (this.currentCarIndex > -1) {
-        this.cars[this.currentCarIndex] = { ...this.currentCar };
-        localStorage.setItem('cars', JSON.stringify(this.cars));
-        this.showModal = false;
-      }
-    },
-    handleReservationUpdate() {
-      this.loadReservations();
-    },
-    getCar(carId) {
-      const cars = JSON.parse(localStorage.getItem('cars') || '[]');
-      const car = cars.find(car => car.licensePlate === carId);
-      console.log('Found car:', car);
-      return car || {};
-    },
-    getClientDetails(clientId) {
-      const clients = JSON.parse(localStorage.getItem('clients') || '[]');
-      const client = clients.find(client => client.nationalId === clientId);
-      console.log('Looking for client with ID:', clientId);
-      console.log('Found client:', client);
-      
-      if (!client) {
-        console.warn('Client not found:', clientId);
-        return {
-          name: '',
-          nationality: '',
-          birthDate: '',
-          profession: '',
-          cin: '',
-          licenseNumber: '',
-          licenseDate: '',
-          address: '',
-          phone: ''
-        };
-      }
+    getCarAgencyName(carId) {
+      const car = this.carStore.cars.find(c => c.licensePlate === carId);
+      if (!car || !car.agencyId) return 'Unknown Agency';
 
-      return {
-        name: `${client.firstName} ${client.lastName}`,
-        nationality: client.nationality || '',
-        birthDate: this.formatDate(client.birthDate) || '',
-        profession: client.profession || '',
-        cin: client.nationalId || '',
-        licenseNumber: client.licenseNumber || '',
-        licenseDate: this.formatDate(client.licenseDate) || '',
-        address: client.address || '',
-        phone: client.phoneNumber || ''
-      };
+      const agency = this.agencyStore.agencies.find(a => a.id === car.agencyId);
+      return agency ? agency.name : 'Unknown Agency';
     },
-  },
-  created() {
-    this.loadReservations();
-    this.loadClients();
-    this.loadCars();
-    // Add event listener for reservation updates
-    window.addEventListener('reservation-updated', this.handleReservationUpdate);
-  },
-  beforeUnmount() {
-    // Remove event listener when component is destroyed
-    window.removeEventListener('reservation-updated', this.handleReservationUpdate);
-  },
-  mounted() {
-    // Load existing data from localStorage
-    this.loadCars();
-    this.loadClients();
-    this.loadReservations();
-  },
-  watch: {
-    cars: {
-      handler(newCars) {
-        localStorage.setItem('cars', JSON.stringify(newCars));
-      },
-      deep: true
+    getAgentName(agentId) {
+      const agent = this.userStore.users.find(user => user.id === agentId);
+      return agent ? agent.name : 'N/A';
     },
-    reservations: {
-      handler(newReservations) {
-        localStorage.setItem('reservations', JSON.stringify(newReservations));
-      },
-      deep: true
-    },
-    completedReservations: {
-      handler(newCompletedReservations) {
-        localStorage.setItem('completedReservations', JSON.stringify(newCompletedReservations));
-      },
-      deep: true
-    },
-    clients: {
-      handler(newClients) {
-        localStorage.setItem('clients', JSON.stringify(newClients));
-      },
-      deep: true
-    }
   }
-};
+}
 </script>

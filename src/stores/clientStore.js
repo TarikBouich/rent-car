@@ -40,7 +40,6 @@ export const useClientStore = defineStore('client', {
     // Add a new client
     addClient(client) {
       const userStore = useUserStore()
-      client.agencyId = userStore.currentAgencyId
       this.clients.push(client)
       this.saveClients()
     },

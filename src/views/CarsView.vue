@@ -82,7 +82,7 @@
                     <span class="text-sm font-semibold" :class="getDateColor(car.visiteTechniqueEndDate) || 'text-white'">
                       Visite Technique: {{ formatDate(car.visiteTechniqueEndDate) }}
                     </span>
-                  </div>
+                    </div>
 
                   <!-- Vidange -->
                   <div class="flex items-center gap-2">
@@ -95,7 +95,7 @@
                         (Next: {{ car.nextVidangeKm }} km)
                       </span>
                     </span>
-                  </div>
+                    </div>
 
                   <!-- Transmission -->
                   <div class="flex items-center gap-2">
@@ -134,40 +134,40 @@
                 <button
                   @click="editCar(car)"
                   class="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-all opacity-0 group-hover:opacity-100"
-                  title="Edit"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
+                      title="Edit"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
                     class="h-6 w-6 text-white"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
                       d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"
-                    />
-                  </svg>
+                        />
+                      </svg>
                 </button>
                 <button
                   @click="deleteCar(car)"
                   class="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-all opacity-0 group-hover:opacity-100"
-                  title="Delete"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
+                      title="Delete"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
                     class="h-6 w-6 text-white"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fill-rule="evenodd"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fill-rule="evenodd"
                       d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
                       clip-rule="evenodd"
-                    />
-                  </svg>
+                        />
+                      </svg>
                 </button>
               </div>
-            </div>
-          </div>
+                    </div>
+                  </div>
         </div>
       </div>
     </div>
@@ -377,8 +377,9 @@
 
 <script>
 import { RouterLink } from "vue-router";
-import { carStore } from "../store";
-import { generateNextId, sortByIdDesc } from '../utils/idGenerator';
+import { useCarStore } from "../stores/carStore";
+import { useUserStore } from "../stores/userStore";
+import { sortByIdDesc } from '../utils/idGenerator';
 
 export default {
   components: {
@@ -386,6 +387,15 @@ export default {
   },
   props: {
     mode: String,
+  },
+  setup() {
+    const carStore = useCarStore();
+    const userStore = useUserStore();
+    
+    return {
+      carStore,
+      userStore
+    };
   },
   data() {
     return {
@@ -410,18 +420,17 @@ export default {
     };
   },
   computed: {
-    cars() {
-      return carStore.cars;
-    },
     filteredCars() {
-      const sortedCars = sortByIdDesc(this.cars);
+      // Use the filteredCars getter from Pinia store (filters by agency for non-admin users)
+      const cars = this.carStore.filteredCars;
+      const sortedCars = sortByIdDesc(cars);
       if (!this.searchQuery) return sortedCars;
       
       const query = this.searchQuery.toLowerCase();
       return sortedCars.filter(car => 
         car.name.toLowerCase().includes(query) ||
         car.licensePlate.toLowerCase().includes(query) ||
-        car.brand.toLowerCase().includes(query)
+        (car.brand && car.brand.toLowerCase().includes(query))
       );
     }
   },
@@ -438,7 +447,7 @@ export default {
     },
     editCar(car) {
       this.currentCar = { ...car };
-      this.currentCarIndex = this.cars.findIndex(c => c.licensePlate === car.licensePlate);
+      this.currentCarIndex = this.carStore.cars.findIndex(c => c.licensePlate === car.licensePlate);
       this.showModal = true;
       // Reset file input when opening modal
       if (this.$refs.fileInput) {
@@ -446,18 +455,18 @@ export default {
       }
     },
     updateCar() {
-      const index = this.cars.findIndex(c => c.licensePlate === this.currentCar.licensePlate);
+      const index = this.carStore.cars.findIndex(c => c.licensePlate === this.currentCar.licensePlate);
       if (index > -1) {
-        this.cars[index] = { ...this.currentCar };
-        localStorage.setItem('cars', JSON.stringify(this.cars));
+        this.carStore.cars[index] = { ...this.currentCar };
+        localStorage.setItem('cars', JSON.stringify(this.carStore.cars));
         this.showModal = false; // Close modal after saving
       }
     },
     deleteCar(car) {
-      const index = this.cars.findIndex(c => c.licensePlate === car.licensePlate);
+      const index = this.carStore.cars.findIndex(c => c.licensePlate === car.licensePlate);
       if (index > -1) {
-        carStore.cars.splice(index, 1);
-        localStorage.setItem('cars', JSON.stringify(carStore.cars));
+        this.carStore.cars.splice(index, 1);
+        localStorage.setItem('cars', JSON.stringify(this.carStore.cars));
       }
     },
     updateVidangeInfo() {
@@ -515,28 +524,6 @@ export default {
       }
       
       return false;
-    },
-    addCar() {
-      const nextId = generateNextId(this.cars);
-      const newCar = {
-        id: nextId,
-        name: this.newCar.name,
-        brand: this.newCar.brand,
-        model: this.newCar.model,
-        year: this.newCar.year,
-        color: this.newCar.color,
-        licensePlate: this.newCar.licensePlate,
-        pricePerDay: this.newCar.pricePerDay,
-        status: 'Available',
-        image: this.newCar.image,
-        currentMileage: this.newCar.currentMileage,
-        createdAt: new Date().toISOString()
-      };
-      
-      this.cars.push(newCar);
-      localStorage.setItem('cars', JSON.stringify(this.cars));
-      this.showAddModal = false;
-      this.resetNewCar();
     }
   },
 };

@@ -63,7 +63,7 @@ body {
     @apply transition duration-300 ease-in-out inline-flex justify-center items-center text-white capitalize font-semibold focus:outline-none rounded-md py-2.5 px-4 h-11 hover:text-white text-center cursor-pointer;
   }
   .primary-button {
-    @apply bg-primary-100;
+    background-color: #2E233C;
   }
   .primary-button:not(:disabled) {
     @apply hover:brightness-125;

@@ -10,7 +10,8 @@
   }
 
   .primary-button {
-    @apply bg-primary-100 text-white hover:bg-primary-90;
+    background-color: theme('colors.sidebar');
+    @apply text-white;
   }
 
   .close-button {

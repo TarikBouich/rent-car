@@ -32,7 +32,8 @@
                 <select
                   class="form-field appearance-none"
                   v-model="reservation.clientId"
-                required
+                  @change="handleClientSelect"
+                  required
                 >
                   <option value="" disabled>Select a client</option>
                   <option
@@ -306,7 +307,11 @@
 
 <script>
 import { RouterLink } from "vue-router";
-import { carStore, clientStore } from "../store";
+import { useRouter } from 'vue-router'
+import { useClientStore } from '../stores/clientStore'
+import { useCarStore } from '../stores/carStore'
+import { useUserStore } from '../stores/userStore'
+import { generateNextId } from '../utils/idGenerator'
 
 export default {
   components: {
@@ -314,6 +319,13 @@ export default {
   },
   props: {
     mode: String,
+  },
+  setup() {
+    const router = useRouter()
+    const clientStore = useClientStore()
+    const carStore = useCarStore()
+    const userStore = useUserStore()
+    return { router, clientStore, carStore, userStore }
   },
   data() {
     return {
@@ -343,10 +355,10 @@ export default {
   },
   computed: {
     clients() {
-      return clientStore.clients;
+      return this.clientStore.filteredClients;
     },
     availableCars() {
-      return carStore.cars.filter(car => car.status === 'Available');
+      return this.carStore.cars.filter(car => car.status === 'Available');
     },
     isFormValid() {
       const baseValidation = this.selectedCar && 
@@ -371,6 +383,11 @@ export default {
       return baseValidation;
     }
   },
+  created() {
+    // Initialize stores from localStorage
+    this.clientStore.initializeFromStorage()
+    this.carStore.initializeFromStorage()
+  },
   methods: {
     getTodayDate() {
       const today = new Date();
@@ -387,24 +404,33 @@ export default {
       }
     },
     handleCarSelect() {
-      this.selectedCar = this.availableCars.find(car => car.licensePlate === this.reservation.carId);
+      this.selectedCar = this.carStore.cars.find(car => car.licensePlate === this.reservation.carId);
       if (this.selectedCar) {
         // Set price per day to car's current price and make it read-only
         this.reservation.pricePerDay = this.selectedCar.pricePerDay;
       }
     },
-    addReservation() {
+    handleClientSelect(event) {
+      this.reservation.clientId = event.target.value;
+    },
+    async addReservation() {
+      // Add a small delay to allow v-model to update
+      await this.$nextTick();
+      
+      console.log('Client ID:', this.reservation.clientId);
+      console.log('Car ID:', this.reservation.carId);
+
       if (!this.reservation.clientId || !this.reservation.carId) {
         alert('Please select both client and car');
         return;
       }
 
-      const client = clientStore.clients.find(c => c.nationalId === this.reservation.clientId);
-      const car = carStore.cars.find(c => c.licensePlate === this.reservation.carId);
+      const client = this.clientStore.clients.find(c => c.nationalId === this.reservation.clientId);
+      const car = this.carStore.cars.find(c => c.licensePlate === this.reservation.carId);
 
       if (car) {
         car.status = 'Rented';
-        carStore.saveCars();
+        this.carStore.saveCars();
       }
 
       // Format second driver dates if they exist
@@ -422,26 +448,33 @@ export default {
       const advance = parseInt(this.reservation.advance) || 0;
 
       const newReservation = {
-        ...this.reservation,
+        id: generateNextId(this.carStore.reservations),
+        clientId: this.reservation.clientId,
+        carId: this.reservation.carId,
+        currentMileage: parseInt(this.reservation.currentMileage),
+        pricePerDay: parseFloat(this.reservation.pricePerDay),
+        startDate: this.reservation.startDate,
+        endDate: this.reservation.endDate,
+        advance: parseFloat(this.reservation.advance),
+        hasSecondDriver: this.reservation.hasSecondDriver,
+        secondDriver: this.reservation.hasSecondDriver ? secondDriverInfo : null,
+        status: 'Active',
+        createdAt: new Date().toISOString(),
+        agencyId: this.userStore.currentAgencyId,
         clientName: client ? `${client.firstName} ${client.lastName}` : 'Unknown Client',
         clientPhone: client ? client.phoneNumber : '',
         carName: car ? car.name : 'Unknown Car',
         numberOfDays: this.numberOfDays,
         totalPrice: totalPrice,
-        advance: advance,
-        remaining: totalPrice - advance,
-        status: 'Active',
-        // Include second driver info if it exists
-        hasSecondDriver: this.reservation.hasSecondDriver,
-        secondDriver: secondDriverInfo
+        remaining: totalPrice - advance
       };
 
-      carStore.reservations.push(newReservation);
-      carStore.saveReservations();
+      this.carStore.addReservation(newReservation);
+      this.carStore.saveReservations();
 
       this.showSuccess = true;
       setTimeout(() => {
-        this.$router.push({ name: 'reservations' });
+        this.router.push({ name: 'reservations' });
       }, 1500);
     },
     resetForm() {
@@ -469,15 +502,8 @@ export default {
     },
     updateCarMileage() {
       if (this.selectedCar && this.reservation.currentMileage) {
-        // Update the selected car's current mileage
-        this.selectedCar.currentMileage = parseInt(this.reservation.currentMileage);
-        
-        // Update the car in the store
-        const carIndex = carStore.cars.findIndex(car => car.licensePlate === this.selectedCar.licensePlate);
-        if (carIndex !== -1) {
-          carStore.cars[carIndex].currentMileage = parseInt(this.reservation.currentMileage);
-          carStore.saveCars();
-        }
+        // Update the selected car's current mileage in the store
+        this.carStore.updateCar(this.selectedCar.id, { currentMileage: parseInt(this.reservation.currentMileage) });
       }
     },
     formatDate(date) {
@@ -489,7 +515,7 @@ export default {
       return `${day}/${month}/${year}`;
     },
     hasActiveReservation(clientId) {
-      return carStore.reservations.some(reservation => 
+      return this.carStore.filteredReservations.some(reservation => 
         reservation.clientId === clientId && reservation.status === 'Active'
       );
     },

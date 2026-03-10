@@ -1,11 +1,11 @@
 <template>
-  <div class="p-4 border-b" :class="mode === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'">
+  <div class="px-6 py-4 border-b border-gray-200 bg-white text-gray-900">
     <div class="flex justify-between items-center">
       <div>
-        <h2 class="text-xl font-semibold" :class="mode === 'dark' ? 'text-white' : 'text-gray-900'">
+        <h2 class="text-xl font-semibold text-gray-900">
           {{ title }}
         </h2>
-        <p class="text-sm mt-1" :class="mode === 'dark' ? 'text-gray-300' : 'text-gray-600'">
+        <p class="text-sm mt-1 text-gray-500">
           {{ userStore.currentAgency?.name }} - {{ userStore.currentUser?.role }}
         </p>
       </div>

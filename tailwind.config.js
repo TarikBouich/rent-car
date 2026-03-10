@@ -18,6 +18,11 @@ export default {
           90: '#1a56db',
           100: '#1e40af',
         },
+        sidebar: '#2E233C', 
+        sidenav: {
+          item: '#907095',
+          hover: '#e2b4e9',
+        },
         white: '#ffffff',
         green: {
           100: "#8fdcc6",

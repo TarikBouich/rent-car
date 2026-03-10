@@ -1,19 +1,19 @@
 <template>
-  <div class="p-4">
+    <div class="p-4">
     <div class="max-w-4xl mx-auto bg-white dark:bg-dark-70 rounded-lg shadow-sm">
       <div class="p-4 border-b border-gray-200 dark:border-gray-700">
         <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">Add New Car</h2>
-      </div>
+          </div>
       <form @submit.prevent="handleSubmit" class="p-4 space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Car Image -->
           <div class="md:col-span-2">
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Car Image</label>
-            <input
+              <input
               type="file"
               accept="image/*"
               @change="handleImageUpload"
-              required
+                required
               class="mt-1 block w-full text-sm text-gray-500 dark:text-gray-400
                 file:mr-4 file:py-2 file:px-4
                 file:rounded-md file:border-0
@@ -25,94 +25,94 @@
             <div v-if="carData.image" class="mt-2">
               <img :src="carData.image" alt="Car Preview" class="w-32 h-32 object-cover rounded-lg">
             </div>
-          </div>
+            </div>
 
           <!-- Car Name -->
-          <div>
+            <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Car Name</label>
-            <input
+              <input
               v-model="carData.name"
-              type="text"
-              required
+                type="text"
+                required
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-dark-60 dark:border-dark-50 dark:text-gray-100 sm:text-sm"
-            />
-          </div>
+              />
+            </div>
 
           <!-- License Plate -->
-          <div>
+            <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">License Plate</label>
-            <input
+              <input
               v-model="carData.licensePlate"
-              type="text"
-              required
+                type="text"
+                required
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-dark-60 dark:border-dark-50 dark:text-gray-100 sm:text-sm"
-            />
-          </div>
+              />
+            </div>
 
           <!-- Price Per Day -->
-          <div>
+            <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Price Per Day (MAD)</label>
-            <input
+              <input
               v-model.number="carData.pricePerDay"
               type="number"
-              required
+                required
               min="0"
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-dark-60 dark:border-dark-50 dark:text-gray-100 sm:text-sm"
-            />
-          </div>
+              />
+            </div>
 
           <!-- Current Mileage -->
-          <div>
+            <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Current Mileage (km)</label>
-            <input
+              <input
               v-model.number="carData.currentMileage"
               type="number"
-              required
+                required
               min="0"
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-dark-60 dark:border-dark-50 dark:text-gray-100 sm:text-sm"
-            />
-          </div>
+              />
+            </div>
 
           <!-- Next Oil Change -->
-          <div>
+            <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Next Oil Change (km)</label>
-            <input
+              <input
               v-model.number="carData.nextVidangeKm"
               type="number"
-              required
+                required
               min="0"
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-dark-60 dark:border-dark-50 dark:text-gray-100 sm:text-sm"
-            />
-          </div>
+              />
+            </div>
 
           <!-- Insurance End Date -->
-          <div>
+            <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Insurance End Date</label>
-            <input
+              <input
               v-model="carData.assuranceEndDate"
               type="date"
-              required
+                required
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-dark-60 dark:border-dark-50 dark:text-gray-100 sm:text-sm"
-            />
-          </div>
+              />
+            </div>
 
           <!-- Technical Visit End Date -->
-          <div>
+            <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Technical Visit End Date</label>
-            <input
+              <input
               v-model="carData.visiteTechniqueEndDate"
               type="date"
-              required
+                required
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-dark-60 dark:border-dark-50 dark:text-gray-100 sm:text-sm"
-            />
-          </div>
+              />
+            </div>
 
           <!-- Transmission -->
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Transmission</label>
             <select
               v-model="carData.transmission"
-              required
+                required
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-dark-60 dark:border-dark-50 dark:text-gray-100 sm:text-sm"
             >
               <option value="manual">Manual</option>
@@ -148,7 +148,7 @@
           >
             Add Car
           </button>
-        </div>
+      </div>
       </form>
     </div>
   </div>
@@ -195,10 +195,14 @@ export default {
     }
 
     const handleSubmit = () => {
+      // Ensure agencyId is set from the current user
+      const agencyId = userStore.currentAgency?.id || userStore.currentUser?.agencyId
+      
       // Add new car using the store
       carStore.addCar({
         ...carData.value,
-        id: Date.now() // Simple way to generate unique ID
+        id: Date.now(), // Simple way to generate unique ID
+        agencyId: agencyId
       })
       
       // Navigate back to cars list

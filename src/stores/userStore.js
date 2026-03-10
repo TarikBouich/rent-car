@@ -5,6 +5,7 @@ export const useUserStore = defineStore('user', {
   state: () => ({
     currentUser: null,
     currentAgency: null,
+    users: [], // Add users list
   }),
 
   getters: {
@@ -12,6 +13,7 @@ export const useUserStore = defineStore('user', {
     userAgencyId: (state) => state.currentUser?.agencyId,
     isAdmin: (state) => state.currentUser?.role === 'admin',
     currentAgencyId: (state) => state.currentAgency?.id,
+    getAllUsers: (state) => state.users, // Add getter
   },
 
   actions: {
@@ -19,6 +21,7 @@ export const useUserStore = defineStore('user', {
       try {
         // In a real app, this would be an API call
         const users = JSON.parse(localStorage.getItem('users') || '[]')
+        this.users = users // Update state
         const user = users.find(u => u.email === email && u.password === password)
         
         if (!user) {
@@ -64,6 +67,12 @@ export const useUserStore = defineStore('user', {
     initializeFromStorage() {
       const storedUser = localStorage.getItem('currentUser')
       const storedAgency = localStorage.getItem('currentAgency')
+      
+      // Load all users
+      const allUsers = localStorage.getItem('users')
+      if (allUsers) {
+        this.users = JSON.parse(allUsers)
+      }
       
       if (storedUser && storedAgency) {
         this.currentUser = JSON.parse(storedUser)

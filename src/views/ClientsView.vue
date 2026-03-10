@@ -54,6 +54,7 @@
                 <th class="p-4 text-left">Name</th>
                 <th class="p-4 text-left">National ID</th>
                 <th class="p-4 text-left">Phone Number</th>
+                <th class="p-4 text-left">Agency</th>
                 <th class="p-4 text-left">Actions</th>
               </tr>
             </thead>
@@ -84,6 +85,9 @@
                 </td>
                 <td class="p-4">
                   <span class="text-black dark:text-white">{{ client.phoneNumber }}</span>
+                </td>
+                <td class="p-4">
+                  <span class="text-black dark:text-white">{{ getAgencyName(client.agencyId) }}</span>
                 </td>
                 <td class="p-4">
                   <div class="flex items-center gap-3">
@@ -418,27 +422,15 @@
                 required
               />
             </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label for="editBirthDate" class="block text-sm mb-1">Birth Date</label>
-                <input
-                  type="date"
-                  class="form-field"
-                  id="editBirthDate"
-                  v-model="currentClient.birthDate"
-                  required
-                />
-              </div>
-              <div>
-                <label for="editProfession" class="block text-sm mb-1">Profession</label>
-                <input
-                  type="text"
-                  class="form-field"
-                  id="editProfession"
-                  v-model="currentClient.profession"
-                  required
-                />
-              </div>
+            <div>
+              <label for="editProfession" class="block text-sm mb-1">Profession</label>
+              <input
+                type="text"
+                class="form-field"
+                id="editProfession"
+                v-model="currentClient.profession"
+                required
+              />
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
@@ -477,7 +469,7 @@
                 <label class="block text-sm mb-1">ID Card Front</label>
                 <input
                   type="file"
-                  class="form-field"
+                  class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-dark-60 dark:file:text-gray-100"
                   @change="handleFileUpload($event, 'idCardFront')"
                   accept="image/*"
                 />
@@ -489,7 +481,7 @@
                 <label class="block text-sm mb-1">ID Card Back</label>
                 <input
                   type="file"
-                  class="form-field"
+                  class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-dark-60 dark:file:text-gray-100"
                   @change="handleFileUpload($event, 'idCardBack')"
                   accept="image/*"
                 />
@@ -503,7 +495,7 @@
                 <label class="block text-sm mb-1">Driver's License Front</label>
                 <input
                   type="file"
-                  class="form-field"
+                  class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-dark-60 dark:file:text-gray-100"
                   @change="handleFileUpload($event, 'driverLicenseFront')"
                   accept="image/*"
                 />
@@ -515,21 +507,35 @@
                 <label class="block text-sm mb-1">Driver's License Back</label>
                 <input
                   type="file"
-                  class="form-field"
+                  class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-dark-60 dark:file:text-gray-100"
                   @change="handleFileUpload($event, 'driverLicenseBack')"
                   accept="image/*"
                 />
                 <div v-if="currentClient.driverLicenseBack" class="mt-2">
                   <img :src="currentClient.driverLicenseBack" class="w-32 h-32 object-cover rounded-lg" />
-                </div>
-              </div>
+            </div>
+          </div>
+        </div>
+            <!-- Agency Location -->
+            <div v-if="userStore.isAdmin">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Agency</label>
+              <select
+                v-model="currentClient.agencyId"
+                required
+                class="form-field"
+              >
+                <option value="">Select Agency</option>
+                <option v-for="agency in agencies" :key="agency.id" :value="agency.id">
+                  {{ agency.name }} ({{ agency.location }})
+                </option>
+              </select>
             </div>
             <div class="flex items-center justify-end gap-2">
-              <button
-                type="button"
-                class="button close-button small-button"
+          <button
+            type="button"
+            class="button close-button small-button"
                 @click="closeEditModal"
-              >
+          >
                 Cancel
           </button>
           <button
@@ -587,8 +593,11 @@
 <script>
 import { RouterLink } from "vue-router";
 import TopBar from "../components/TopBar.vue";
-import { clientStore } from "../store";
-import { generateNextId, sortByIdDesc } from '../utils/idGenerator';
+import { useClientStore } from '../stores/clientStore'
+import { useCarStore } from '../stores/carStore'
+import { useUserStore } from '../stores/userStore'
+import { sortByIdDesc, generateNextId } from '../utils/idGenerator'
+import { ref, onMounted } from 'vue'
 
 export default {
   components: {
@@ -597,6 +606,29 @@ export default {
   props: {
     mode: String,
   },
+  setup() {
+    const clientStore = useClientStore()
+    const carStore = useCarStore()
+    const userStore = useUserStore()
+    const agencies = ref([])
+    
+    const loadAgencies = () => {
+      try {
+        const savedAgencies = localStorage.getItem('agencies')
+        if (savedAgencies) {
+          agencies.value = JSON.parse(savedAgencies)
+        }
+      } catch (error) {
+        console.error('Error loading agencies:', error)
+      }
+    }
+    
+    onMounted(() => {
+      loadAgencies();
+    });
+
+    return { clientStore, carStore, userStore, agencies }
+  },
   data() {
     return {
       searchQuery: '',
@@ -604,29 +636,13 @@ export default {
       showEditModal: false,
       showImageModal: false,
       currentImage: '',
-      selectedClient: {
-        firstName: '',
-        lastName: '',
-        nationalId: '',
-        phoneNumber: '',
-        nationality: '',
-        birthDate: '',
-        profession: '',
-        licenseNumber: '',
-        licenseDate: '',
-        address: '',
-        idCardFront: '',
-        idCardBack: '',
-        driverLicenseFront: '',
-        driverLicenseBack: ''
-      },
+      selectedClient: {},
       currentClient: {
         firstName: '',
         lastName: '',
         nationalId: '',
         phoneNumber: '',
         nationality: '',
-        birthDate: '',
         profession: '',
         licenseNumber: '',
         licenseDate: '',
@@ -639,107 +655,70 @@ export default {
       currentClientIndex: -1,
       error: null,
       loading: false,
-      reservations: [],
-      newClient: {
-        firstName: '',
-        lastName: '',
-        nationalId: '',
-        phoneNumber: '',
-        email: '',
-        address: '',
-        licenseNumber: '',
-        licenseDate: '',
-        licenseCity: '',
-      },
-      showAddModal: false,
-    };
-  },
-  computed: {
-    clients() {
-      return clientStore.clients;
-    },
-    filteredClients() {
-      const sortedClients = sortByIdDesc(this.clients);
-      if (!this.searchQuery) return sortedClients;
-      
-      const query = this.searchQuery.toLowerCase();
-      return sortedClients.filter(client => 
-        client.firstName.toLowerCase().includes(query) ||
-        client.lastName.toLowerCase().includes(query) ||
-        client.nationalId.toLowerCase().includes(query) ||
-        client.phoneNumber.toLowerCase().includes(query)
-      );
     }
   },
-  created() {
-    // Initialize the store
-    this.initializeStore();
-    // Load reservations
-    this.loadReservations();
+  computed: {
+    filteredClients() {
+      const sortedClients = sortByIdDesc(this.clientStore.filteredClients)
+      if (!this.searchQuery) return sortedClients
+      
+      const query = this.searchQuery.toLowerCase()
+      return sortedClients.filter(client => 
+        client.firstName?.toLowerCase().includes(query) ||
+        client.lastName?.toLowerCase().includes(query) ||
+        client.nationalId?.toLowerCase().includes(query) ||
+        client.phoneNumber?.toLowerCase().includes(query)
+      )
+    }
+  },
+  mounted() {
+    // Initialize stores
+    this.clientStore.initializeFromStorage()
+    this.carStore.initializeFromStorage()
   },
   methods: {
-    initializeStore() {
-      try {
-        // Load clients from localStorage
-        const savedClients = localStorage.getItem('clients');
-        if (savedClients) {
-          clientStore.clients = JSON.parse(savedClients);
-        }
-      } catch (error) {
-        console.error('Error initializing store:', error);
-        this.error = 'Error loading client data. Please refresh the page.';
-      }
-    },
-    loadReservations() {
-      try {
-        const savedReservations = localStorage.getItem('reservations');
-        if (savedReservations) {
-          this.reservations = JSON.parse(savedReservations);
-        }
-      } catch (error) {
-        console.error('Error loading reservations:', error);
-      }
+    getAgencyName(agencyId) {
+      const agency = this.agencies.find(a => a.id === agencyId);
+      return agency ? agency.name : 'Unknown Agency';
     },
     needsToReturnCarToday(clientId) {
-      const today = new Date().toDateString();
-      return this.reservations.some(reservation => 
+      const today = new Date().toDateString()
+      return this.carStore.filteredReservations.some(reservation => 
         reservation.clientId === clientId && 
         reservation.status === 'Active' &&
         new Date(reservation.endDate).toDateString() === today
-      );
+      )
     },
     showImage(image) {
-      this.currentImage = image;
-      this.showImageModal = true;
+      this.currentImage = image
+      this.showImageModal = true
     },
     showClientDetails(client, index) {
       try {
-        this.selectedClient = { ...this.clients[index] };
-        this.showDetailsModal = true;
+        this.selectedClient = { ...client }
+        this.currentClientIndex = index
+        this.showDetailsModal = true
       } catch (error) {
-        console.error('Error loading client details:', error);
-        this.error = 'Error loading client details. Please try again.';
+        console.error('Error loading client details:', error)
+        this.error = 'Error loading client details. Please try again.'
       }
     },
     editClient(client, index) {
-      try {
-        this.currentClient = { ...this.clients[index] };
-        this.currentClientIndex = index;
-        this.showEditModal = true;
-      } catch (error) {
-        console.error('Error loading client for edit:', error);
-        this.error = 'Error loading client for edit. Please try again.';
+      this.currentClient = { ...client }
+      this.currentClientIndex = index
+      if (!this.currentClient.agencyId && this.userStore.currentAgencyId) {
+        this.currentClient.agencyId = this.userStore.currentAgencyId;
       }
+      this.showEditModal = true
     },
     closeEditModal() {
-      this.showEditModal = false;
+      this.showEditModal = false
       this.currentClient = {
         firstName: '',
         lastName: '',
         nationalId: '',
         phoneNumber: '',
         nationality: '',
-        birthDate: '',
         profession: '',
         licenseNumber: '',
         licenseDate: '',
@@ -748,129 +727,90 @@ export default {
         idCardBack: '',
         driverLicenseFront: '',
         driverLicenseBack: ''
-      };
-      this.currentClientIndex = -1;
-      this.error = null;
+      }
+      this.error = null
     },
     handleFileUpload(event, field) {
-      const file = event.target.files[0];
+      const file = event.target.files[0]
       if (file) {
-        const reader = new FileReader();
+        const reader = new FileReader()
         reader.onload = (e) => {
-          this.currentClient[field] = e.target.result;
-        };
-        reader.readAsDataURL(file);
+          this.currentClient[field] = e.target.result
+        }
+        reader.readAsDataURL(file)
       }
     },
     saveClient() {
-      if (this.currentClientIndex > -1) {
-        this.loading = true;
-        this.error = null;
-        try {
-          // Format dates before saving
-          const clientToSave = {
-            ...this.currentClient,
-            birthDate: this.formatDateForStorage(this.currentClient.birthDate),
-            licenseDate: this.formatDateForStorage(this.currentClient.licenseDate)
-          };
-          
-          // Update the client in the store
-          clientStore.clients[this.currentClientIndex] = clientToSave;
-          // Save to localStorage
-          localStorage.setItem('clients', JSON.stringify(clientStore.clients));
-          this.closeEditModal();
-        } catch (error) {
-          this.error = 'Error saving client. Please try again.';
-          console.error('Error saving client:', error);
-        } finally {
-          this.loading = false;
+      this.loading = true
+      this.error = null
+      try {
+        // Format dates before saving
+        const clientToSave = {
+          ...this.currentClient,
+          licenseDate: this.formatDateForStorage(this.currentClient.licenseDate),
         }
+        
+        // Update the client in the store using its ID
+        this.clientStore.updateClient(this.currentClient.id, clientToSave)
+        this.closeEditModal()
+      } catch (error) {
+        this.error = 'Error saving client. Please try again.'
+        console.error('Error saving client:', error)
+      } finally {
+        this.loading = false
       }
     },
     formatDateForStorage(dateString) {
-      if (!dateString) return '';
+      if (!dateString) return ''
       
       try {
         // Convert the date to YYYY-MM-DD format for storage
-        const date = new Date(dateString);
+        const date = new Date(dateString)
         if (isNaN(date.getTime())) {
-          console.warn('Invalid date:', dateString);
-          return dateString;
+          console.warn('Invalid date:', dateString)
+          return dateString
         }
-        return date.toISOString().split('T')[0];
+        return date.toISOString().split('T')[0]
       } catch (error) {
-        console.error('Error formatting date for storage:', error);
-        return dateString;
+        console.error('Error formatting date for storage:', error)
+        return dateString
       }
     },
     deleteClient(index) {
       if (confirm('Are you sure you want to delete this client?')) {
         try {
-          clientStore.clients.splice(index, 1);
-          localStorage.setItem('clients', JSON.stringify(clientStore.clients));
+          this.clientStore.deleteClient(this.currentClient.id)
         } catch (error) {
-          console.error('Error deleting client:', error);
-          this.error = 'Error deleting client. Please try again.';
+          console.error('Error deleting client:', error)
+          this.error = 'Error deleting client. Please try again.'
         }
       }
     },
     hasActiveReservation(clientId) {
-      return this.reservations.some(reservation => 
+       // Use the carStore to check for active reservations
+      return this.carStore.filteredReservations.some(reservation => 
         reservation.clientId === clientId && 
         reservation.status === 'Active'
-      );
+      )
     },
     getRentedCarInfo(clientId) {
-      const reservation = this.reservations.find(r => 
+      const reservation = this.carStore.filteredReservations.find(r => 
         r.clientId === clientId && 
         r.status === 'Active'
-      );
+      )
       if (reservation) {
-        return `${reservation.carName} (${reservation.carId}) - Return: ${this.formatDate(reservation.endDate)}`;
+        // Assuming formatDate is a utility or a method in this component
+        return `${reservation.carName} (${reservation.carId}) - Return: ${this.formatDate(reservation.endDate)}`
       }
-      return '';
+      return ''
     },
     formatDate(date) {
-      if (!date) return '';
-      const d = new Date(date);
-      const day = String(d.getDate()).padStart(2, '0');
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const year = d.getFullYear();
-      return `${day}/${month}/${year}`;
-    },
-    addClient() {
-      const nextId = generateNextId(this.clients);
-      const newClient = {
-        id: nextId,
-        firstName: this.newClient.firstName,
-        lastName: this.newClient.lastName,
-        nationalId: this.newClient.nationalId,
-        phoneNumber: this.newClient.phoneNumber,
-        email: this.newClient.email,
-        address: this.newClient.address,
-        licenseNumber: this.newClient.licenseNumber,
-        licenseDate: this.newClient.licenseDate,
-        licenseCity: this.newClient.licenseCity,
-        createdAt: new Date().toISOString()
-      };
-      
-      this.clients.push(newClient);
-      localStorage.setItem('clients', JSON.stringify(this.clients));
-      this.showAddModal = false;
-      this.resetNewClient();
-    },
-    resetNewClient() {
-      this.newClient = {
-        firstName: '',
-        lastName: '',
-        nationalId: '',
-        phoneNumber: '',
-        email: '',
-        address: '',
-        licenseNumber: '',
-        licenseDate: '',
-        licenseCity: '',
-      };
+      if (!date) return ''
+      const d = new Date(date)
+      const day = String(d.getDate()).padStart(2, '0')
+      const month = String(d.getMonth() + 1).padStart(2, '0')
+      const year = d.getFullYear()
+      return `${day}/${month}/${year}`
     },
     formatDisplayDate(dateString) {
       if (!dateString) return 'Not provided';

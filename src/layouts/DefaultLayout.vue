@@ -1,10 +1,10 @@
 <template>
-  <div class="flex h-screen" :class="mode === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-100'">
+  <div class="flex h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
     <!-- Sidebar -->
-    <aside class="w-64 shadow-lg" :class="mode === 'dark' ? 'bg-gray-800 text-white' : 'bg-white'">
+    <aside class="w-64 shadow-lg bg-gradient-to-r from-[#3a243c] to-[#55305a] text-sidenav-item">
       <div class="p-4">
-        <h1 class="text-2xl font-bold" :class="mode === 'dark' ? 'text-white' : 'text-primary'">Rent Car</h1>
-        <div class="mt-2 text-sm" :class="mode === 'dark' ? 'text-gray-300' : 'text-gray-600'">
+        <h1 class="text-2xl font-bold text-white">Rent Car</h1>
+        <div class="mt-2 text-sm text-white">
           {{ userStore.currentAgency?.name || 'Loading...' }}
         </div>
       </div>
@@ -13,13 +13,11 @@
           v-for="item in filteredMenuItems" 
           :key="item.path"
           :to="item.path"
-          class="flex items-center px-4 py-2"
+          class="flex items-center px-4 py-2 hover:text-white transition-colors duration-200"
           :class="[
             $route.path === item.path 
-              ? 'bg-primary text-white' 
-              : mode === 'dark' 
-                ? 'text-gray-300 hover:bg-gray-700' 
-                : 'text-gray-700 hover:bg-gray-100'
+              ? 'text-white font-semibold' 
+              : 'text-white'
           ]"
         >
           <span class="w-5 h-5 mr-2">{{ item.icon }}</span>
@@ -29,13 +27,13 @@
     </aside>
 
     <!-- Main Content -->
-    <div class="flex-1 overflow-auto">
+    <div class="flex-1 overflow-auto flex flex-col">
       <TopBar 
         :mode="mode"
         :title="currentPageTitle"
         @toggle-mode="$emit('toggle-mode')"
       />
-      <main class="p-6" :class="mode === 'dark' ? 'bg-gray-900' : 'bg-gray-100'">
+      <main class="flex-1 p-6 bg-white text-black">
         <slot></slot>
       </main>
     </div>

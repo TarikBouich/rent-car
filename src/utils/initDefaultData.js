@@ -64,11 +64,11 @@ export function initializeDefaultData() {
         price: 100,
         agencyId: 'agency1',
         status: 'available',
-        image: 'https://example.com/bmw-x5.jpg',
+        image: 'https://stimg.cardekho.com/images/carexteriorimages/930x620/BMW/X5-2023/10452/1688992642182/front-left-side-47.jpg?impolicy=resize&amp;imwidth=420',
         currentMileage: 15000,
         nextVidangeKm: 20000,
-        visiteTechniqueEndDate: '2024-12-31',
-        assuranceEndDate: '2024-12-31'
+        visiteTechniqueEndDate: '2026-12-31',
+        assuranceEndDate: '2026-12-31'
       },
       {
         id: 'car2',
@@ -81,46 +81,46 @@ export function initializeDefaultData() {
         price: 90,
         agencyId: 'agency1',
         status: 'available',
-        image: 'https://example.com/mercedes-c.jpg',
+        image: 'https://vehicle-images.dealerinspire.com/01a0-11001591/thumbnails/large/W1KAF4GB4SR269463/e550ca2ad063585bc6ee241f58b25c12.jpghttps://vehicle-images.dealerinspire.com/01a0-11001591/thumbnails/large/W1KAF4GB4SR269463/e550ca2ad063585bc6ee241f58b25c12.jpg',
         currentMileage: 8000,
         nextVidangeKm: 15000,
-        visiteTechniqueEndDate: '2024-11-30',
-        assuranceEndDate: '2024-11-30'
+        visiteTechniqueEndDate: '2025-11-30',
+        assuranceEndDate: '2025-11-30'
       },
       // Luxury Rentals (agency2) cars
       {
         id: 'car3',
-        name: 'Audi A6',
+        name: 'Toyota Corolla',
         licensePlate: 'GHI789',
-        brand: 'Audi',
-        model: 'A6',
+        brand: 'Toyota',
+        model: 'Corolla',
         year: 2023,
         color: 'White',
         price: 95,
         agencyId: 'agency2',
         status: 'available',
-        image: 'https://example.com/audi-a6.jpg',
+        image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRcjThJTGLSG4VwfZEyOEVeHuW9piWHZ8Fdag&s',
         currentMileage: 12000,
         nextVidangeKm: 17000,
-        visiteTechniqueEndDate: '2024-10-31',
-        assuranceEndDate: '2024-10-31'
+        visiteTechniqueEndDate: '2026-10-31',
+        assuranceEndDate: '2026-10-31'
       },
       {
         id: 'car4',
-        name: 'Range Rover Sport',
+        name: 'Clio 4',
         licensePlate: 'JKL012',
-        brand: 'Land Rover',
-        model: 'Range Rover Sport',
+        brand: 'Renault',
+        model: 'Clio 4',
         year: 2022,
         color: 'Gray',
         price: 120,
         agencyId: 'agency2',
         status: 'available',
-        image: 'https://example.com/range-rover.jpg',
+        image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS7dJxhHh9ybeAR7whqxPXyhGpws_yxCTirznldy3q77KBAt6qY-Gff4OQUqFYhGf3YgLc&usqp=CAU',
         currentMileage: 18000,
         nextVidangeKm: 23000,
-        visiteTechniqueEndDate: '2024-09-30',
-        assuranceEndDate: '2024-09-30'
+        visiteTechniqueEndDate: '2025-09-30',
+        assuranceEndDate: '2025-09-30'
       }
     ]
     localStorage.setItem('cars', JSON.stringify(cars))
