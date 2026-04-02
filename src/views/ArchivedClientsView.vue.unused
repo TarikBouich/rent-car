@@ -1,0 +1,82 @@
+<template>
+  <div class="p-6 bg-[#151923] min-h-[calc(100vh-4rem)]">
+    <div class="bg-[#1E2330] rounded-xl border border-gray-800 shadow-sm overflow-hidden">
+      <div class="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
+        <span class="text-lg font-bold text-white leading-none">Archived Clients</span>
+      </div>
+      <div class="p-4">
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="bg-[#1C1C1C]">
+                <th class="px-4 py-3 text-xs font-semibold text-white uppercase tracking-wider text-left">Name</th>
+                <th class="px-4 py-3 text-xs font-semibold text-white uppercase tracking-wider text-left">Email</th>
+                <th class="px-4 py-3 text-xs font-semibold text-white uppercase tracking-wider text-left">Phone</th>
+                <th class="px-4 py-3 text-xs font-semibold text-white uppercase tracking-wider text-left">Address</th>
+                <th class="px-4 py-3 text-xs font-semibold text-white uppercase tracking-wider text-left">Archive Date</th>
+                <th class="px-4 py-3 text-xs font-semibold text-white uppercase tracking-wider text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-800">
+              <tr v-for="client in archivedClients" :key="client.id" class="hover:bg-gray-800/50 transition-colors">
+                <td class="px-4 py-3 text-white">{{ client.name }}</td>
+                <td class="px-4 py-3 text-white">{{ client.email }}</td>
+                <td class="px-4 py-3 text-white">{{ client.phone }}</td>
+                <td class="px-4 py-3 text-white">{{ client.address }}</td>
+                <td class="px-4 py-3 text-white">{{ formatDate(client.archiveDate) }}</td>
+                <td class="px-4 py-3 text-right">
+                  <button @click="restoreClient(client)" class="text-[#3B82F6] hover:text-blue-400">
+                    Restore
+                  </button>
+                </td>
+              </tr>
+              <tr v-if="archivedClients.length === 0">
+                <td colspan="6" class="px-4 py-8 text-center text-gray-400">
+                  No archived clients found
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'ArchivedClientsView',
+  props: {
+    mode: {
+      type: String,
+      default: 'light'
+    }
+  },
+  data() {
+    return {
+      archivedClients: []
+    }
+  },
+  methods: {
+    formatDate(date) {
+      return new Date(date).toLocaleDateString()
+    },
+    loadArchivedClients() {
+      const clients = JSON.parse(localStorage.getItem('clients') || '[]')
+      this.archivedClients = clients.filter(client => client.status === 'archived')
+    },
+    restoreClient(client) {
+      const clients = JSON.parse(localStorage.getItem('clients') || '[]')
+      const index = clients.findIndex(c => c.id === client.id)
+      if (index !== -1) {
+        clients[index].status = 'active'
+        localStorage.setItem('clients', JSON.stringify(clients))
+        this.loadArchivedClients()
+      }
+    }
+  },
+  mounted() {
+    this.loadArchivedClients()
+  }
+}
+</script> 

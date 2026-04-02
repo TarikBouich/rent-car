@@ -43,14 +43,14 @@
               <input
                 type="date"
                 v-model="startDate"
-                class="form-field"
+                class="form-field dark:bg-transparent bg-white dark:text-white"
                 :max="endDate"
               />
               <span>to</span>
               <input
                 type="date"
                 v-model="endDate"
-                class="form-field"
+                class="form-field dark:bg-transparent bg-white dark:text-white"
                 :min="startDate"
               />
             </div>
@@ -59,7 +59,7 @@
               <div class="relative flex items-center">
                 <input
                   type="search"
-                  class="form-field pl-10"
+                  class="form-field pl-10 dark:bg-transparent bg-white dark:text-white"
                   placeholder="Search for a reservation by client name or car name"
                   v-model="searchQuery"
                 />
@@ -88,51 +88,51 @@
               class="border-b-2"
               :class="mode === 'dark' ? 'border-dark-50' : ''"
             >
-              <tr :class="mode === 'dark' ? 'bg-dark-1' : 'bg-gray-1'">
-                <th class="py-4 cursor-pointer" @click="sortBy('displayId')">
+<tr class="bg-white dark:bg-[#1C1C1C]">
+                <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider cursor-pointer" @click="sortBy('displayId')">
                   ID
                   <span v-if="sortField === 'displayId'" class="ml-1">
                     {{ sortOrder === 'asc' ? '↑' : '↓' }}
                   </span>
                 </th>
-                <th class="py-4 cursor-pointer" @click="sortBy('clientName')">
+                <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider cursor-pointer" @click="sortBy('clientName')">
                   Client
                   <span v-if="sortField === 'clientName'" class="ml-1">
                     {{ sortOrder === 'asc' ? '↑' : '↓' }}
                   </span>
                 </th>
-                <th class="py-4 cursor-pointer" @click="sortBy('carName')">
+                <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider cursor-pointer" @click="sortBy('carName')">
                   Car
                   <span v-if="sortField === 'carName'" class="ml-1">
                     {{ sortOrder === 'asc' ? '↑' : '↓' }}
                   </span>
                 </th>
-                <th class="py-4 cursor-pointer" @click="sortBy('startDate')">
+                <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider cursor-pointer" @click="sortBy('startDate')">
                   Rental Period
                   <span v-if="sortField === 'startDate'" class="ml-1">
                     {{ sortOrder === 'asc' ? '↑' : '↓' }}
                   </span>
                 </th>
-                <th class="py-4 cursor-pointer" @click="sortBy('numberOfDays')">
+                <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider cursor-pointer" @click="sortBy('numberOfDays')">
                   Number of Days
                   <span v-if="sortField === 'numberOfDays'" class="ml-1">
                     {{ sortOrder === 'asc' ? '↑' : '↓' }}
                   </span>
                 </th>
-                <th class="py-4 cursor-pointer" @click="sortBy('pricePerDay')">
+                <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider cursor-pointer" @click="sortBy('pricePerDay')">
                   Price/Day
                   <span v-if="sortField === 'pricePerDay'" class="ml-1">
                     {{ sortOrder === 'asc' ? '↑' : '↓' }}
                   </span>
                 </th>
-                <th class="py-4 cursor-pointer" @click="sortBy('totalPrice')">
+                <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider cursor-pointer" @click="sortBy('totalPrice')">
                   Total Price
                   <span v-if="sortField === 'totalPrice'" class="ml-1">
                     {{ sortOrder === 'asc' ? '↑' : '↓' }}
                   </span>
                 </th>
-                <th class="py-4">Status</th>
-                <th class="py-4">Actions</th>
+                <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Status</th>
+                <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider text-right">Actions</th>
               </tr>
             </thead>
             <tbody

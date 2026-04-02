@@ -1,9 +1,9 @@
 <template>
-  <div class="p-4">
+  <div class="p-6 bg-[#F3F4F6] dark:bg-[#151923] min-h-[calc(100vh-4rem)] font-[Inter]">
     <div
-      class="rounded-lg shadow-sm overflow-hidden bg-white dark:bg-dark-70"
+      class="rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden bg-white dark:bg-[#1E2330]"
     >
-      <div class="p-4">
+      <div class="p-6 bg-[#F3F4F6] dark:bg-[#151923] min-h-[calc(100vh-4rem)] font-[Inter]">
         <FullCalendar
           ref="calendar"
           :options="calendarOptions"
@@ -14,10 +14,10 @@
 
     <!-- Event Details Popup -->
     <div v-if="showEventPopup" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]">
-      <div class="bg-white dark:bg-dark-70 rounded-lg shadow-xl max-w-md w-full mx-4">
+      <div class="bg-white dark:bg-[#1E2330] rounded-xl border border-gray-200 dark:border-gray-800 shadow-xl max-w-md w-full mx-4">
         <div class="flex justify-between items-center p-4">
-          <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Event Details</h3>
-          <button @click="showEventPopup = false" class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
+          <h3 class="text-lg font-medium text-gray-900 dark:text-white">Event Details</h3>
+          <button @click="showEventPopup = false" class="text-gray-600 dark:text-gray-400 hover:text-gray-200 transition-colors">
             <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
               <path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" />
             </svg>
@@ -27,9 +27,9 @@
           <div class="space-y-3">
             <div class="flex items-center">
               <span v-html="selectedEvent?.icon" class="mr-2"></span>
-              <span class="text-gray-900 dark:text-gray-100 font-medium">{{ selectedEvent?.name }}</span>
+              <span class="text-gray-900 dark:text-white font-medium">{{ selectedEvent?.name }}</span>
             </div>
-            <div class="text-gray-600 dark:text-gray-400">
+            <div class="text-gray-700 dark:text-gray-300">
               <div class="flex items-center">
                 <svg class="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
@@ -37,7 +37,7 @@
                 {{ selectedEvent?.date }}
               </div>
             </div>
-            <div class="text-gray-600 dark:text-gray-400">
+            <div class="text-gray-700 dark:text-gray-300">
               <div class="flex items-center">
                 <svg class="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
@@ -90,7 +90,7 @@ export default {
             start: new Date(car.assuranceEndDate).toISOString().split('T')[0],
             backgroundColor: 'rgba(239, 68, 68, 0.1)',
             borderColor: 'rgb(239, 68, 68)',
-            textColor: props.mode === 'dark' ? '#fff' : '#1a1a1a',
+            textColor: '#fff',
             allDay: true,
             classNames: ['event-item'],
             html: true,
@@ -111,7 +111,7 @@ export default {
             start: new Date(car.visiteTechniqueEndDate).toISOString().split('T')[0],
             backgroundColor: 'rgba(249, 115, 22, 0.1)',
             borderColor: 'rgb(249, 115, 22)',
-            textColor: props.mode === 'dark' ? '#fff' : '#1a1a1a',
+            textColor: '#fff',
             allDay: true,
             classNames: ['event-item'],
             html: true,
@@ -132,7 +132,7 @@ export default {
             start: new Date().toISOString().split('T')[0],
             backgroundColor: 'rgba(34, 197, 94, 0.1)',
             borderColor: 'rgb(34, 197, 94)',
-            textColor: props.mode === 'dark' ? '#fff' : '#1a1a1a',
+            textColor: '#fff',
             allDay: true,
             classNames: ['event-item'],
             html: true,
@@ -156,7 +156,7 @@ export default {
             start: new Date(reservation.endDate).toISOString().split('T')[0],
             backgroundColor: 'rgba(59, 130, 246, 0.1)',
             borderColor: 'rgb(59, 130, 246)',
-            textColor: props.mode === 'dark' ? '#fff' : '#1a1a1a',
+            textColor: '#fff',
             allDay: true,
             classNames: ['event-item'],
             html: true,
@@ -249,68 +249,88 @@ export default {
 
 <style>
 .calendar-container {
-  --fc-border-color: theme('colors.gray.100');
-  --fc-button-bg-color: transparent;
-  --fc-button-border-color: theme('colors.gray.200');
-  --fc-button-text-color: theme('colors.gray.600');
-  --fc-button-hover-bg-color: theme('colors.gray.50');
-  --fc-button-hover-border-color: theme('colors.gray.300');
-  --fc-today-bg-color: rgba(59, 130, 246, 0.05);
-}
-
-.dark .calendar-container {
-  --fc-border-color: theme('colors.gray.700');
-  --fc-button-text-color: theme('colors.gray.300');
-  --fc-button-hover-bg-color: theme('colors.gray.700');
-  --fc-today-bg-color: rgba(59, 130, 246, 0.1);
+  --fc-border-color: theme('colors.gray.800');
   --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: #1C1C1C;
+  --fc-neutral-text-color: theme('colors.gray.400');
+  --fc-button-bg-color: #1C1C1C;
+  --fc-button-border-color: theme('colors.gray.700');
+  --fc-button-text-color: theme('colors.gray.300');
+  --fc-button-hover-bg-color: theme('colors.gray.800');
+  --fc-button-hover-border-color: theme('colors.gray.600');
+  --fc-button-active-bg-color: #fa5b0f;
+  --fc-button-active-border-color: #fa5b0f;
+  --fc-today-bg-color: rgba(250, 91, 15, 0.1);
+  --fc-event-text-color: #ffffff;
 }
 
 .calendar-container .fc-toolbar-title {
-  @apply text-base font-medium;
+  @apply text-base font-medium text-white;
 }
 
 .calendar-container .fc-button {
-  @apply text-sm font-medium shadow-none border rounded-md px-3 py-1.5 !important;
+  @apply text-sm font-medium shadow-none border rounded-md px-3 py-1.5 transition-colors !important;
 }
 
-.calendar-container .fc-button-primary:not(:disabled).fc-button-active {
-  @apply bg-gray-100 dark:bg-gray-700 !important;
+.calendar-container .fc-button-primary {
+  @apply bg-white dark:bg-[#1C1C1C] border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 hover:border-gray-600 transition-colors !important;
+}
+
+.calendar-container .fc-button-primary:not(:disabled).fc-button-active,
+.calendar-container .fc-button-primary:not(:disabled):active {
+  @apply bg-[#fa5b0f] text-white border-[#fa5b0f] font-bold !important;
 }
 
 .calendar-container .event-item {
-  @apply rounded border-l-2 shadow-sm text-sm py-1 px-2 truncate !important;
+  @apply rounded border-l-2 shadow-sm text-sm py-1 px-2 mb-1 truncate !important;
+  color: #ffffff !important;
   max-width: 100%;
   white-space: nowrap;
   overflow: hidden;
 }
 
 .calendar-container .fc-daygrid-day {
-  @apply text-sm;
+  @apply text-sm bg-white dark:bg-[#1E2330] hover:bg-gray-200 dark:hover:bg-gray-800/30 transition-colors;
+}
+
+.calendar-container .fc-theme-standard th, 
+.calendar-container .fc-theme-standard td {
+  @apply border-gray-200 dark:border-gray-800;
 }
 
 .calendar-container .fc-daygrid-day-number {
-  @apply p-2 text-sm;
+  @apply p-2 text-sm text-gray-600 dark:text-gray-400 hover:text-white transition-colors;
 }
 
 .calendar-container .fc-col-header-cell {
-  @apply py-2 text-xs uppercase text-gray-500 dark:text-gray-400 font-medium;
+  @apply py-3 text-xs uppercase text-gray-600 dark:text-gray-400 font-medium bg-white dark:bg-[#1C1C1C] border-gray-200 dark:border-gray-800 !important;
+}
+
+.calendar-container .fc-col-header-cell-cushion {
+  @apply text-gray-600 dark:text-gray-400 font-semibold;
+  display: inline-block;
+  padding: 8px 4px;
 }
 
 .calendar-container .fc-more-link {
-  @apply text-xs text-gray-500 dark:text-gray-400 font-medium;
+  @apply text-xs text-gray-500 dark:text-gray-400 hover:text-white font-medium transition-colors;
 }
 
 .calendar-container .fc-daygrid-more-link {
-  @apply mx-1;
+  @apply mx-1 mt-1;
 }
 
 .calendar-container .fc-popover {
-  @apply rounded-lg border border-gray-200 shadow-lg dark:border-gray-700 !important;
+  @apply rounded-xl border border-gray-200 dark:border-gray-800 shadow-xl bg-white dark:bg-[#1E2330] !important;
+  z-index: 50;
 }
 
 .calendar-container .fc-popover-header {
-  @apply bg-gray-50 dark:bg-gray-800 px-3 py-2 text-sm font-medium !important;
+  @apply bg-white dark:bg-[#1C1C1C] px-3 py-2 text-sm font-medium text-white border-b border-gray-200 dark:border-gray-800 !important;
+}
+
+.calendar-container .fc-popover-body {
+  @apply bg-white dark:bg-[#1E2330] text-gray-700 dark:text-gray-300 p-2 !important;
 }
 
 .calendar-container .fc-daygrid-event-harness {

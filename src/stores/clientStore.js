@@ -8,6 +8,7 @@ export const useClientStore = defineStore('client', {
   }),
 
   getters: {
+    getClientById: (state) => (id) => state.clients.find(client => client.id === id) || state.archivedClients.find(client => client.id === id),
     // Get clients filtered by agency
     filteredClients: (state) => {
       const userStore = useUserStore()
@@ -40,6 +41,7 @@ export const useClientStore = defineStore('client', {
     // Add a new client
     addClient(client) {
       const userStore = useUserStore()
+      client.companyId = userStore.userCompanyId
       this.clients.push(client)
       this.saveClients()
     },

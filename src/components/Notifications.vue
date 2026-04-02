@@ -29,7 +29,7 @@
     >
       <div class="p-4">
         <h3 class="text-lg font-semibold mb-2 text-white-100">Today's Returns</h3>
-        <div v-if="todayReturnCars.length === 0" class="text-gray-500 text-white-100">
+        <div v-if="todayReturnCars.length === 0" class="text-gray-500 dark:text-gray-400 text-white-100">
           No cars need to be returned today
         </div>
         <div v-else class="space-y-3">

@@ -1,19 +1,18 @@
 <template>
-  <div class="px-6 py-4 border-b border-gray-200 bg-white text-gray-900">
+  <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1E2330] text-gray-900 dark:text-white">
     <div class="flex justify-between items-center">
       <div>
-        <h2 class="text-xl font-semibold text-gray-900">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
           {{ title }}
         </h2>
-        <p class="text-sm mt-1 text-gray-500">
+        <p class="text-sm mt-1 text-gray-600 dark:text-gray-400">
           {{ userStore.currentAgency?.name }} - {{ userStore.currentUser?.role }}
         </p>
       </div>
       <div class="flex items-center gap-4">
-        <!-- Alert Icon -->
         <div class="relative">
         <button
-            class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-dark-70 dark:text-gray-200"
+            class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-white transition-colors"
             @click="toggleNotifications"
               >
                 <svg
@@ -42,36 +41,36 @@
           <div
             v-if="showNotifications"
             ref="notificationMenu"
-            class="absolute right-0 w-80 mt-2 bg-white dark:bg-dark-90 rounded-lg shadow-lg z-50"
+            class="absolute right-0 w-80 mt-2 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg z-50"
           >
             <div class="p-4">
               <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold dark:text-gray-200">Notifications</h3>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Notifications</h3>
                 <button
-                  class="text-sm text-primary-100 hover:text-primary-200"
+                  class="text-sm text-[#fa5b0f] hover:text-yellow-400 transition-colors"
                   @click="markAllAsRead"
                 >
                   Mark all as read
                 </button>
               </div>
-              <div class="space-y-2 max-h-[400px] overflow-y-auto">
+              <div class="space-y-2 max-h-[400px] overflow-y-auto w-full">
                 <div
                   v-for="notification in notifications"
                   :key="notification.id"
-                  class="flex items-start p-4 border-b border-gray-200 dark:border-gray-700 gap-2.5"
+                  class="flex items-start p-4 border-b border-gray-200 dark:border-gray-800 gap-2.5"
                   :class="{
-                    'bg-red-50 dark:bg-red-900/20': notification.priority === 'high',
-                    'bg-yellow-50 dark:bg-yellow-900/20': notification.priority === 'medium'
+                    'bg-red-900/20': notification.priority === 'high',
+                    'bg-yellow-900/20': notification.priority === 'medium'
                   }"
                 >
                   <div class="flex-1">
                     <p class="text-sm font-medium dark:text-gray-200" v-html="notification.message"></p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    <p class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-400 mt-1">
                       {{ notification.type }}
                     </p>
                   </div>
                 </div>
-                <div v-if="notifications.length === 0" class="text-center py-4 text-gray-500 dark:text-gray-400">
+                <div v-if="notifications.length === 0" class="text-center py-4 text-gray-500 dark:text-gray-400 dark:text-gray-400">
                   No notifications
                 </div>
               </div>
@@ -82,7 +81,7 @@
         <!-- <button 
           @click="$emit('toggle-mode')"
           class="px-3 py-1 rounded-md text-sm"
-          :class="mode === 'dark' ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'"
+          :class="mode === 'dark' ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'"
         >
           {{ mode === 'dark' ? '☀️ Light' : '🌙 Dark' }}
         </button> -->
@@ -97,27 +96,22 @@
               {{ userInitials }}
             </span>
           </button>
-          <!-- User Menu Dropdown -->
           <div 
             v-if="showUserMenu"
             ref="dropdownMenu"
-            class="absolute right-0 mt-2 w-48 rounded-md shadow-lg"
-            :class="mode === 'dark' ? 'bg-gray-800 ring-1 ring-gray-700' : 'bg-white'"
+            class="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 z-50"
           >
             <div class="py-1">
-              <div class="px-4 py-2 text-sm" :class="mode === 'dark' ? 'text-gray-300' : 'text-gray-700'">
+              <div class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
                 {{ userStore.currentUser?.email }}
               </div>
-              <div class="px-4 py-2 text-sm" :class="mode === 'dark' ? 'text-gray-300' : 'text-gray-700'">
+              <div class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
                 {{ userStore.currentAgency?.name }}
               </div>
-              <hr :class="mode === 'dark' ? 'border-gray-700' : 'border-gray-200'">
+              <hr class="border-gray-200 dark:border-gray-800">
               <button
                 @click="handleLogout"
-                class="block w-full text-left px-4 py-2 text-sm"
-                :class="mode === 'dark' 
-                  ? 'text-gray-300 hover:bg-gray-700' 
-                  : 'text-gray-700 hover:bg-gray-100'"
+                class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
               >
                 Logout
               </button>

@@ -1,14 +1,14 @@
 <template>
-  <div>
+  <div class="p-6 bg-[#F3F4F6] dark:bg-[#151923] min-h-[calc(100vh-4rem)]">
     <!-- Confirmation Modal -->
-    <div v-if="showConfirmationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white dark:bg-dark-70 p-6 rounded-lg shadow-lg max-w-md w-full">
-        <h3 class="text-lg font-bold mb-4">Confirm Early Return</h3>
-        <p class="mb-4">This car is scheduled to return on {{ formatDate(selectedReservation?.endDate) }}. Do you want to update the return date to today and make it available?</p>
+    <div v-if="showConfirmationModal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+      <div class="bg-white dark:bg-[#1E2330] border border-gray-200 dark:border-gray-800 p-6 rounded-xl shadow-lg max-w-md w-full">
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Confirm Early Return</h3>
+        <p class="mb-4 text-gray-700 dark:text-gray-300">This car is scheduled to return on {{ formatDate(selectedReservation?.endDate) }}. Do you want to update the return date to today and make it available?</p>
         <div class="flex justify-end gap-4">
           <button 
             @click="showConfirmationModal = false" 
-            class="px-4 py-2 rounded-lg bg-gray-200 dark:bg-dark-50 hover:bg-gray-300 dark:hover:bg-dark-60"
+            class="px-4 py-2 rounded-lg bg-white dark:bg-[#1C1C1C] border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800"
           >
             Cancel
           </button>
@@ -23,15 +23,15 @@
     </div>
 
     <!-- Remaining Amount Confirmation Modal -->
-    <div v-if="showRemainingAmountModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
-      <div class="bg-white dark:bg-dark-70 p-6 rounded-lg shadow-lg max-w-md w-full">
-        <h3 class="text-lg font-bold mb-4">Remaining Amount Due</h3>
-        <p class="mb-4">There is a remaining amount of <span class="font-bold text-red-500">{{ selectedReservation ? (selectedReservation.totalPrice - (selectedReservation.advance || 0)) : 0 }} MAD</span> to be paid by client <span class="font-bold">{{ selectedReservation ? getClientName(selectedReservation.clientId) : '' }}</span>.</p>
-        <p class="mb-4">Do you want to approve this return and archive the reservation?</p>
+    <div v-if="showRemainingAmountModal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999]">
+      <div class="bg-white dark:bg-[#1E2330] border border-gray-200 dark:border-gray-800 p-6 rounded-xl shadow-lg max-w-md w-full">
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Remaining Amount Due</h3>
+        <p class="mb-4 text-gray-700 dark:text-gray-300">There is a remaining amount of <span class="font-bold text-red-500">{{ selectedReservation ? (selectedReservation.totalPrice - (selectedReservation.advance || 0)) : 0 }} MAD</span> to be paid by client <span class="font-bold text-gray-900 dark:text-white">{{ selectedReservation ? getClientName(selectedReservation.clientId) : '' }}</span>.</p>
+        <p class="mb-4 text-gray-700 dark:text-gray-300">Do you want to approve this return and archive the reservation?</p>
         <div class="flex justify-end gap-4">
           <button 
             @click="showRemainingAmountModal = false" 
-            class="px-4 py-2 rounded-lg bg-gray-200 dark:bg-dark-50 hover:bg-gray-300 dark:hover:bg-dark-60"
+            class="px-4 py-2 rounded-lg bg-white dark:bg-[#1C1C1C] border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800"
           >
             Cancel
           </button>
@@ -45,257 +45,199 @@
       </div>
     </div>
 
-    <div class="p-4">
-      <div
-        class="rounded-xl shadow-card overflow-hidden"
-        :class="mode === 'dark' ? 'bg-dark-70' : 'bg-white'"
-      >
-        <div
-          class="px-4 py-2.5 border-b flex items-center justify-between"
-          :class="mode === 'dark' ? 'border-dark-50' : ''"
+    <div class="bg-white dark:bg-[#1E2330] rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+      <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+        <span class="text-lg font-bold text-gray-900 dark:text-white leading-none">Reservations</span>
+        <RouterLink
+          :to="{ name: 'reservations-add' }"
+          class="inline-flex items-center gap-2 px-4 py-2 bg-[#fa5b0f] text-white text-sm font-medium rounded-lg hover:bg-yellow-500 transition-colors shadow-sm"
         >
-          <div class="flex items-center gap-4">
-          <span class="text-lg font-bold leading-none">Reservations</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <div class="w-[500px]">
-              <div class="relative flex items-center">
-                <input
-                  type="search"
-                  class="form-field pl-10"
-                  placeholder="Search for a reservation by client name or car name"
-                  v-model="searchQuery"
-                />
-                <div
-                  class="absolute left-0 top-0 bottom-0 flex items-center justify-center w-11 text-gray-0"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    class="w-5 h-5"
-                    fill="currentColor"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M12.323 13.383a5.5 5.5 0 1 1 1.06-1.06l2.897 2.897a.75.75 0 1 1-1.06 1.06l-2.897-2.897Zm.677-4.383a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </div>
-            <RouterLink
-              :to="{ name: 'reservations-add' }"
-              class="button primary-button small-button whitespace-nowrap"
-            >
-              Add reservation
-            </RouterLink>
-          </div>
+          Add reservation
+        </RouterLink>
+      </div>
+
+      <div class="p-4 border-b border-gray-200 dark:border-gray-800 flex flex-col md:flex-row items-center justify-between gap-4 bg-white dark:bg-[#1E2330]">
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-gray-600 dark:text-gray-400">Show</span>
+          <select class="px-2 py-1.5 bg-white dark:bg-transparent border border-gray-200 dark:border-gray-800 rounded text-sm text-gray-700 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#fa5b0f]">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+          <span class="text-sm text-gray-600 dark:text-gray-400">entries</span>
         </div>
-        <div class="w-full overflow-x-auto without-scrollbar">
-          <table class="w-full form-table">
-            <thead
-              class="border-b-2"
-              :class="mode === 'dark' ? 'border-dark-50' : ''"
-            >
-              <tr :class="mode === 'dark' ? 'bg-dark-1' : 'bg-gray-1'">
-                <th class="py-4">Client</th>
-                <th class="py-4">Car</th>
-                <th class="py-4">Rental Period</th>
-                <th class="py-4">Number of Days</th>
-                <th class="py-4">Price/Day</th>
-                <th class="py-4">Total Price</th>
-                <th class="py-4">Advance</th>
-                <th class="py-4">Remaining</th>
-                <th class="py-4">Status</th>
-                <th class="py-4">Agent</th>
-                <th class="py-4">Agency</th>
-                <th class="py-4">Actions</th>
-              </tr>
-            </thead>
-            <tbody
-              class="divide-y bg-opacity-40"
-              :class="
-                mode === 'dark'
-                  ? 'bg-dark-70 divide-dark-50'
-                  : 'bg-white divide-gray-100'
-              "
-            >
-              <tr v-for="(reservation, index) in filteredReservations" :key="index" class="hover:bg-gray-50 dark:hover:bg-dark-60 transition-colors">
-                <td class="p-2">
-                  <div class="flex flex-col">
-                    <span class="text-lg font-bold text-primary-100">{{ getClientName(reservation.clientId) }}</span>
-                    <div class="flex flex-col mt-1 space-y-1">
-                      <span class="text-sm text-black dark:text-white">ID: {{ reservation.clientId }}</span>
-                      <span class="text-sm text-black dark:text-white">Phone: {{ getClientPhone(reservation.clientId) }}</span>
-                      <span class="text-sm text-black dark:text-white">Nationality: {{ getClientDetails(reservation.clientId).nationality }}</span>
-                      <span class="text-sm text-black dark:text-white">License: {{ getClientDetails(reservation.clientId).licenseNumber }}</span>
-                    </div>
+
+        <div class="relative w-full max-w-xs flex items-center justify-end gap-2">
+          <label class="text-sm font-medium text-gray-600 dark:text-gray-400 whitespace-nowrap">Rechercher:</label>
+          <input
+            type="text"
+            v-model="searchQuery"
+            class="w-full px-3 py-1.5 bg-white dark:bg-transparent border border-gray-200 dark:border-gray-800 rounded-[4px] text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#fa5b0f] focus:border-[#fa5b0f]"
+          />
+        </div>
+      </div>
+      <div class="w-full overflow-x-auto without-scrollbar">
+        <table class="w-full form-table min-w-max">
+          <thead class="border-b-2 border-gray-200 dark:border-gray-800">
+            <tr class="bg-white dark:bg-[#1C1C1C]">
+              <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider whitespace-nowrap text-left">Client</th>
+              <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider whitespace-nowrap text-left">Car</th>
+              <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider whitespace-nowrap text-left">Rental Period</th>
+              <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider whitespace-nowrap text-left">Number of Days</th>
+              <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider whitespace-nowrap text-left">Price/Day</th>
+              <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider whitespace-nowrap text-left">Total Price</th>
+              <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider whitespace-nowrap text-left">Advance</th>
+              <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider whitespace-nowrap text-left">Remaining</th>
+              <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider whitespace-nowrap text-left">Status</th>
+              <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider whitespace-nowrap text-left">Agent</th>
+              <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider whitespace-nowrap text-left">Agency</th>
+              <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider whitespace-nowrap text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-800 bg-white dark:bg-[#1E2330]">
+            <tr v-for="(reservation, index) in filteredReservations" :key="index" class="hover:bg-gray-200 dark:hover:bg-gray-800/50 transition-colors">
+              <td class="p-2">
+                <div class="flex flex-col">
+                  <span class="text-lg font-bold text-[#fa5b0f]">{{ getClientName(reservation.clientId) }}</span>
+                  <div class="flex flex-col mt-1 space-y-1">
+                    <span class="text-sm text-gray-700 dark:text-gray-300">ID: {{ reservation.clientId }}</span>
+                    <span class="text-sm text-gray-700 dark:text-gray-300">Phone: {{ getClientPhone(reservation.clientId) }}</span>
+                    <span class="text-sm text-gray-700 dark:text-gray-300">Nationality: {{ getClientDetails(reservation.clientId).nationality }}</span>
+                    <span class="text-sm text-gray-700 dark:text-gray-300">License: {{ getClientDetails(reservation.clientId).licenseNumber }}</span>
                   </div>
-                </td>
-                <td class="p-2">
-                  <div class="flex items-center">
-                    <div class="flex-shrink-0 w-[100px] h-[100px] mr-4">
-                      <img
-                        class="w-full h-full rounded-lg object-contain"
-                        :src="getCarImage(reservation.carId)"
-                        alt="Car Image"
-                      />
-                    </div>
-                    <div class="flex flex-col">
-                      <p class="text-lg font-bold text-primary-100 mb-2">
-                        {{ reservation.carName }}
-                      </p>
-                      <div class="flex flex-col gap-1">
-                        <div class="flex items-center gap-2 text-black dark:text-white">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1zM3 8a1 1 0 00-1.447.894l-2 1A1 1 0 000 10v4a1 1 0 001.447.894l2-1A1 1 0 003 13V8z" />
-                          </svg>
-                          <p class="text-sm">{{ reservation.carId }}</p>
-                        </div>
-                        <div class="flex items-center gap-2 text-black dark:text-white">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <circle cx="12" cy="12" r="9" stroke-width="2"/>
-                            <path d="M12 8v1" stroke-width="2"/>
-                            <path d="M12 15v1" stroke-width="2"/>
-                            <path d="M8 12h1" stroke-width="2"/>
-                            <path d="M15 12h1" stroke-width="2"/>
-                            <path d="M12 12L9 7" stroke-width="2.5" stroke-linecap="round"/>
-                            <path d="M12 12l4 1" stroke-width="1.5" stroke-linecap="round"/>
-                            <circle cx="12" cy="12" r="1" fill="currentColor"/>
-                          </svg>
-                          <p class="text-sm">{{ reservation.currentMileage }} km</p>
-                        </div>
+                </div>
+              </td>
+              <td class="p-2">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0 w-[100px] h-[100px] mr-4">
+                    <img class="w-full h-full rounded-lg object-contain" :src="getCarImage(reservation.carId)" alt="Car Image" />
+                  </div>
+                  <div class="flex flex-col">
+                    <p class="text-lg font-bold text-[#fa5b0f] mb-2">{{ reservation.carName }}</p>
+                    <div class="flex flex-col gap-1">
+                      <div class="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1zM3 8a1 1 0 00-1.447.894l-2 1A1 1 0 000 10v4a1 1 0 001.447.894l2-1A1 1 0 003 13V8z" />
+                        </svg>
+                        <p class="text-sm">{{ reservation.carId }}</p>
+                      </div>
+                      <div class="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                          <circle cx="12" cy="12" r="9" stroke-width="2"/>
+                          <path d="M12 8v1" stroke-width="2"/>
+                          <path d="M12 15v1" stroke-width="2"/>
+                          <path d="M8 12h1" stroke-width="2"/>
+                          <path d="M15 12h1" stroke-width="2"/>
+                          <path d="M12 12L9 7" stroke-width="2.5" stroke-linecap="round"/>
+                          <path d="M12 12l4 1" stroke-width="1.5" stroke-linecap="round"/>
+                          <circle cx="12" cy="12" r="1" fill="currentColor"/>
+                        </svg>
+                        <p class="text-sm">{{ reservation.currentMileage }} km</p>
                       </div>
                     </div>
                   </div>
-                </td>
-                <td class="p-2">
-                  <div class="flex flex-col gap-1">
-                    <div class="flex items-center gap-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
-                      </svg>
-                      <span class="text-sm font-medium text-black dark:text-white">Rented: {{ formatDate(reservation.startDate) }}</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
-                      </svg>
-                  <span
-                        class="text-sm font-medium"
-                    :class="{
-                          'text-red-500': isEndDateToday(reservation.endDate),
-                          'text-red-700 bg-red-100 px-2 py-1 rounded': isEndDatePast(reservation.endDate)
-                    }"
-                  >
-                        Return: {{ formatDate(reservation.endDate) }}
-                        <span v-if="isEndDatePast(reservation.endDate)" class="ml-2">(Overdue)</span>
-                  </span>
-                      <a 
-                        v-if="isEndDateToday(reservation.endDate) || isEndDatePast(reservation.endDate)"
-                        :href="'tel:' + getClientPhone(reservation.clientId)"
-                        class="ml-2 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-50 transition-colors"
-                        title="Call Client"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
-                          <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                        </svg>
-                      </a>
-                    </div>
-                  </div>
-                </td>
-                <td class="p-2">
+                </div>
+              </td>
+              <td class="p-2">
+                <div class="flex flex-col gap-1">
                   <div class="flex items-center gap-2">
-                    <span class="text-lg font-bold text-black dark:text-white">{{ reservation.numberOfDays }} days</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600 dark:text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Rented: {{ formatDate(reservation.startDate) }}</span>
                   </div>
-                </td>
-                <td class="p-2">
                   <div class="flex items-center gap-2">
-                    <span class="text-lg font-bold text-black dark:text-white">{{ reservation.pricePerDay }} MAD</span>
-                  </div>
-                </td>
-                <td class="p-2">
-                  <div class="flex items-center gap-2">
-                    <span class="text-lg font-bold text-black dark:text-white">{{ reservation.totalPrice }} MAD</span>
-                  </div>
-                </td>
-                <td class="p-2">
-                  <div class="flex items-center gap-2">
-                    <span class="text-lg font-bold text-green-500/50">{{ reservation.advance || 0 }} MAD</span>
-                  </div>
-                </td>
-                <td class="p-2">
-                  <div class="flex items-center gap-2">
-                    <span class="text-lg font-bold text-red-500/50">{{ reservation.totalPrice - (reservation.advance || 0) }} MAD</span>
-                  </div>
-                </td>
-                <td class="p-2">
-                  <div class="flex items-center gap-2">
-                    <span
-                      class="px-3 py-1 rounded-full text-sm font-medium"
-                      :class="{
-                        'bg-success-50 text-success-100': reservation.status === 'Active',
-                        'bg-gray-50 text-gray-100': reservation.status === 'Completed'
-                      }"
-                    >
-                      {{ reservation.status }}
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600 dark:text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm font-medium" :class="{'text-red-500': isEndDateToday(reservation.endDate), 'text-red-400 bg-red-900/30 px-2 py-1 rounded': isEndDatePast(reservation.endDate)}">
+                      Return: {{ formatDate(reservation.endDate) }}
+                      <span v-if="isEndDatePast(reservation.endDate)" class="ml-2">(Overdue)</span>
                     </span>
+                    <a 
+                      v-if="isEndDateToday(reservation.endDate) || isEndDatePast(reservation.endDate)"
+                      :href="'tel:' + getClientPhone(reservation.clientId)"
+                      class="ml-2 p-1 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+                      title="Call Client"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                      </svg>
+                    </a>
                   </div>
-                </td>
-                <td class="p-2">
-                  <span class="text-black dark:text-white">{{ getAgentName(reservation.agentId) }}</span>
-                </td>
-                <td class="p-2">
-                  <span class="text-black dark:text-white">{{ getCarAgencyName(reservation.carId) }}</span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap flex items-center space-x-2">
+                </div>
+              </td>
+              <td class="p-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg font-bold text-gray-700 dark:text-gray-300">{{ reservation.numberOfDays }} days</span>
+                </div>
+              </td>
+              <td class="p-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg font-bold text-gray-700 dark:text-gray-300">{{ reservation.pricePerDay }} MAD</span>
+                </div>
+              </td>
+              <td class="p-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg font-bold text-gray-700 dark:text-gray-300">{{ reservation.totalPrice }} MAD</span>
+                </div>
+              </td>
+              <td class="p-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg font-bold text-green-500">{{ reservation.advance || 0 }} MAD</span>
+                </div>
+              </td>
+              <td class="p-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg font-bold text-red-500">{{ reservation.totalPrice - (reservation.advance || 0) }} MAD</span>
+                </div>
+              </td>
+              <td class="p-2">
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 rounded-full text-[11px] font-medium" :class="{'bg-green-900/30 text-green-400 border border-green-800': reservation.status === 'Active', 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-gray-700': reservation.status === 'Completed'}">
+                    {{ reservation.status }}
+                  </span>
+                </div>
+              </td>
+              <td class="p-2">
+                <span class="text-gray-700 dark:text-gray-300">{{ getAgentName(reservation.agentId) }}</span>
+              </td>
+              <td class="p-2">
+                <span class="text-gray-700 dark:text-gray-300">{{ getCarAgencyName(reservation.carId) }}</span>
+              </td>
+              <td class="px-4 py-2 whitespace-nowrap">
+                <div class="flex items-center justify-end gap-1.5">
                   <ContractPDF
                     :reservation="reservation"
                     :car="getCar(reservation.carId)"
                     :client="getClientDetails(reservation.clientId)"
+                    class="w-7 h-7 flex items-center justify-center rounded-full text-[#3B82F6] hover:bg-blue-900/20 transition-colors"
                   />
                   <button
                     @click="editReservation(reservation, index)"
-                    class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-50 transition-colors"
-                      title="Edit"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                      class="h-5 w-5 text-blue-500"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                        d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"
-                        />
-                      </svg>
+                    class="w-7 h-7 flex items-center justify-center rounded-full text-[#10B981] hover:bg-emerald-900/20 transition-colors"
+                    title="Edit"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
                   </button>
                   <button
                     v-if="reservation.status === 'Active'"
                     @click="initiateMakeCarAvailable(reservation, index)"
-                    class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-50 transition-colors"
+                    class="w-7 h-7 flex items-center justify-center rounded-full text-[#3B82F6] hover:bg-blue-900/20 transition-colors"
                     title="Make Available"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      class="w-5 h-5 text-green-500"
-                      fill="none"
-                      stroke="currentColor"
-                      >
-                        <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M5 13l4 4L19 7"
-                        />
-                      </svg>
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
                   </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
     <!-- Edit Car Modal -->
@@ -340,7 +282,7 @@
               <label for="name" class="block text-sm mb-1">Name</label>
               <input
                 type="text"
-                class="form-field"
+                class="form-field dark:bg-transparent bg-white dark:text-white"
                 id="name"
                 v-model="currentCar.name"
                 placeholder=""
@@ -352,7 +294,7 @@
               >
               <input
                 type="text"
-                class="form-field"
+                class="form-field dark:bg-transparent bg-white dark:text-white"
                 id="license-plate"
                 v-model="currentCar.licensePlate"
                 placeholder=""
@@ -363,14 +305,14 @@
               <input
                 v-model="currentCar.pricePerDay"
                 type="number"
-                class="form-field"
+                class="form-field dark:bg-transparent bg-white dark:text-white"
               />
             </div>
             <div>
               <label class="block text-sm mb-1">Status</label>
               <div class="flex items-center relative">
                 <select
-                  class="form-field appearance-none"
+                  class="form-field appearance-none dark:bg-transparent bg-white dark:text-white"
                   v-model="currentCar.status"
                 >
                   <option value="Available">Available</option>
@@ -397,7 +339,7 @@
               <label class="block text-sm mb-1">Current Mileage</label>
               <input
                 type="number"
-                class="form-field"
+                class="form-field dark:bg-transparent bg-white dark:text-white"
                 v-model="currentCar.currentMileage"
                 @change="updateVidangeInfo"
               />
@@ -407,7 +349,7 @@
                 type="checkbox"
                 id="needsVidange"
                 v-model="currentCar.needsVidange"
-                class="form-checkbox"
+                class="form-checkbox dark:bg-transparent bg-white dark:text-white"
               />
               <label for="needsVidange" class="text-sm">Needs Vidange</label>
             </div>
@@ -415,11 +357,11 @@
               <label class="block text-sm mb-1">Last Vidange Mileage</label>
               <input
                 type="number"
-                class="form-field"
+                class="form-field dark:bg-transparent bg-white dark:text-white"
                 v-model="currentCar.lastVidangeKm"
                 @change="calculateNextVidange"
               />
-              <div v-if="currentCar.nextVidangeKm" class="mt-2 text-sm text-gray-500">
+              <div v-if="currentCar.nextVidangeKm" class="mt-2 text-sm text-gray-500 dark:text-gray-400">
                 Next Vidange at: {{ currentCar.nextVidangeKm }} km
               </div>
             </div>
@@ -531,7 +473,7 @@
                     type="checkbox"
                     id="editHasSecondDriver"
                     v-model="currentReservation.hasSecondDriver"
-                    class="form-checkbox h-4 w-4 text-primary-100 rounded border-gray-300"
+                    class="form-checkbox h-4 w-4 text-primary-100 rounded border-gray-300 dark:bg-transparent bg-white dark:text-white"
                   />
                   <label for="editHasSecondDriver" class="ml-2 text-[15px] font-medium">
                     Add Second Driver
@@ -545,7 +487,7 @@
                       <input
                         v-model="currentReservation.secondDriver.firstName"
                         type="text"
-                        class="form-field"
+                        class="form-field dark:bg-transparent bg-white dark:text-white"
                         required
                       />
                     </div>
@@ -554,7 +496,7 @@
                       <input
                         v-model="currentReservation.secondDriver.lastName"
                         type="text"
-                        class="form-field"
+                        class="form-field dark:bg-transparent bg-white dark:text-white"
                         required
                       />
                     </div>
@@ -565,7 +507,7 @@
                       <input
                         v-model="currentReservation.secondDriver.license"
                         type="text"
-                        class="form-field"
+                        class="form-field dark:bg-transparent bg-white dark:text-white"
                         required
                       />
                     </div>
@@ -574,7 +516,7 @@
                       <input
                         v-model="currentReservation.secondDriver.licenseDate"
                         type="date"
-                        class="form-field"
+                        class="form-field dark:bg-transparent bg-white dark:text-white"
                         required
                       />
                     </div>
@@ -584,7 +526,7 @@
                     <input
                       v-model="currentReservation.secondDriver.licenseCity"
                       type="text"
-                      class="form-field"
+                      class="form-field dark:bg-transparent bg-white dark:text-white"
                       required
                     />
                   </div>
@@ -594,7 +536,7 @@
                       <input
                         v-model="currentReservation.secondDriver.cin"
                         type="text"
-                        class="form-field"
+                        class="form-field dark:bg-transparent bg-white dark:text-white"
                         required
                       />
                     </div>
@@ -603,7 +545,7 @@
                       <input
                         v-model="currentReservation.secondDriver.cinDeliveredAt"
                         type="date"
-                        class="form-field"
+                        class="form-field dark:bg-transparent bg-white dark:text-white"
                         required
                       />
                     </div>
@@ -628,7 +570,7 @@
                 <label class="block text-sm mb-1">Current Mileage</label>
                 <input
                   type="number"
-                  class="form-field"
+                  class="form-field dark:bg-transparent bg-white dark:text-white"
                   v-model="currentReservation.currentMileage"
                   placeholder="Enter current mileage"
                 />
@@ -637,7 +579,7 @@
                 <label class="block text-sm mb-1">Price per Day</label>
                 <input
                   type="number"
-                  class="form-field"
+                  class="form-field dark:bg-transparent bg-white dark:text-white"
                   v-model="currentReservation.pricePerDay"
                   placeholder="Enter price per day"
                 />
@@ -646,7 +588,7 @@
                 <label class="block text-sm mb-1">Advance Payment</label>
                 <input
                   type="number"
-                  class="form-field"
+                  class="form-field dark:bg-transparent bg-white dark:text-white"
                   v-model="currentReservation.advance"
                   placeholder="Enter advance amount"
                 />
@@ -657,7 +599,7 @@
                   <input
                     v-model="currentReservation.startDate"
                     type="date"
-                    class="form-field"
+                    class="form-field dark:bg-transparent bg-white dark:text-white"
                     required
                     @change="calculateEditDays"
                   />
@@ -667,14 +609,14 @@
                   <input
                     v-model="currentReservation.endDate"
                     type="date"
-                    class="form-field"
+                    class="form-field dark:bg-transparent bg-white dark:text-white"
                     required
                     @change="calculateEditDays"
                   />
                 </div>
               </div>
 
-              <div v-if="editNumberOfDays > 0" class="text-sm text-gray-500">
+              <div v-if="editNumberOfDays > 0" class="text-sm text-gray-500 dark:text-gray-400">
                 Rental period: {{ editNumberOfDays }} day{{ editNumberOfDays > 1 ? 's' : '' }}
               </div>
             </div>

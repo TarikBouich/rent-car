@@ -18,7 +18,7 @@
         <div class="space-y-2">
           <div>
             <label class="block text-sm">Field:</label>
-            <select v-model="selectedField" class="form-select mt-1 block w-full">
+            <select v-model="selectedField" class="form-select mt-1 block w-full dark:bg-transparent bg-white dark:text-white">
               <option value="date">Date</option>
               <option value="fullName">Full Name</option>
               <option value="nationality">Nationality</option>
@@ -44,11 +44,11 @@
           <div class="flex space-x-2">
             <div>
               <label class="block text-sm">X:</label>
-              <input type="number" v-model="positions[selectedField].x" class="form-input mt-1 block w-full" step="1" />
+              <input type="number" v-model="positions[selectedField].x" class="form-input mt-1 block w-full dark:bg-transparent bg-white dark:text-white" step="1" />
             </div>
             <div>
               <label class="block text-sm">Y:</label>
-              <input type="number" v-model="positions[selectedField].y" class="form-input mt-1 block w-full" step="1" />
+              <input type="number" v-model="positions[selectedField].y" class="form-input mt-1 block w-full dark:bg-transparent bg-white dark:text-white" step="1" />
             </div>
           </div>
         </div>

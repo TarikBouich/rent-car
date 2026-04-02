@@ -11,9 +11,17 @@ export const useUserStore = defineStore('user', {
   getters: {
     isAuthenticated: (state) => !!state.currentUser,
     userAgencyId: (state) => state.currentUser?.agencyId,
+    userCompanyId: (state) => state.currentUser?.companyId,
     isAdmin: (state) => state.currentUser?.role === 'admin',
+    isSuperAdmin: (state) => state.currentUser?.role === 'superadmin',
     currentAgencyId: (state) => state.currentAgency?.id,
-    getAllUsers: (state) => state.users, // Add getter
+    getAllUsers: (state) => {
+      const all = state.users;
+      const current = state.currentUser;
+      if (!current) return [];
+      if (current.role === 'superadmin') return all;
+      return all.filter(u => u.companyId === current.companyId);
+    },
   },
 
   actions: {
@@ -25,15 +33,22 @@ export const useUserStore = defineStore('user', {
         const user = users.find(u => u.email === email && u.password === password)
         
         if (!user) {
-          throw new Error('Invalid credentials')
+          throw new Error('Email ou mot de passe invalide')
+        }
+
+        if (user.isActive === false) {
+           throw new Error('Ce compte a été désactivé par l\'administrateur')
         }
 
         // Get agency details
         const agencies = JSON.parse(localStorage.getItem('agencies') || '[]')
-        const agency = agencies.find(a => a.id === user.agencyId)
+        let agency = null
         
-        if (!user.agencyId || !agency) {
-          throw new Error('User not associated with an agency')
+        if (user.role !== 'admin' && user.role !== 'superadmin') {
+          agency = agencies.find(a => a.id === user.agencyId)
+          if (!user.agencyId || !agency) {
+            throw new Error('User not associated with an agency')
+          }
         }
 
         // Set user session
@@ -41,10 +56,21 @@ export const useUserStore = defineStore('user', {
           id: user.id,
           email: user.email,
           role: user.role,
+          companyId: user.companyId || null,
           agencyId: user.agencyId,
-          name: user.name
+          name: user.name,
+          permissions: user.permissions || {}
         }
-        this.currentAgency = agency
+        if (agency) {
+           this.currentAgency = {
+              id: agency.id,
+              name: agency.name,
+              location: agency.location,
+              email: agency.email,
+              phone: agency.phone
+              // We explicitly DO NOT include 'documents' since base64 dataUrl overflows localStorage
+           }
+        }
 
         // Store in localStorage for persistence
         localStorage.setItem('currentUser', JSON.stringify(this.currentUser))
@@ -76,15 +102,36 @@ export const useUserStore = defineStore('user', {
       
       if (storedUser && storedAgency) {
         this.currentUser = JSON.parse(storedUser)
+        
+        // Hot-patch active permissions if session was cached prior to the RBAC update
+        if (this.currentUser && this.users) {
+            const liveUser = this.users.find(u => u.id === this.currentUser.id)
+            if (liveUser && liveUser.permissions) {
+                this.currentUser.permissions = liveUser.permissions
+            }
+        }
+
         this.currentAgency = JSON.parse(storedAgency)
       }
     },
 
-    // Helper method to filter data based on agency
+    // Helper method to filter data based on multi-tenant SaaS and agency
     filterByAgency(items) {
       if (!this.currentUser) return [] // No user means no access
-      if (this.isAdmin) return items // Admin sees all items
-      return items.filter(item => item.agencyId === this.currentUser.agencyId)
+      if (this.isSuperAdmin) return items // SaaS owner sees literally everything
+      
+      // Step 1: Strict Multi-Tenant Fencing
+      const companyItems = items.filter(item => item.companyId === this.currentUser.companyId)
+
+      // Step 2: Agency filtering (if not a Tenant Admin)
+      if (this.isAdmin) return companyItems // Tenant Admin sees all items of their company
+      
+      return companyItems.filter(item => {
+        if (!item.agencyId && item.agentId) {
+          return item.agentId === this.currentUser.id
+        }
+        return item.agencyId === this.currentUser.agencyId
+      })
     }
   }
 }) 

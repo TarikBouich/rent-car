@@ -1,6 +1,9 @@
 import { defineStore } from 'pinia'
-import { useUserStore } from './userStore'
+import { generateNextId, sortByIdDesc } from '../utils/idGenerator'
 import { useAlertStore } from './alertStore'
+import { useUserStore } from './userStore'
+import { useCompanyStore } from './companyStore'
+import { SAAS_PLANS } from '../utils/planConstants'
 
 export const useCarStore = defineStore('car', {
   state: () => ({
@@ -44,11 +47,42 @@ export const useCarStore = defineStore('car', {
 
     // Add a new car
     addCar(car) {
+      const userStore = useUserStore()
+      const companyStore = useCompanyStore()
+      
+      const userCompanyId = userStore.userCompanyId
+      const comp = companyStore.getCompanyById(userCompanyId)
+      
+      if (comp && comp.planId) {
+         const plan = SAAS_PLANS[comp.planId]
+         const userCars = this.cars.filter(c => c.companyId === userCompanyId).length
+         if (userCars >= plan.limits.cars) {
+            alert(`Limite Atteinte ! Votre forfait '${plan.name}' autorise un maximum de ${plan.limits.cars} véhicules.`)
+            throw new Error('Limite de forfait dépassée.')
+         }
+      }
+
+      car.companyId = userCompanyId
       this.cars.push(car)
       this.saveCars()
       // Check for new alerts
       const alertStore = useAlertStore()
       alertStore.checkAlerts()
+    },
+
+    // Add damage to a car
+    addDamage(carId, damage) {
+      const userStore = useUserStore()
+      const car = this.cars.find(c => c.id === carId)
+      if (car) {
+        if (!car.damages) car.damages = []
+        car.damages.push({
+          ...damage,
+          companyId: userStore.userCompanyId,
+          id: `dmg_${Date.now()}`
+        })
+        this.saveCars()
+      }
     },
 
     // Update a car
@@ -74,6 +108,8 @@ export const useCarStore = defineStore('car', {
 
     // Add a new reservation
     addReservation(reservation) {
+      const userStore = useUserStore()
+      reservation.companyId = userStore.userCompanyId
       this.reservations.push(reservation)
       this.saveReservations()
       // Check for new alerts

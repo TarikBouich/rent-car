@@ -79,7 +79,7 @@ body {
     @apply !bg-gray-20 !text-body-100 !opacity-50 !cursor-not-allowed;
   }
   table.form-table thead th {
-    @apply py-3 px-1.5 font-semibold text-gray-900 uppercase text-left cursor-pointer text-[15px];
+    /* @apply py-3 px-1.5 font-semibold text-gray-900 uppercase text-left cursor-pointer text-[15px]; */
     border-width: 0 !important;
   }
   table.form-table thead th:first-child,
@@ -91,22 +91,22 @@ body {
     @apply pr-4;
   }
   table.form-table tbody tr td {
-    @apply py-3 px-1.5 text-gray-700 text-left tracking-normal whitespace-nowrap font-medium;
+    /* @apply py-3 px-1.5 text-gray-700 text-left tracking-normal whitespace-nowrap font-medium; */
     border-width: 0 !important;
   }
   table.form-table tbody tr {
-    @apply hover:bg-gray-20 hover:bg-opacity-20 text-gray-800;
+    /* @apply hover:bg-gray-20 hover:bg-opacity-20 text-gray-800; */
   }
   table.form-table .progress {
     @apply rounded-lg h-[5px];
   }
-  .is-dark table.form-table thead th {
+  /* .is-dark table.form-table thead th {
     @apply text-gray-100 text-opacity-90;
   }
   .is-dark table.form-table tbody tr td {
     @apply py-3 px-1.5 text-gray-100 text-opacity-70;
     border-width: 0 !important;
-  }
+  } */
   .is-dark table.form-table tbody tr {
     @apply hover:bg-dark-90 hover:bg-opacity-20 text-dark-15;
   }

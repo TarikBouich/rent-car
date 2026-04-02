@@ -83,27 +83,46 @@ export function initializeData() {
         id: 'car1', // Using simple IDs for now
         licensePlate: 'DEF456',
         name: 'Mercedes C-Class',
+        brandId: 'brand2',
+        modelId: 'model2',
+        color: '#c0c0c0',
         pricePerDay: 300,
         status: 'Rented', // Set status to Rented for the initial reservation
         currentMileage: 9000,
         needsVidange: false,
         lastVidangeKm: 0,
         nextVidangeKm: 0,
-        image: '/car-image-placeholder.png', // Add a placeholder image
-        agencyId: 'agency1' // Link car to an agency
+        image: 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&q=80&w=800',
+        agencyId: 'agency1', // Link car to an agency
+        fuel: 'Diesel',
+        transmission: 'Automatique',
+        category: 'Luxe',
+        options: [
+          { id: 'opt1', name: 'Siège Bébé', price: 50, enabled: false, icon: 'Users' }
+        ]
       },
       {
         id: 'car2',
         licensePlate: 'GHI789',
-        name: 'BMW 3 Series',
+        name: 'BMW X5',
+        brandId: 'brand3',
+        modelId: 'model3',
+        color: '#ffffff',
         pricePerDay: 350,
         status: 'Available',
         currentMileage: 15000,
         needsVidange: true,
         lastVidangeKm: 12000,
         nextVidangeKm: 17000,
-        image: '/car-image-placeholder.png', // Add a placeholder image
-        agencyId: 'agency2' // Link car to another agency
+        image: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&q=80&w=800',
+        agencyId: 'agency2', // Link car to another agency
+        fuel: 'Essence',
+        transmission: 'Manuelle',
+        category: 'SUV',
+        options: [
+          { id: 'opt2', name: 'GPS', price: 30, enabled: true, icon: 'Map' },
+          { id: 'opt3', name: 'Chauffeur', price: 200, enabled: false, icon: 'User' }
+        ]
       }
     ];
     localStorage.setItem('cars', JSON.stringify(cars));
@@ -126,6 +145,7 @@ export function initializeData() {
         advance: 0,
         status: 'Active',
         agentId: 'user2', // Link to existing agent user2
+        agencyId: 'agency1', // Link to existing agency1
         hasSecondDriver: false,
         secondDriver: {
           firstName: "",
@@ -138,6 +158,59 @@ export function initializeData() {
         },
       }
     ];
-    localStorage.setItem('reservations', JSON.stringify(reservations));
   }
-} 
+
+  // Initialize charges if they don't exist
+  if (!localStorage.getItem('charges')) {
+    const charges = [];
+    localStorage.setItem('charges', JSON.stringify(charges));
+  }
+
+  // --- SAAS MIGRATION VERIFICATION ---
+  const MIGRATION_KEY = 'migrated_to_saas_v1'
+  if (!localStorage.getItem(MIGRATION_KEY)) {
+     const defaultCompanyId = 'COMP-001'
+     
+     // Ensure COMP-001 exists in companies
+     let companies = JSON.parse(localStorage.getItem('companies') || '[]')
+     if (!companies.find(c => c.id === defaultCompanyId)) {
+        companies.push({ id: defaultCompanyId, name: 'Entreprise par Défaut', email: 'admin@location.com', status: 'Active', planId: 'entreprise', createdAt: new Date().toISOString() })
+        localStorage.setItem('companies', JSON.stringify(companies))
+     }
+
+     // Migrate all stores to include companyId
+     const storesToMigrate = ['agencies', 'users', 'clients', 'cars', 'reservations', 'charges', 'contrats', 'transactions']
+     storesToMigrate.forEach(storeName => {
+        let items = JSON.parse(localStorage.getItem(storeName) || '[]')
+        let modified = false
+        items = items.map(item => {
+           if (!item.companyId) {
+             modified = true
+             return { ...item, companyId: defaultCompanyId }
+           }
+           return item
+        })
+        if (modified) {
+           localStorage.setItem(storeName, JSON.stringify(items))
+        }
+     })
+
+     // Create default SUPER ADMIN if not exists
+     let users = JSON.parse(localStorage.getItem('users') || '[]')
+     if (!users.find(u => u.email === 'superadmin@rentcar.com')) {
+         users.push({
+             id: 'superadmin1',
+             email: 'superadmin@rentcar.com',
+             password: 'superadmin123',
+             name: 'SaaS Super Admin',
+             role: 'superadmin',
+             companyId: null, // SuperAdmin belongs to NO company
+             agencyId: null,
+             permissions: {}
+         })
+         localStorage.setItem('users', JSON.stringify(users))
+     }
+
+     localStorage.setItem(MIGRATION_KEY, 'true')
+  }
+}  

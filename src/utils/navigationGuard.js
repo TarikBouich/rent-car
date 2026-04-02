@@ -18,7 +18,11 @@ export function checkAccess(to, router) {
     // If user is logged in and tries to access login page, redirect to appropriate page
     if (to.name === 'login' && currentUser) {
       console.log('User already logged in, redirecting from login');
-      router.push(currentUser.role === 'admin' ? '/dashboard' : '/cars');
+      if (currentUser.role === 'superadmin') {
+         router.push('/super-admin');
+      } else {
+         router.push(currentUser.role === 'admin' ? '/dashboard' : '/cars');
+      }
       return false;
     }
     return true;
@@ -31,16 +35,45 @@ export function checkAccess(to, router) {
     return false;
   }
 
-  // If route requires admin but user is not admin, redirect to cars page
-  if (to.meta.requiresAdmin && !userStore.isAdmin) {
-    console.log('Non-admin user attempting to access admin route, redirecting to /cars');
-    router.push('/cars');
+  // Superadmin strict fencing
+  if (currentUser.role === 'superadmin' && !to.path.startsWith('/super-admin')) {
+    router.push('/super-admin');
+    return false;
+  }
+  if (currentUser.role !== 'superadmin' && to.path.startsWith('/super-admin')) {
+    router.push('/dashboard');
     return false;
   }
 
-  // If user is not admin and tries to access dashboard, redirect to cars
-  if (to.name === 'dashboard' && !userStore.isAdmin) {
-    console.log('Non-admin user attempting to access dashboard, redirecting to /cars');
+  // Map protected routes to their module permission strings
+  const routeMappings = {
+       'dashboard': 'Tableau de bord',
+       'agents': 'Employés',
+       'agents-add': 'Employés',
+       'agent-profile': 'Employés',
+       'agencies': 'Agences',
+       'agency-profile': 'Agences',
+       'settings': 'Paramètres',
+       'supervision': 'Paramètres',
+       'contrats': 'Contrats',
+       'contrats-add': 'Contrats',
+       'contrat-print': 'Contrats'
+  };
+
+  const requiredPerm = routeMappings[to.name];
+
+  // If route requires admin but user is not admin and lacks the explicit custom permission, redirect
+  if (to.meta.requiresAdmin && !userStore.isAdmin) {
+    if (!requiredPerm || currentUser.permissions?.[requiredPerm] !== true) {
+      console.log('Non-admin user lacking explicit permission attempting to access restricted route:', to.path);
+      router.push('/cars');
+      return false;
+    }
+  }
+
+  // Fallback explicit check for dashboard which might be hardcoded below
+  if (to.name === 'dashboard' && !userStore.isAdmin && currentUser.permissions?.['Tableau de bord'] !== true) {
+    console.log('Non-admin user lacking permission attempting to access dashboard');
     router.push('/cars');
     return false;
   }

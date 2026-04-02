@@ -1,13 +1,13 @@
 <template>
-  <div class="shadow-xl rounded-lg p-8 w-full mx-4" :class="mode === 'dark' ? 'bg-gray-800' : 'bg-white'">
+  <div class="shadow-xl rounded-lg p-8 w-full mx-4" :class="mode === 'dark' ? 'bg-gray-100 dark:bg-gray-800' : 'bg-white'">
     <div class="text-center mb-8">
       <h2 class="text-3xl font-bold" :class="mode === 'dark' ? 'text-white' : 'text-gray-900'">Welcome Back</h2>
-      <p class="mt-2" :class="mode === 'dark' ? 'text-gray-300' : 'text-gray-600'">Sign in to your account</p>
+      <p class="mt-2" :class="mode === 'dark' ? 'text-gray-700 dark:text-gray-300' : 'text-gray-600'">Sign in to your account</p>
     </div>
 
     <form @submit.prevent="handleLogin" class="space-y-6">
       <div>
-        <label class="block text-sm font-medium" :class="mode === 'dark' ? 'text-gray-300' : 'text-gray-700'">
+        <label class="block text-sm font-medium" :class="mode === 'dark' ? 'text-gray-700 dark:text-gray-300' : 'text-gray-700'">
           Email
         </label>
         <input
@@ -15,14 +15,12 @@
           v-model="email"
           required
           class="mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
-          :class="mode === 'dark' 
-            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-            : 'border-gray-300 text-gray-900'"
+          :class="mode === 'dark' ? 'bg-gray-200 dark:bg-gray-700 border-gray-600 text-gray-900 dark:text-white placeholder-gray-400' : 'border-gray-300 text-gray-900'"
         />
       </div>
 
       <div>
-        <label class="block text-sm font-medium" :class="mode === 'dark' ? 'text-gray-300' : 'text-gray-700'">
+        <label class="block text-sm font-medium" :class="mode === 'dark' ? 'text-gray-700 dark:text-gray-300' : 'text-gray-700'">
           Password
         </label>
         <input
@@ -30,9 +28,7 @@
           v-model="password"
           required
           class="mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
-          :class="mode === 'dark' 
-            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-            : 'border-gray-300 text-gray-900'"
+          :class="mode === 'dark' ? 'bg-gray-200 dark:bg-gray-700 border-gray-600 text-gray-900 dark:text-white placeholder-gray-400' : 'border-gray-300 text-gray-900'"
         />
       </div>
 
@@ -71,8 +67,11 @@ export default {
     async handleLogin() {
       try {
         await this.userStore.login(this.email, this.password)
-        // After successful login, redirect to dashboard
-        this.$router.push('/dashboard')
+        if (this.userStore.isSuperAdmin) {
+          this.$router.push('/super-admin')
+        } else {
+          this.$router.push('/dashboard')
+        }
       } catch (error) {
         this.error = error.message || 'Invalid email or password'
         console.error('Login error:', error)
@@ -80,9 +79,13 @@ export default {
     }
   },
   created() {
-    // If user is already logged in, redirect to dashboard
+    // If user is already logged in, redirect to dashboard or super-admin
     if (this.userStore.isAuthenticated) {
-      this.$router.push('/dashboard')
+      if (this.userStore.isSuperAdmin) {
+        this.$router.push('/super-admin')
+      } else {
+        this.$router.push('/dashboard')
+      }
     }
   }
 }

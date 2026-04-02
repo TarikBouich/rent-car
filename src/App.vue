@@ -1,6 +1,6 @@
 <template>
   <component 
-    :is="layout" 
+    :is="layoutComponent" 
     :mode="mode"
     @toggle-mode="toggleMode"
   >
@@ -9,31 +9,36 @@
 </template>
 
 <script>
-import DefaultLayout from './layouts/DefaultLayout.vue'
 import AuthLayout from './layouts/AuthLayout.vue'
+import NewDefaultLayout from './layouts/NewDefaultLayout.vue'
+import PrintLayout from './layouts/PrintLayout.vue'
 import { initializeDefaultData } from './utils/initDefaultData'
 import { useUserStore } from './stores/userStore'
 import { useCarStore } from './stores/carStore'
 import { useClientStore } from './stores/clientStore'
 import { useAlertStore } from './stores/alertStore'
+import { useChargeStore } from './stores/chargeStore'
 
 export default {
   name: 'App',
   components: {
-    DefaultLayout,
-    AuthLayout
+    AuthLayout,
+    NewDefaultLayout,
+    PrintLayout
   },
   setup() {
     const userStore = useUserStore()
     const carStore = useCarStore()
     const clientStore = useClientStore()
     const alertStore = useAlertStore()
+    const chargeStore = useChargeStore()
 
     return {
       userStore,
       carStore,
       clientStore,
-      alertStore
+      alertStore,
+      chargeStore
     }
   },
   data() {
@@ -42,16 +47,26 @@ export default {
     }
   },
   computed: {
-    layout() {
-      // Get the layout from the route meta, default to DefaultLayout if not specified
-      const layout = this.$route.meta.layout || 'default'
-      return layout === 'auth' ? AuthLayout : DefaultLayout
+    layoutComponent() {
+      // Get the layout from the route meta
+      const layout = this.$route.meta.layout || 'new-default'
+      if (layout === 'auth') return AuthLayout
+      if (layout === 'print') return PrintLayout
+      return NewDefaultLayout
     }
   },
   methods: {
     toggleMode() {
       this.mode = this.mode === 'light' ? 'dark' : 'light'
       localStorage.setItem('mode', this.mode)
+      this.applyTheme()
+    },
+    applyTheme() {
+      if (this.mode === 'dark') {
+        document.documentElement.classList.add('dark', 'is-dark')
+      } else {
+        document.documentElement.classList.remove('dark', 'is-dark')
+      }
     },
     async initializeStores() {
       try {
@@ -62,6 +77,7 @@ export default {
         if (this.userStore.isAuthenticated) {
           await this.carStore.initializeFromStorage();
           await this.clientStore.initializeFromStorage();
+          this.chargeStore.initializeFromStorage();
           await this.alertStore.initialize();
           console.log('All stores initialized successfully');
         }
@@ -71,16 +87,14 @@ export default {
     }
   },
   created() {
+    // Apply current theme first
+    this.applyTheme()
+    
     // Initialize default data
     initializeDefaultData()
     
     // Initialize stores
     this.initializeStores()
-    
-    // Check if user is authenticated and not on login page
-    if (!this.userStore.isAuthenticated && this.$route.name !== 'login') {
-      this.$router.push('/login')
-    }
   }
 }
 </script>

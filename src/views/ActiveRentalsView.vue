@@ -1,14 +1,14 @@
 <template>
-  <div>
+  <div class="p-6 bg-[#F3F4F6] dark:bg-[#151923] min-h-[calc(100vh-4rem)]">
     <!-- Confirmation Modal -->
-    <div v-if="showConfirmationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
-      <div class="bg-white dark:bg-dark-70 p-6 rounded-lg shadow-lg max-w-md w-full">
-        <h3 class="text-lg font-bold mb-4">Confirm Early Return</h3>
-        <p class="mb-4">This car is scheduled to return on {{ formatDate(selectedReservation?.endDate) }}. Do you want to update the return date to today and make it available?</p>
+    <div v-if="showConfirmationModal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999]">
+      <div class="bg-white dark:bg-[#1E2330] border border-gray-200 dark:border-gray-800 p-6 rounded-xl shadow-lg max-w-md w-full">
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Confirm Early Return</h3>
+        <p class="mb-4 text-gray-700 dark:text-gray-300">This car is scheduled to return on {{ formatDate(selectedReservation?.endDate) }}. Do you want to update the return date to today and make it available?</p>
         <div class="flex justify-end gap-4">
           <button 
             @click="showConfirmationModal = false" 
-            class="px-4 py-2 rounded-lg bg-gray-200 dark:bg-dark-50 hover:bg-gray-300 dark:hover:bg-dark-60"
+            class="px-4 py-2 rounded-lg bg-white dark:bg-[#1C1C1C] border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800"
           >
             Cancel
           </button>
@@ -22,158 +22,114 @@
       </div>
     </div>
 
-    <div class="p-4">
-      <div
-        class="rounded-xl shadow-card overflow-hidden"
-        :class="mode === 'dark' ? 'bg-dark-70' : 'bg-white'"
-      >
-        <div
-          class="px-4 py-2.5 border-b flex items-center justify-between"
-          :class="mode === 'dark' ? 'border-dark-50' : ''"
-        >
-          <span class="text-lg font-bold leading-none">Active Rentals</span>
-          <div class="flex items-center gap-2">
-            <div class="w-[500px]">
-              <div class="relative flex items-center">
-                <input
-                  type="search"
-                  class="form-field pl-10"
-                  placeholder="Search for a client by name or ID"
-                  v-model="searchQuery"
-                />
-                <div
-                  class="absolute left-0 top-0 bottom-0 flex items-center justify-center w-11 text-gray-0"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    class="w-5 h-5"
-                    fill="currentColor"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M12.323 13.383a5.5 5.5 0 1 1 1.06-1.06l2.897 2.897a.75.75 0 1 1-1.06 1.06l-2.897-2.897Zm.677-4.383a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"
-                    />
-                  </svg>
-                </div>
+    <div class="bg-white dark:bg-[#1E2330] rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+      <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+        <span class="text-lg font-bold text-gray-900 dark:text-white leading-none">Active Rentals</span>
+        <div class="flex items-center gap-2">
+          <div class="w-[500px]">
+            <div class="relative flex items-center">
+              <input
+                type="search"
+                class="form-field pl-10 bg-white dark:bg-transparent border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white"
+                placeholder="Search for a client by name or ID"
+                v-model="searchQuery"
+              />
+              <div class="absolute left-0 top-0 bottom-0 flex items-center justify-center w-11 text-gray-600 dark:text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="w-5 h-5" fill="currentColor">
+                  <path fill-rule="evenodd" d="M12.323 13.383a5.5 5.5 0 1 1 1.06-1.06l2.897 2.897a.75.75 0 1 1-1.06 1.06l-2.897-2.897Zm.677-4.383a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z" clip-rule="evenodd" />
+                </svg>
               </div>
             </div>
           </div>
         </div>
-        <div class="w-full overflow-x-auto without-scrollbar">
-          <table class="w-full form-table">
-            <thead
-              class="border-b-2"
-              :class="mode === 'dark' ? 'border-dark-50' : ''"
+      </div>
+      <div class="w-full overflow-x-auto without-scrollbar">
+        <table class="w-full form-table">
+          <thead class="border-b-2 border-gray-200 dark:border-gray-800">
+            <tr class="bg-white dark:bg-[#1C1C1C]">
+              <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider text-left">Client</th>
+              <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider text-left">Rented Car</th>
+              <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider text-left">Rental Period</th>
+              <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-800 bg-white dark:bg-[#1E2330]">
+            <tr v-for="(reservation, index) in filteredActiveReservations" :key="index" 
+              class="hover:bg-gray-200 dark:hover:bg-gray-800/50 transition-colors"
+              :class="{
+                'bg-red-900/20': isEndDateToday(reservation.endDate),
+                'bg-red-900/30': isEndDatePast(reservation.endDate)
+              }"
             >
-              <tr :class="mode === 'dark' ? 'bg-dark-1' : 'bg-gray-1'">
-                <th class="p-4 text-left">Client</th>
-                <th class="p-4 text-left">Rented Car</th>
-                <th class="p-4 text-left">Rental Period</th>
-                <th class="p-4 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody
-              class="divide-y bg-opacity-40"
-              :class="
-                mode === 'dark'
-                  ? 'bg-dark-70 divide-dark-50'
-                  : 'bg-white divide-gray-100'
-              "
-            >
-              <tr v-for="(reservation, index) in filteredActiveReservations" :key="index" 
-                class="hover:bg-gray-50 dark:hover:bg-dark-60 transition-colors"
-                :class="{
-                  'bg-red-50': isEndDateToday(reservation.endDate),
-                  'bg-red-100': isEndDatePast(reservation.endDate)
-                }"
-              >
-                <td class="p-4">
+              <td class="p-4">
+                <div class="flex flex-col">
+                  <span class="text-lg font-bold text-[#fa5b0f]">{{ getClientName(reservation.clientId) }}</span>
+                  <div class="flex flex-col mt-1">
+                    <span class="text-sm text-gray-700 dark:text-gray-300">ID: {{ reservation.clientId }}</span>
+                    <span class="text-sm text-gray-700 dark:text-gray-300">Phone: {{ getClientPhone(reservation.clientId) }}</span>
+                  </div>
+                </div>
+              </td>
+              <td class="p-4">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0 w-[100px] h-[100px] mr-4">
+                    <img class="w-full h-full rounded-lg object-contain" :src="getCarImage(reservation.carId)" alt="Car Image" />
+                  </div>
                   <div class="flex flex-col">
-                    <span class="text-lg font-bold text-primary-100">{{ getClientName(reservation.clientId) }}</span>
-                    <div class="flex flex-col mt-1">
-                      <span class="text-sm text-black dark:text-white">ID: {{ reservation.clientId }}</span>
-                      <span class="text-sm text-black dark:text-white">Phone: {{ getClientPhone(reservation.clientId) }}</span>
-                    </div>
-                  </div>
-                </td>
-                <td class="p-4">
-                  <div class="flex items-center">
-                    <div class="flex-shrink-0 w-[100px] h-[100px] mr-4">
-                      <img
-                        class="w-full h-full rounded-lg object-contain"
-                        :src="getCarImage(reservation.carId)"
-                        alt="Car Image"
-                      />
-                    </div>
-                    <div class="flex flex-col">
-                      <p class="text-lg font-bold text-primary-100 mb-2">
-                        {{ reservation.carName }}
-                      </p>
-                      <div class="flex items-center gap-2 text-black dark:text-white">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1zM3 8a1 1 0 00-1.447.894l-2 1A1 1 0 000 10v4a1 1 0 001.447.894l2-1A1 1 0 003 13V8z" />
-                        </svg>
-                        <p class="text-sm">{{ reservation.carId }}</p>
-                      </div>
-                    </div>
-                  </div>
-                </td>
-                <td class="p-4">
-                  <div class="flex flex-col gap-1">
-                    <div class="flex items-center gap-2">
+                    <p class="text-lg font-bold text-[#fa5b0f] mb-2">{{ reservation.carName }}</p>
+                    <div class="flex items-center gap-2 text-gray-700 dark:text-gray-300">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                        <path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1zM3 8a1 1 0 00-1.447.894l-2 1A1 1 0 000 10v4a1 1 0 001.447.894l2-1A1 1 0 003 13V8z" />
                       </svg>
-                      <span class="text-sm font-medium text-black dark:text-white">Rented: {{ formatDate(reservation.startDate) }}</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
-                      </svg>
-                      <span 
-                        class="text-sm font-medium"
-                        :class="{
-                          'text-red-500': isEndDateToday(reservation.endDate),
-                          'text-red-700 bg-red-100 px-2 py-1 rounded': isEndDatePast(reservation.endDate)
-                        }"
-                      >
-                        Return: {{ formatDate(reservation.endDate) }}
-                        <span v-if="isEndDatePast(reservation.endDate)" class="ml-2">(Overdue)</span>
-                      </span>
-                      <a 
-                        v-if="isEndDateToday(reservation.endDate) || isEndDatePast(reservation.endDate)"
-                        :href="'tel:' + getClientPhone(reservation.clientId)"
-                        class="ml-2 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-50 transition-colors"
-                        title="Call Client"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
-                          <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                        </svg>
-                      </a>
+                      <p class="text-sm">{{ reservation.carId }}</p>
                     </div>
                   </div>
-                </td>
-                <td class="p-4">
-                  <div class="flex items-center gap-3">
-                    <button
-                      @click="makeCarAvailable(index)"
-                      class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-50 transition-colors"
-                      title="Make Car Available"
-                      v-if="reservation.status === 'Active'"
+                </div>
+              </td>
+              <td class="p-4">
+                <div class="flex flex-col gap-1">
+                  <div class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600 dark:text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Rented: {{ formatDate(reservation.startDate) }}</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600 dark:text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm font-medium" :class="{'text-red-500': isEndDateToday(reservation.endDate), 'text-red-400 bg-red-900/30 px-2 py-1 rounded': isEndDatePast(reservation.endDate)}">
+                      Return: {{ formatDate(reservation.endDate) }}
+                      <span v-if="isEndDatePast(reservation.endDate)" class="ml-2">(Overdue)</span>
+                    </span>
+                    <a 
+                      v-if="isEndDateToday(reservation.endDate) || isEndDatePast(reservation.endDate)"
+                      :href="'tel:' + getClientPhone(reservation.clientId)"
+                      class="ml-2 p-1 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+                      title="Call Client"
                     >
-                      <img 
-                        src="https://cdn-icons-png.flaticon.com/128/7867/7867059.png" 
-                        alt="Make Available" 
-                        class="w-5 h-5"
-                      />
-                    </button>
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                      </svg>
+                    </a>
                   </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+                </div>
+              </td>
+              <td class="p-4">
+                <div class="flex items-center gap-3">
+                  <button
+                    @click="makeCarAvailable(index)"
+                    class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+                    title="Make Car Available"
+                    v-if="reservation.status === 'Active'"
+                  >
+                    <img src="https://cdn-icons-png.flaticon.com/128/7867/7867059.png" alt="Make Available" class="w-5 h-5" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
