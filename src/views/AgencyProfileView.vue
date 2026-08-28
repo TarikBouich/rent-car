@@ -26,12 +26,16 @@
 
       <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-4">
-          <button @click="router.push('/agencies')" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors">
+          <button
+            v-if="!isAgencyRestrictedRole"
+            @click="router.push('/agencies')"
+            class="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors"
+          >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
           </button>
           <h1 class="text-2xl font-bold">Fiche d'Agence : <span class="text-blue-500">{{ agency?.name }}</span></h1>
         </div>
-        <div class="flex gap-3">
+        <div v-if="!isAgencyRestrictedRole" class="flex gap-3">
           <button @click="updateAgency" class="flex items-center gap-2 px-4 py-2 bg-[#fa5b0f] text-[#fff] rounded-[8px] transition-colors font-bold border border-[#fa5b0f] hover:bg-transparent hover:text-[#fa5b0f]">Enregistrer</button>
           <button class="px-6 py-2 bg-red-600/10 text-red-500 border border-red-500/20 rounded-lg hover:bg-red-600 hover:text-white transition-all">Supprimer</button>
         </div>
@@ -39,8 +43,8 @@
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        <div class="lg:col-span-7 space-y-6">
-          <div class="bg-white dark:bg-[#1C1F2B] border border-gray-200 dark:border-gray-800 rounded-xl p-6">
+        <div :class="isAgencyRestrictedRole ? 'lg:col-span-12 space-y-6' : 'lg:col-span-7 space-y-6'">
+          <div v-if="!isAgencyRestrictedRole" class="bg-white dark:bg-[#1C1F2B] border border-gray-200 dark:border-gray-800 rounded-xl p-6">
             <div class="flex items-center justify-between mb-6 border-b border-gray-200 dark:border-gray-800 pb-4">
               <h2 class="text-lg font-semibold">Informations Générales</h2>
               <span class="px-3 py-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-full text-xs font-bold uppercase">Active</span>
@@ -143,7 +147,7 @@
           </div>
         </div>
 
-        <div class="lg:col-span-5 space-y-6">
+        <div v-if="!isAgencyRestrictedRole" class="lg:col-span-5 space-y-6">
           
           <div class="bg-white dark:bg-[#1C1F2B] border border-gray-200 dark:border-gray-800 rounded-xl p-6">
             <h2 class="text-lg font-semibold mb-6">Rentabilité & Statistiques</h2>
@@ -151,11 +155,11 @@
             <div class="grid grid-cols-3 gap-4 mb-6">
               <div class="text-center p-3 bg-[#F3F4F6] dark:bg-[#151923] rounded-lg">
                 <p class="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-bold">Clients</p>
-                <p class="text-xl font-bold">12</p>
+                <p class="text-xl font-bold">{{ agencyClientsCount }}</p>
               </div>
               <div class="text-center p-3 bg-[#F3F4F6] dark:bg-[#151923] rounded-lg">
                 <p class="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-bold">Locations</p>
-                <p class="text-xl font-bold">{{ carStore.reservations.length }}</p>
+                <p class="text-xl font-bold">{{ agencyContratsCount }}</p>
               </div>
               <div class="text-center p-3 bg-[#F3F4F6] dark:bg-[#151923] rounded-lg">
                 <p class="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-bold">Voitures</p>
@@ -170,11 +174,11 @@
               </div>
               <div class="flex justify-between items-center p-4 bg-red-500/5 border border-red-500/20 rounded-xl">
                 <span class="text-sm font-medium text-red-500">Dépenses Totales</span>
-                <span class="text-lg font-black text-red-500">12,450 DH</span>
+                <span class="text-lg font-black text-red-500">{{ agencyExpenses.toLocaleString() }} DH</span>
               </div>
               <div class="p-4 bg-[#fa5b0f] rounded-xl text-center">
                 <p class="text-xs text-white dark:text-white uppercase font-bold mb-1">Bénéfice Net</p>
-                <p class="text-2xl font-black text-white dark:text-white">{{ (agencyRevenue - 12450).toLocaleString() }} DH</p>
+                <p class="text-2xl font-black text-white dark:text-white">{{ (agencyRevenue - agencyExpenses).toLocaleString() }} DH</p>
               </div>
             </div>
           </div>
@@ -208,6 +212,9 @@ import { useRoute, useRouter } from 'vue-router';
 import { useUserStore } from '../stores/userStore';
 import { useCarStore } from '../stores/carStore';
 import { useAgencyStore } from '../stores/agencyStore';
+import { useClientStore } from '../stores/clientStore';
+import { useContratStore } from '../stores/contratStore';
+import { useTransactionStore } from '../stores/transactionStore';
 import NewDefaultLayout from '../layouts/NewDefaultLayout.vue';
 
 const route = useRoute();
@@ -215,20 +222,43 @@ const router = useRouter();
 const userStore = useUserStore();
 const carStore = useCarStore();
 const agencyStore = useAgencyStore();
+const clientStore = useClientStore();
+const contratStore = useContratStore();
+const transactionStore = useTransactionStore();
 
 const agency = ref({ name: '', location: '' });
 const agencyForm = ref({ address: '', phone: '', email: '', if: '', rc: '', patente: '', ice: '', managerId: '', initialEspece: 0, initialBanque: 0 });
 const openSections = ref(['Voitures']); // Keep Voitures open by default
 const showDocModal = ref(false);
 const viewingDocument = ref(null);
+const normalizeRole = (role) =>
+  String(role || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const isAgencyRestrictedRole = computed(() => {
+  const role = normalizeRole(userStore.currentUser?.role);
+  return role === 'gerant' || role === 'employe' || role === 'agent';
+});
 
 const agencyCars = computed(() => carStore.filteredCars.filter(car => car.agencyId === route.params.id));
 const agencyAgents = computed(() => userStore.users.filter(user => user.agencyId === route.params.id));
 
+const agencyClientsCount = computed(() => {
+  return clientStore.clients.filter(c => c.agencyId === route.params.id).length;
+});
+
+const agencyContratsCount = computed(() => {
+  return contratStore.contrats.filter(c => c.agencyId === route.params.id).length;
+});
+
 const agencyRevenue = computed(() => {
-  return carStore.reservations
-    .filter(res => agencyCars.value.some(car => car.licensePlate === res.carId))
-    .reduce((sum, res) => sum + (res.totalPrice || 0), 0);
+  return transactionStore.transactions
+    .filter(t => t.agencyId === route.params.id && t.type === 'revenue')
+    .reduce((sum, t) => sum + (t.amount || 0), 0);
+});
+
+const agencyExpenses = computed(() => {
+  return transactionStore.transactions
+    .filter(t => t.agencyId === route.params.id && t.type === 'expense')
+    .reduce((sum, t) => sum + (t.amount || 0), 0);
 });
 
 const toggleSection = (section) => {
@@ -251,6 +281,18 @@ const getItems = (section) => {
 }
 
 const loadAgency = () => {
+  const ownAgencyId = userStore.userAgencyId;
+  if (isAgencyRestrictedRole.value) {
+    if (!ownAgencyId) {
+      router.replace('/cars');
+      return;
+    }
+    if (route.params.id !== ownAgencyId) {
+      router.replace(`/agencies/${ownAgencyId}`);
+      return;
+    }
+  }
+
   const found = agencyStore.getAgencyById(route.params.id);
   if (found) {
     agency.value = found;
@@ -267,6 +309,10 @@ const loadAgency = () => {
         initialBanque: found.initialBanque || 0
     };
   } else {
+    if (isAgencyRestrictedRole.value && ownAgencyId) {
+      router.replace(`/agencies/${ownAgencyId}`);
+      return;
+    }
     router.push('/agencies');
   }
 };
@@ -280,7 +326,7 @@ const updateAgency = () => {
 
 // Document Management Handlers
 const getDocumentByType = (type) => {
-  if (!agency.value.documents) return null;
+  if (!agency.value.documents || !Array.isArray(agency.value.documents)) return null;
   // Look for a document matching the pseudo-type or filename tag
   return agency.value.documents.find(doc => doc.agencyType === type);
 };
@@ -296,7 +342,7 @@ const handleSpecificFileUpload = (event, docType) => {
 
   const reader = new FileReader();
   reader.onload = (e) => {
-    if (!agency.value.documents) {
+    if (!Array.isArray(agency.value.documents)) {
       agency.value.documents = [];
     }
 
@@ -359,10 +405,12 @@ const deleteDocument = (docType) => {
   }
 };
 
-onMounted(() => {
-  agencyStore.initializeFromStorage();
-  carStore.initializeFromStorage();
-  userStore.initializeFromStorage();
+onMounted(async () => {
+  await Promise.all([
+    agencyStore.initializeFromStorage(),
+    carStore.initializeFromStorage(),
+    userStore.initializeFromStorage()
+  ]);
   loadAgency();
 });
 </script>

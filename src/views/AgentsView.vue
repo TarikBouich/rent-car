@@ -173,24 +173,32 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import DashboardMetricsRow from '../components/DashboardMetricsRow.vue'
 import { useUserStore } from '../stores/userStore'
+import { useAgencyStore } from '../stores/agencyStore'
 
 const router = useRouter()
 const userStore = useUserStore()
+const agencyStore = useAgencyStore()
 
-const agents = ref([])
-const agencies = ref([])
 const searchQuery = ref('')
 const itemsPerPage = ref(10)
 const currentPage = ref(1)
 
-onMounted(() => {
+const agents = computed(() => {
   const usersData = [...userStore.getAllUsers]
-  // We want to show admins, gerants, and agents
-  agents.value = usersData.filter(user => user.role === 'agent' || user.role === 'admin' || user.role === 'gerant')
-  
-  agencies.value = JSON.parse(localStorage.getItem('agencies') || '[]')
+  return usersData.filter(user => user.role === 'employé' || user.role === 'agent' || user.role === 'admin' || user.role === 'gérant' || user.role === 'gerant')
+})
+const agencies = computed(() => agencyStore.agencies)
+
+onMounted(async () => {
+  // We no longer need to manually copy users into a ref since we use computed
+  // The fetch logic is now managed implicitly inside initializeFromStorage
+  // However, forcing a fetch here ensures hot reload safety
+  try {
+    await userStore.fetchUsers()
+  } catch(e) {
+    console.error(e)
+  }
 })
 
 const getAgencyName = (id) => {

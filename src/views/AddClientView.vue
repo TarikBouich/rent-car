@@ -16,7 +16,7 @@
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
                 </div>
-                <select v-model="clientData.civility" required class="input-field !pl-10 !pr-4">
+                <select v-model="clientData.civility" class="input-field !pl-10 !pr-4">
                 <option value="Monsieur">Monsieur</option>
                 <option value="Madame">Madame</option>
                 <option value="Mlle">Mlle</option>
@@ -29,7 +29,7 @@
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
                 </div>
-                <select v-model="clientData.clientType" required class="input-field !pl-10 !pr-4">
+                <select v-model="clientData.clientType" class="input-field !pl-10 !pr-4">
                 <option value="Particulier">Particulier</option>
                 <option value="Professionnel">Professionnel</option>
               </select>
@@ -41,7 +41,7 @@
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                 </div>
-                <input v-model="clientData.lastName" type="text" required class="input-field !pl-10 !pr-4" />
+                <input v-model="clientData.lastName" type="text" class="input-field !pl-10 !pr-4" />
               </div>
             </div>
             <div class="relative">
@@ -60,7 +60,7 @@
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                 </div>
-                <input v-model="clientData.firstName" type="text" required class="input-field !pl-10 !pr-4" />
+                <input v-model="clientData.firstName" type="text" class="input-field !pl-10 !pr-4" />
               </div>
             </div>
             <div class="relative">
@@ -107,7 +107,7 @@
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                 </div>
-                <input v-model="clientData.nationality" type="text" required class="input-field !pl-10 !pr-4" />
+                <input v-model="clientData.nationality" type="text" class="input-field !pl-10 !pr-4" />
               </div>
             </div>
             <div>
@@ -139,7 +139,7 @@
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                 </div>
-                <input v-model="clientData.companyName" type="text" required class="input-field !pl-10 !pr-4" />
+                <input v-model="clientData.companyName" type="text" class="input-field !pl-10 !pr-4" />
               </div>
             </div>
             <div>
@@ -200,7 +200,7 @@
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                 </div>
-                <input v-model="clientData.nationalId" type="text" required class="input-field !pl-10 !pr-4" />
+                <input v-model="clientData.nationalId" type="text" class="input-field !pl-10 !pr-4" />
               </div>
             </div>
             <div>
@@ -333,6 +333,13 @@
         </section>
 
         <!-- Actions -->
+        <div v-if="submitError || Object.keys(validationErrors).length" class="rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/10 dark:border-red-800 p-3">
+          <p v-if="submitError" class="text-sm text-red-700 dark:text-red-400 font-medium">{{ submitError }}</p>
+          <p v-for="(message, key) in validationErrors" :key="key" class="text-sm text-red-700 dark:text-red-400">
+            {{ message }}
+          </p>
+        </div>
+
         <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-800">
           <button
             type="button"
@@ -360,7 +367,6 @@ import ArabicKeyboard from '../components/ArabicKeyboard.vue'
 import { useRouter } from 'vue-router'
 import { useClientStore } from '../stores/clientStore'
 import { useUserStore } from '../stores/userStore'
-import { generateNextId } from '../utils/idGenerator'
 
 export default {
   name: 'AddClientView',
@@ -407,7 +413,7 @@ export default {
       passportFront: '',
       passportBack: '',
 
-      agencyId: userStore.isAdmin ? '' : userStore.currentAgencyId
+      agencyId: userStore.isAdmin ? '' : (userStore.userAgencyId || userStore.currentAgencyId || '')
     })
 
     const handleFileUpload = (event, field) => {
@@ -422,18 +428,23 @@ export default {
     }
 
     const formatDateForStorage = (dateString) => {
-      if (!dateString) return ''
-      try {
-        const date = new Date(dateString)
-        if (isNaN(date.getTime())) return dateString
-        return date.toISOString().split('T')[0]
-      } catch (error) {
-        return dateString
-      }
+      if (!dateString) return null
+      const trimmed = String(dateString).trim()
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/
+      if (!dateRegex.test(trimmed)) return null
+
+      const date = new Date(`${trimmed}T00:00:00`)
+      if (Number.isNaN(date.getTime())) return null
+
+      // Strict guard to avoid rollover dates like 2026-02-31
+      const normalized = date.toISOString().split('T')[0]
+      return normalized === trimmed ? trimmed : null
     }
 
     const isOcrLoading = ref(false)
     const ocrResult = ref('')
+    const validationErrors = ref({})
+    const submitError = ref('')
 
     const activeKeyboard = ref(null)
 
@@ -463,17 +474,46 @@ export default {
       }
     }
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
+      validationErrors.value = {}
+      submitError.value = ''
+
+      const birthDate = formatDateForStorage(clientData.value.birthDate)
+      const cnieIssueDate = formatDateForStorage(clientData.value.cnieIssueDate)
+      const cnieExpiryDate = formatDateForStorage(clientData.value.cnieExpiryDate)
+
+      if (clientData.value.birthDate && !birthDate) {
+        validationErrors.value.birthDate = "Date de naissance invalide. Utilisez une date valide."
+      }
+      if (clientData.value.cnieIssueDate && !cnieIssueDate) {
+        validationErrors.value.cnieIssueDate = "Date de délivrance CNIE invalide. Utilisez une date valide."
+      }
+      if (clientData.value.cnieExpiryDate && !cnieExpiryDate) {
+        validationErrors.value.cnieExpiryDate = "Date de validité CNIE invalide. Utilisez une date valide."
+      }
+      if (Object.keys(validationErrors.value).length > 0) {
+        return
+      }
+
+      // Force agent-created clients to their own agency
+      if (!userStore.isAdmin) {
+        clientData.value.agencyId = userStore.userAgencyId || userStore.currentAgencyId || ''
+      }
+
       const clientToSave = {
-        id: generateNextId(clientStore.clients),
         ...clientData.value,
-        birthDate: formatDateForStorage(clientData.value.birthDate),
-        cnieIssueDate: formatDateForStorage(clientData.value.cnieIssueDate),
-        cnieExpiryDate: formatDateForStorage(clientData.value.cnieExpiryDate),
+        birthDate,
+        cnieIssueDate,
+        cnieExpiryDate,
         createdAt: new Date().toISOString()
       }
-      clientStore.addClient(clientToSave)
-      router.push({ name: 'clients' })
+
+      try {
+        await clientStore.addClient(clientToSave)
+        router.push({ name: 'clients' })
+      } catch (error) {
+        submitError.value = error?.response?.data?.message || "Impossible d'enregistrer le client. Vérifiez les données saisies."
+      }
     }
 
     return {
@@ -481,6 +521,8 @@ export default {
       userStore,
       isOcrLoading,
       ocrResult,
+      validationErrors,
+      submitError,
       activeKeyboard,
       handleOCR,
       handleSubmit,

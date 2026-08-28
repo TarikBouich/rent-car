@@ -15,6 +15,21 @@
       </div>
     </div>
 
+    <!-- Validation Error Banner -->
+    <div v-if="validationErrors.length > 0" class="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
+      <div class="flex items-start gap-3">
+        <svg class="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <div>
+          <p class="text-sm font-semibold text-red-700 dark:text-red-400 mb-1">Veuillez corriger les erreurs suivantes :</p>
+          <ul class="list-disc list-inside space-y-1">
+            <li v-for="err in validationErrors" :key="err" class="text-sm text-red-600 dark:text-red-300">{{ err }}</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
     <!-- Form -->
     <div class="bg-white dark:bg-[#1E2330] rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm p-6">
       <form @submit.prevent="handleSubmit" class="space-y-6">
@@ -82,7 +97,16 @@
 
 <!-- Marque -->
           <div>
-            <label class="block text-[14px] font-[Inter] font-medium text-gray-700 dark:text-gray-300 mb-2">Marque</label>
+            <div class="flex items-center justify-between mb-2">
+              <label class="block text-[14px] font-[Inter] font-medium text-gray-700 dark:text-gray-300">Marque</label>
+              <button
+                type="button"
+                @click="openBrandModal"
+                class="text-xs font-semibold text-[#fa5b0f] hover:text-orange-600"
+              >
+                + Nouvelle marque
+              </button>
+            </div>
             <div class="relative">
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
@@ -103,7 +127,17 @@
 
           <!-- Modèle -->
           <div>
-            <label class="block text-[14px] font-[Inter] font-medium text-gray-700 dark:text-gray-300 mb-2">Modèle</label>
+            <div class="flex items-center justify-between mb-2">
+              <label class="block text-[14px] font-[Inter] font-medium text-gray-700 dark:text-gray-300">Modèle</label>
+              <button
+                type="button"
+                @click="openModelModal"
+                :disabled="!carData.brandId"
+                class="text-xs font-semibold text-[#fa5b0f] hover:text-orange-600 disabled:text-gray-400 disabled:cursor-not-allowed"
+              >
+                + Nouveau modèle
+              </button>
+            </div>
             <div class="relative">
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" /></svg>
@@ -187,13 +221,19 @@
               </div>
               <input
                 v-model.number="carData.pricePerDay"
+                id="car-price-per-day"
+                name="car_price_per_day"
                 type="number"
                 required
                 min="0"
+                step="1"
+                inputmode="numeric"
+                autocomplete="off"
                 class="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-transparent text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#fa5b0f] focus:border-[#fa5b0f] transition-colors"
                 placeholder="Ex: 500"
               />
             </div>
+          </div>
               <!-- Section: Kilométrage & Entretien -->
           <div class="md:col-span-2 pt-4 border-t border-gray-100 dark:border-gray-800">
              <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Kilométrage & Entretien</h3>
@@ -208,9 +248,14 @@
               </div>
               <input
                 v-model.number="carData.currentMileage"
+                id="car-current-mileage"
+                name="car_current_mileage"
                 type="number"
                 required
                 min="0"
+                step="1"
+                inputmode="numeric"
+                autocomplete="off"
                 class="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-transparent text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#fa5b0f] focus:border-[#fa5b0f] transition-colors"
                 placeholder="Ex: 15000"
               />
@@ -236,7 +281,7 @@
           <div>
             <label class="block text-[14px] font-[Inter] font-medium text-gray-700 dark:text-gray-300 mb-2">Kilométrage moyen/jour</label>
             <input v-model.number="carData.averageMileagePerDay" type="number" min="0" class="w-full px-4 py-2.5 bg-white dark:bg-transparent text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#fa5b0f] focus:border-[#fa5b0f] transition-colors" placeholder="Ex: 150" />
-          </div>         </div>
+          </div>
 
           <!-- Insurance End Date -->
           <div>
@@ -390,7 +435,10 @@
           <!-- Agency Assignment -->
           <div>
             <label class="block text-[14px] font-[Inter] font-medium text-gray-700 dark:text-gray-300 mb-2">Agence</label>
-            <div class="relative">
+            <div v-if="isGerant" class="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#151923] text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 rounded text-sm">
+              {{ userAgencyName || 'Agence non assignée' }}
+            </div>
+            <div v-else class="relative">
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                  <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
               </div>
@@ -487,6 +535,76 @@
         </div>
       </form>
     </div>
+
+    <!-- Add Brand Modal -->
+    <div
+      v-if="showBrandModal"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      @click.self="closeBrandModal"
+    >
+      <div class="bg-white dark:bg-[#1E2330] border border-gray-200 dark:border-gray-800 rounded-xl w-full max-w-md shadow-2xl">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white">Ajouter une marque</h3>
+          <button @click="closeBrandModal" class="p-1 text-gray-600 dark:text-gray-400 hover:text-white hover:bg-gray-200 dark:hover:bg-gray-800 rounded transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+        <div class="p-6">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nom de la marque</label>
+          <input
+            v-model.trim="newBrandName"
+            type="text"
+            placeholder="Ex: BMW"
+            class="w-full px-4 py-2.5 bg-white dark:bg-transparent text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#fa5b0f]"
+          />
+          <p v-if="brandModalError" class="mt-2 text-sm text-red-500">{{ brandModalError }}</p>
+        </div>
+        <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+          <button @click="closeBrandModal" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#1C1C1C] border border-gray-300 dark:border-gray-700 rounded-[8px] hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors">Annuler</button>
+          <button @click="saveBrandFromModal" class="px-4 py-2 text-sm font-medium text-white bg-[#fa5b0f] rounded-[8px] hover:bg-orange-500">Ajouter</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Model Modal -->
+    <div
+      v-if="showModelModal"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      @click.self="closeModelModal"
+    >
+      <div class="bg-white dark:bg-[#1E2330] border border-gray-200 dark:border-gray-800 rounded-xl w-full max-w-md shadow-2xl">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white">Ajouter un modèle</h3>
+          <button @click="closeModelModal" class="p-1 text-gray-600 dark:text-gray-400 hover:text-white hover:bg-gray-200 dark:hover:bg-gray-800 rounded transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+        <div class="p-6 space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Marque</label>
+            <input :value="selectedBrandName" type="text" readonly class="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#151923] text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 rounded text-sm opacity-80" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nom du modèle</label>
+            <input
+              v-model.trim="newModelName"
+              type="text"
+              placeholder="Ex: Série 3"
+              class="w-full px-4 py-2.5 bg-white dark:bg-transparent text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#fa5b0f]"
+            />
+          </div>
+          <p v-if="modelModalError" class="text-sm text-red-500">{{ modelModalError }}</p>
+        </div>
+        <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+          <button @click="closeModelModal" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#1C1C1C] border border-gray-300 dark:border-gray-700 rounded-[8px] hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors">Annuler</button>
+          <button @click="saveModelFromModal" class="px-4 py-2 text-sm font-medium text-white bg-[#fa5b0f] rounded-[8px] hover:bg-orange-500">Ajouter</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -569,6 +687,24 @@ export default {
       carData.value.nextVidangeKm = (current || 0) + (oil || 0)
     })
 
+    const normalizeRole = (role) =>
+      String(role || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+
+    const isGerant = computed(() => normalizeRole(userStore.currentUser?.role) === 'gerant')
+
+    const userAgencyName = computed(() => {
+      if (!carData.value.agencyId) return ''
+      const agency = agencyStore.agencies.find(a => a.id === carData.value.agencyId)
+      return agency?.name || ''
+    })
+
+    if (isGerant.value) {
+      carData.value.agencyId = userStore.currentUser?.agencyId || ''
+    }
+
     const handleImageUpload = (event) => {
       const files = event.target.files
       if (files) {
@@ -602,28 +738,148 @@ export default {
       return modelStore.getModelsByBrandId(carData.value.brandId)
     })
 
-    const handleSubmit = () => {
-      const newCarId = Date.now().toString()
-      
-      carStore.addCar({
-        ...carData.value,
-        id: newCarId
-      })
-      
-      // Inject transaction if advance exists
-      if (carData.value.isCreditPurchase && carData.value.initialAdvance > 0) {
-        transactionStore.addTransaction({
-           amount: carData.value.initialAdvance,
-           type: 'expense',
-           method: carData.value.advanceMethod,
-           reason: 'Avance Achat Véhicule: ' + carData.value.licensePlate,
-           agencyId: carData.value.agencyId,
-           subType: carData.value.advanceMethod
-        })
+    const validationErrors = ref([])
+    const showBrandModal = ref(false)
+    const newBrandName = ref('')
+    const brandModalError = ref('')
+    const showModelModal = ref(false)
+    const newModelName = ref('')
+    const modelModalError = ref('')
+
+    const selectedBrandName = computed(() => {
+      const brand = brandStore.brands.find(b => b.id === carData.value.brandId)
+      return brand?.name || ''
+    })
+
+    const openBrandModal = () => {
+      brandModalError.value = ''
+      newBrandName.value = ''
+      showBrandModal.value = true
+    }
+
+    const closeBrandModal = () => {
+      showBrandModal.value = false
+      brandModalError.value = ''
+    }
+
+    const saveBrandFromModal = async () => {
+      const name = newBrandName.value.trim()
+      if (!name) {
+        brandModalError.value = 'Le nom de la marque est obligatoire.'
+        return
       }
-      
-      // Navigate back to cars list
-      router.push({ name: 'cars' })
+
+      const exists = brandStore.brands.some(b => b.name?.trim().toLowerCase() === name.toLowerCase())
+      if (exists) {
+        brandModalError.value = 'Cette marque existe déjà.'
+        return
+      }
+
+      const created = await brandStore.addBrand(name)
+      if (!created?.id) {
+        brandModalError.value = "Impossible d'ajouter la marque."
+        return
+      }
+
+      carData.value.brandId = created.id
+      carData.value.modelId = ''
+      closeBrandModal()
+    }
+
+    const openModelModal = () => {
+      if (!carData.value.brandId) {
+        modelModalError.value = 'Veuillez sélectionner une marque avant d’ajouter un modèle.'
+        return
+      }
+      modelModalError.value = ''
+      newModelName.value = ''
+      showModelModal.value = true
+    }
+
+    const closeModelModal = () => {
+      showModelModal.value = false
+      modelModalError.value = ''
+    }
+
+    const saveModelFromModal = async () => {
+      const name = newModelName.value.trim()
+      if (!carData.value.brandId) {
+        modelModalError.value = 'Marque manquante.'
+        return
+      }
+      if (!name) {
+        modelModalError.value = 'Le nom du modèle est obligatoire.'
+        return
+      }
+
+      const exists = modelStore
+        .getModelsByBrandId(carData.value.brandId)
+        .some(m => m.name?.trim().toLowerCase() === name.toLowerCase())
+      if (exists) {
+        modelModalError.value = 'Ce modèle existe déjà pour cette marque.'
+        return
+      }
+
+      const created = await modelStore.addModel(carData.value.brandId, name, '')
+      if (!created?.id) {
+        modelModalError.value = "Impossible d'ajouter le modèle."
+        return
+      }
+
+      carData.value.modelId = created.id
+      closeModelModal()
+    }
+
+    const handleSubmit = async () => {
+      validationErrors.value = []
+
+      if (isGerant.value) {
+        carData.value.agencyId = userStore.currentUser?.agencyId || ''
+      }
+
+      // Validate required fields
+      if (!carData.value.brandId) validationErrors.value.push('La marque est obligatoire')
+      if (!carData.value.modelId) validationErrors.value.push('Le modèle est obligatoire')
+      if (!carData.value.licensePlate?.trim()) validationErrors.value.push('La plaque d\'immatriculation est obligatoire')
+      if (!carData.value.agencyId) validationErrors.value.push('L\'agence est obligatoire')
+      if (!carData.value.pricePerDay || carData.value.pricePerDay <= 0) validationErrors.value.push('Le prix par jour est obligatoire')
+      if (!carData.value.assuranceEndDate) validationErrors.value.push('La date d\'expiration de l\'assurance est obligatoire')
+      if (!carData.value.visiteTechniqueEndDate) validationErrors.value.push('La date de visite technique est obligatoire')
+
+      if (validationErrors.value.length > 0) {
+        // Scroll to top to show errors
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+        return
+      }
+
+      const brandName = brandStore.brands.find(b => b.id === carData.value.brandId)?.name || ''
+      const modelName = modelStore.getModelsByBrandId(carData.value.brandId).find(m => m.id === carData.value.modelId)?.name || ''
+
+      try {
+        await carStore.addCar({
+          ...carData.value,
+          name: `${brandName} ${modelName}`.trim() || carData.value.licensePlate,
+          id: Date.now().toString()
+        })
+        
+        // Inject transaction if advance exists
+        if (carData.value.isCreditPurchase && carData.value.initialAdvance > 0) {
+          transactionStore.addTransaction({
+             amount: carData.value.initialAdvance,
+             type: 'expense',
+             method: carData.value.advanceMethod,
+             reason: 'Avance Achat Véhicule: ' + carData.value.licensePlate,
+             agencyId: carData.value.agencyId,
+             subType: carData.value.advanceMethod
+          })
+        }
+        
+        // Navigate back to cars list only on success
+        router.push({ name: 'cars' })
+      } catch(e) {
+        validationErrors.value.push('Erreur serveur : ' + (e.response?.data?.message || e.message))
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
     }
 
     return {
@@ -632,12 +888,27 @@ export default {
       brandStore,
       modelStore,
       filteredModels,
+      showBrandModal,
+      newBrandName,
+      brandModalError,
+      showModelModal,
+      newModelName,
+      modelModalError,
+      selectedBrandName,
+      openBrandModal,
+      closeBrandModal,
+      saveBrandFromModal,
+      openModelModal,
+      closeModelModal,
+      saveModelFromModal,
+      isGerant,
+      userAgencyName,
       handleImageUpload,
       removeImage,
       handleSingleFileUpload,
-      handleSubmit
+      handleSubmit,
+      validationErrors
     }
   }
 }
 </script>
-

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { generateNextId } from '../utils/idGenerator'
 import { useUserStore } from './userStore'
+import { loadStateJson, saveStateJson } from '../services/stateJsonService'
 
 export const useTransactionStore = defineStore('transaction', {
   state: () => ({
@@ -21,16 +22,11 @@ export const useTransactionStore = defineStore('transaction', {
     }
   },
   actions: {
-    initializeFromStorage() {
-        const stored = localStorage.getItem('transactions')
-        if (stored) {
-            this.transactions = JSON.parse(stored)
-        }
+    async initializeFromStorage() {
+      this.transactions = await loadStateJson('transactions', [])
     },
     addTransaction(transaction) {
-      if(!this.transactions.length) this.initializeFromStorage()
       const userStore = useUserStore()
-
       const newTx = {
         ...transaction,
         id: generateNextId(this.transactions),
@@ -38,11 +34,8 @@ export const useTransactionStore = defineStore('transaction', {
         companyId: userStore.userCompanyId
       }
       this.transactions.push(newTx)
-      this.saveTransactions()
+      saveStateJson('transactions', this.transactions)
       return newTx
-    },
-    saveTransactions() {
-      localStorage.setItem('transactions', JSON.stringify(this.transactions))
     }
   }
 })

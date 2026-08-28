@@ -1,13 +1,15 @@
 import { defineStore } from 'pinia'
-import { generateNextId, sortByIdDesc } from '../utils/idGenerator'
+import { generateNextId } from '../utils/idGenerator'
 import { useAlertStore } from './alertStore'
 import { useUserStore } from './userStore'
 import { useCompanyStore } from './companyStore'
 import { SAAS_PLANS } from '../utils/planConstants'
+import carService from '../services/carService'
+import { loadStateJson, saveStateJson } from '../services/stateJsonService'
 
 export const useCarStore = defineStore('car', {
   state: () => ({
-    cars: JSON.parse(localStorage.getItem('cars') || '[]'),
+    cars: [],
     reservations: [],
     completedReservations: []
   }),
@@ -37,41 +39,156 @@ export const useCarStore = defineStore('car', {
   },
 
   actions: {
-    // Initialize data from localStorage
-    initializeFromStorage() {
-      // Load data from localStorage
-      this.cars = JSON.parse(localStorage.getItem('cars') || '[]')
-      this.reservations = JSON.parse(localStorage.getItem('reservations') || '[]')
-      this.completedReservations = JSON.parse(localStorage.getItem('completedReservations') || '[]')
+    async _syncAllCarAgenciesAcrossState() {
+      if (!Array.isArray(this.cars) || this.cars.length === 0) return;
+
+      const agencyByCarId = new Map(
+        this.cars
+          .filter(car => car?.id && car?.agencyId)
+          .map(car => [car.id, car.agencyId])
+      );
+
+      if (agencyByCarId.size === 0) return;
+
+      const syncByKey = async (key) => {
+        const rows = await loadStateJson(key, []);
+        if (!Array.isArray(rows) || rows.length === 0) return false;
+
+        let changed = false;
+        const updatedRows = rows.map((row) => {
+          const targetAgencyId = agencyByCarId.get(row?.carId);
+          if (!targetAgencyId) return row;
+          if (row?.agencyId === targetAgencyId) return row;
+          changed = true;
+          return { ...row, agencyId: targetAgencyId };
+        });
+
+        if (changed) {
+          await saveStateJson(key, updatedRows);
+        }
+
+        return changed;
+      };
+
+      const assurancesChanged = await syncByKey('assurances');
+      const visitesChanged = await syncByKey('visites');
+      const entretiensChanged = await syncByKey('entretiens');
+      const chargesChanged = await syncByKey('charges');
+      const contratsChanged = await syncByKey('contrats');
+      const reservationsChanged = await syncByKey('reservations');
+      const completedChanged = await syncByKey('completedReservations');
+
+      if (reservationsChanged) {
+        this.reservations = await loadStateJson('reservations', []);
+      }
+      if (completedChanged) {
+        this.completedReservations = await loadStateJson('completedReservations', []);
+      }
+
+      return {
+        assurancesChanged,
+        visitesChanged,
+        entretiensChanged,
+        chargesChanged,
+        contratsChanged,
+        reservationsChanged,
+        completedChanged
+      };
+    },
+
+    async runManualAgencyResync() {
+      if (!Array.isArray(this.cars) || this.cars.length === 0) {
+        const response = await carService.getAll();
+        this.cars = response.data.map(c => this._normalizeCar(c));
+      }
+      const result = await this._syncAllCarAgenciesAcrossState();
+      const alertStore = useAlertStore();
+      await alertStore.checkAlerts();
+      return result || {};
+    },
+
+    async _syncCarAgencyAcrossState(carId, newAgencyId) {
+      const syncByKey = async (key, shouldUpdate) => {
+        const rows = await loadStateJson(key, []);
+        if (!Array.isArray(rows) || rows.length === 0) return false;
+
+        let changed = false;
+        const updatedRows = rows.map((row) => {
+          if (!shouldUpdate(row)) return row;
+          if (row.agencyId === newAgencyId) return row;
+          changed = true;
+          return { ...row, agencyId: newAgencyId };
+        });
+
+        if (changed) {
+          await saveStateJson(key, updatedRows);
+        }
+        return changed;
+      };
+
+      // Car-linked modules that rely on agencyId filtering
+      await syncByKey('assurances', (row) => row?.carId === carId);
+      await syncByKey('visites', (row) => row?.carId === carId);
+      await syncByKey('entretiens', (row) => row?.carId === carId);
+      await syncByKey('charges', (row) => row?.carId === carId);
+      await syncByKey('contrats', (row) => row?.carId === carId);
+      await syncByKey('reservations', (row) => row?.carId === carId);
+      await syncByKey('completedReservations', (row) => row?.carId === carId);
+    },
+
+    // Normalize JSON fields that MySQL may return as strings
+    _normalizeCar(car) {
+      const parseJSON = (val, fallback) => {
+        if (val === null || val === undefined) return fallback;
+        if (typeof val === 'object') return val;
+        try { return JSON.parse(val); } catch { return fallback; }
+      };
+      car.images     = parseJSON(car.images, []);
+      car.damages    = parseJSON(car.damages, []);
+      car.options    = parseJSON(car.options, {});
+      car.equipments = parseJSON(car.equipments, { climatisation: false, cric: false, documents: false, extincteur: false });
+      // Defaults for optional numeric fields
+      if (!car.seats) car.seats = 5;
+      if (!car.oilMileage) car.oilMileage = 10000;
+      if (!car.fuelType) car.fuelType = 'Diesel';
+      return car;
+    },
+
+    // Initialize data from API
+    async initializeFromStorage() {
+      try {
+        const response = await carService.getAll();
+        this.cars = response.data.map(c => this._normalizeCar(c));
+        this.reservations = await loadStateJson('reservations', [])
+        this.completedReservations = await loadStateJson('completedReservations', [])
+        await this._syncAllCarAgenciesAcrossState()
+      } catch (error) {
+        console.error('Failed to fetch cars:', error);
+      }
     },
 
     // Add a new car
-    addCar(car) {
-      const userStore = useUserStore()
-      const companyStore = useCompanyStore()
-      
-      const userCompanyId = userStore.userCompanyId
-      const comp = companyStore.getCompanyById(userCompanyId)
-      
-      if (comp && comp.planId) {
-         const plan = SAAS_PLANS[comp.planId]
-         const userCars = this.cars.filter(c => c.companyId === userCompanyId).length
-         if (userCars >= plan.limits.cars) {
-            alert(`Limite Atteinte ! Votre forfait '${plan.name}' autorise un maximum de ${plan.limits.cars} véhicules.`)
-            throw new Error('Limite de forfait dépassée.')
-         }
+    async addCar(carData) {
+      try {
+        // Prepare ID before sending
+        carData.id = carData.id || 'car_' + Date.now();
+        const response = await carService.create(carData);
+        this.cars.push(this._normalizeCar(response.data));
+        
+        // Alert System triggers
+        const alertStore = useAlertStore();
+        alertStore.checkAlerts();
+      } catch (error) {
+        if (error.response && error.response.status === 402) {
+           alert("Limite de forfait dépassée.");
+        }
+        console.error('Failed to create car:', error);
+        throw error;
       }
-
-      car.companyId = userCompanyId
-      this.cars.push(car)
-      this.saveCars()
-      // Check for new alerts
-      const alertStore = useAlertStore()
-      alertStore.checkAlerts()
     },
 
     // Add damage to a car
-    addDamage(carId, damage) {
+    async addDamage(carId, damage) {
       const userStore = useUserStore()
       const car = this.cars.find(c => c.id === carId)
       if (car) {
@@ -81,38 +198,56 @@ export const useCarStore = defineStore('car', {
           companyId: userStore.userCompanyId,
           id: `dmg_${Date.now()}`
         })
-        this.saveCars()
+        // Persist via API
+        await this.updateCar({ id: carId, damages: car.damages })
       }
     },
 
     // Update a car
-    updateCar(updatedCar) {
-      const index = this.cars.findIndex(car => car.id === updatedCar.id)
-      if (index !== -1) {
-        this.cars[index] = { ...this.cars[index], ...updatedCar }
-        this.saveCars()
-        // Check for new alerts
-        const alertStore = useAlertStore()
-        alertStore.checkAlerts()
+    async updateCar(updatedCar) {
+      try {
+        const existingCar = this.cars.find(car => car.id === updatedCar.id);
+        const previousAgencyId = existingCar?.agencyId || null;
+
+        const response = await carService.update(updatedCar.id, updatedCar);
+        const index = this.cars.findIndex(car => car.id === updatedCar.id);
+        if (index !== -1) {
+          this.cars[index] = this._normalizeCar({ ...this.cars[index], ...response.data });
+
+          const nextAgencyId = this.cars[index]?.agencyId || null;
+          const agencyChanged = !!nextAgencyId && previousAgencyId !== nextAgencyId;
+          if (agencyChanged) {
+            await this._syncCarAgencyAcrossState(updatedCar.id, nextAgencyId);
+          }
+
+          // Check for new alerts
+          const alertStore = useAlertStore();
+          alertStore.checkAlerts();
+        }
+      } catch (error) {
+        console.error('Failed to update car', error);
       }
     },
 
     // Delete a car
-    deleteCar(carId) {
-      this.cars = this.cars.filter(car => car.id !== carId)
-      this.saveCars()
-      // Check for new alerts
-      const alertStore = useAlertStore()
-      alertStore.checkAlerts()
+    async deleteCar(carId) {
+      try {
+        await carService.delete(carId);
+        this.cars = this.cars.filter(car => car.id !== carId);
+        // Check for new alerts
+        const alertStore = useAlertStore();
+        alertStore.checkAlerts();
+      } catch (error) {
+        console.error('Failed to delete car', error);
+      }
     },
 
-    // Add a new reservation
+    // Add a reservation (in-memory, full reservation API migration pending)
     addReservation(reservation) {
       const userStore = useUserStore()
       reservation.companyId = userStore.userCompanyId
       this.reservations.push(reservation)
-      this.saveReservations()
-      // Check for new alerts
+      saveStateJson('reservations', this.reservations)
       const alertStore = useAlertStore()
       alertStore.checkAlerts()
     },
@@ -122,8 +257,7 @@ export const useCarStore = defineStore('car', {
       const index = this.reservations.findIndex(res => res.id === updatedReservation.id)
       if (index !== -1) {
         this.reservations[index] = updatedReservation
-        this.saveReservations()
-        // Check for new alerts
+        saveStateJson('reservations', this.reservations)
         const alertStore = useAlertStore()
         alertStore.checkAlerts()
       }
@@ -138,25 +272,11 @@ export const useCarStore = defineStore('car', {
         reservation.completedAt = new Date().toISOString()
         this.completedReservations.push(reservation)
         this.reservations.splice(index, 1)
-        this.saveReservations()
-        this.saveCompletedReservations()
-        // Check for new alerts
+        saveStateJson('reservations', this.reservations)
+        saveStateJson('completedReservations', this.completedReservations)
         const alertStore = useAlertStore()
         alertStore.checkAlerts()
       }
-    },
-
-    // Save methods
-    saveCars() {
-      localStorage.setItem('cars', JSON.stringify(this.cars))
-    },
-
-    saveReservations() {
-      localStorage.setItem('reservations', JSON.stringify(this.reservations))
-    },
-
-    saveCompletedReservations() {
-      localStorage.setItem('completedReservations', JSON.stringify(this.completedReservations))
     },
 
     // Get available cars for a date range
@@ -181,11 +301,8 @@ export const useCarStore = defineStore('car', {
     },
 
     // Load initial cars data
-    initializeCars() {
-      const savedCars = localStorage.getItem('cars')
-      if (savedCars) {
-        this.cars = JSON.parse(savedCars)
-      }
+    async initializeCars() {
+      await this.initializeFromStorage();
     }
   }
 }) 

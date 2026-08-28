@@ -329,11 +329,25 @@ const getCarFullTitle = (c) => {
 }
 
 const isAdmin = computed(() => userStore.isAdmin)
+const effectiveAgencyId = computed(() => (
+  formData.value.agencyId ||
+  userStore.userAgencyId ||
+  userStore.currentAgencyId ||
+  ''
+))
 
 // References for lists filtered by the active customized form agency
-const clientsList = computed(() => clientStore.clients.filter(c => c.agencyId === formData.value.agencyId))
-const carsList = computed(() => carStore.cars.filter(c => c.agencyId === formData.value.agencyId))
-const myAgency = computed(() => agencyStore.agencies.find(a => a.id === formData.value.agencyId))
+const clientsList = computed(() => {
+  const agencyId = effectiveAgencyId.value
+  if (!agencyId) return []
+  return clientStore.clients.filter(c => c.agencyId === agencyId)
+})
+const carsList = computed(() => {
+  const agencyId = effectiveAgencyId.value
+  if (!agencyId) return []
+  return carStore.cars.filter(c => c.agencyId === agencyId)
+})
+const myAgency = computed(() => agencyStore.agencies.find(a => a.id === effectiveAgencyId.value))
 
 const showWarningModal = ref(false)
 const warnings = ref([])
@@ -346,7 +360,7 @@ const todayString = () => {
 }
 
 const formData = ref({
-  agencyId: userStore.currentAgencyId,
+  agencyId: userStore.currentAgencyId || userStore.userAgencyId || '',
   clientId: '',
   numero: '',
   dateContrat: todayString(),
@@ -436,7 +450,17 @@ onUnmounted(() => {
 // ======================================
 
 // Lifecycle
-onMounted(() => {
+onMounted(async () => {
+   await Promise.all([
+      agencyStore.initializeFromStorage(),
+      clientStore.initializeFromStorage(),
+      carStore.initializeFromStorage()
+   ])
+
+   if (!formData.value.agencyId) {
+      formData.value.agencyId = userStore.userAgencyId || userStore.currentAgencyId || ''
+   }
+
    // Support auto-fill from router queries (e.g. from CarAvailabilityView)
    if (route.query.agencyId) {
       formData.value.agencyId = route.query.agencyId
@@ -600,7 +624,7 @@ const evalAlerts = () => {
 }
 
 
-const executeSave = () => {
+const executeSave = async () => {
    const c = JSON.parse(JSON.stringify(formData.value))
    // Check and push transaction if Avance provided
    if (c.avance > 0) {
@@ -617,9 +641,11 @@ const executeSave = () => {
    // Syc back the damages state purely to car physically
    const carRef = carStore.cars.find(voiture => voiture.id === c.carId)
    if (carRef) {
-      carStore.updateCar({
+      const nextStatus = (c.etat || '').trim() === 'En cours' ? 'Rented' : 'Available'
+      await carStore.updateCar({
          ...carRef,
-         damages: c.departDamages ? [...c.departDamages] : []
+         damages: c.departDamages ? [...c.departDamages] : [],
+         status: nextStatus
       })
    }
    
@@ -635,16 +661,16 @@ const executeSave = () => {
    router.push('/contrats')
 }
 
-const handleSave = () => {
+const handleSave = async () => {
    if (evalAlerts()) {
       showWarningModal.value = true;
    } else {
-      executeSave()
+      await executeSave()
    }
 }
 
-const forceSave = () => {
+const forceSave = async () => {
    showWarningModal.value = false;
-   executeSave()
+   await executeSave()
 }
 </script>

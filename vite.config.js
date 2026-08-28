@@ -84,6 +84,9 @@ const signatureRelayPlugin = () => ({
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [vue(), signatureRelayPlugin()],
+  server: {
+    host: true
+  },
   resolve: {
     alias: {
       '@': '/src'

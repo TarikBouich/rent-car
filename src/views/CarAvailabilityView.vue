@@ -245,10 +245,14 @@ const availableCars = computed(() => {
       const contrats = contratStore.filteredContrats || []
       const hasOverlappingContrat = contrats.some(c => {
          if (c.carId !== car.id) return false
-         if (c.etat !== 'En cours') return false // Only ongoing contracts block availability
+         if ((c.etat || '').trim() !== 'En cours') return false // Only ongoing contracts block availability
          
          const cStart = new Date(c.dateSortie || c.createdAt).getTime()
-         const cEnd = new Date(c.dateRetourPrevoyue).getTime()
+         // Legacy/new field compatibility:
+         // - old key: dateRetourPrevoyue
+         // - current add-contrat form key: dateRetour
+         const cEnd = new Date(c.dateRetourPrevoyue || c.dateRetour || c.updatedAt || c.createdAt).getTime()
+         if (!Number.isFinite(cStart) || !Number.isFinite(cEnd)) return false
          return checkOverlap(sTime, eTime, cStart, cEnd)
       })
       if (hasOverlappingContrat) return false

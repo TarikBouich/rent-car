@@ -2,11 +2,13 @@
   <div class="p-6 bg-[#F3F4F6] dark:bg-[#151923] min-h-[calc(100vh-4rem)] font-[Inter]">
     <div class="max-w-4xl mx-auto bg-white dark:bg-[#1E2330] rounded-xl shadow-sm border border-gray-200 dark:border-gray-800">
       <div class="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50 rounded-t-xl">
-        <h2 class="text-lg font-bold text-gray-900 dark:text-white">Paramètres Généraux & Abonnement</h2>
+        <h2 class="text-lg font-bold text-gray-900 dark:text-white">
+          {{ canSeeSubscription ? 'Paramètres Généraux & Abonnement' : 'Paramètres Généraux' }}
+        </h2>
       </div>
       
       <!-- Tenant Subscription Status -->
-      <div class="p-6 pb-0">
+      <div v-if="canSeeSubscription" class="p-6 pb-0">
          <SubscriptionInfo />
       </div>
 
@@ -67,6 +69,30 @@
           <p class="text-sm text-gray-600 dark:text-gray-400">
             Personnalisez le texte du contrat de location en Français et en Arabe. Ce contrat sera imprimable au format PDF.
           </p>
+        </section>
+
+        <!-- Maintenance Data -->
+        <section v-if="userStore.isAdmin">
+          <div class="flex items-center justify-between border-b pb-2 border-gray-200 dark:border-gray-800 mb-4">
+            <h3 class="text-md font-bold text-gray-900 dark:text-white">Maintenance des Données</h3>
+          </div>
+          <div class="rounded-lg border border-orange-200 dark:border-orange-900/30 bg-orange-50 dark:bg-orange-900/10 p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <p class="text-sm text-gray-700 dark:text-gray-300">
+              Réappliquer la synchronisation des agences sur les données historiques liées aux voitures
+              (assurances, visites techniques, entretiens, charges, contrats, réservations).
+            </p>
+            <button
+              type="button"
+              @click="runAgencyResync"
+              :disabled="isResyncing"
+              class="px-4 py-2 text-sm font-bold rounded-lg border transition-colors whitespace-nowrap"
+              :class="isResyncing
+                ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed dark:bg-gray-800 dark:border-gray-700'
+                : 'bg-[#fa5b0f] text-white border-[#fa5b0f] hover:bg-transparent hover:text-[#fa5b0f]'"
+            >
+              {{ isResyncing ? 'Synchronisation...' : 'Resync Car Linked Data' }}
+            </button>
+          </div>
         </section>
 
         <!-- Actions -->
@@ -280,17 +306,20 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, computed } from 'vue'
 import { useUserStore } from '../stores/userStore'
 import { useAlertStore } from '../stores/alertStore'
+import { useCarStore } from '../stores/carStore'
 import SubscriptionInfo from '../components/SubscriptionInfo.vue'
 import { useSettingsStore } from '../stores/settingsStore'
 import html2pdf from 'html2pdf.js'
 
-const router = useRouter()
+const userStore = useUserStore()
 const settingsStore = useSettingsStore()
 const alertStore = useAlertStore()
+const carStore = useCarStore()
+const canSeeSubscription = computed(() => userStore.isAdmin)
+const isResyncing = ref(false)
 
 const form = ref({
   tvaRate: 20
@@ -318,8 +347,8 @@ const conditionsForm = ref({
   ar: ''
 })
 
-onMounted(() => {
-  settingsStore.initializeFromStorage()
+onMounted(async () => {
+  await settingsStore.initializeFromStorage()
   form.value.tvaRate = settingsStore.tvaRate
   if (settingsStore.alertThresholds) {
     alertForm.value = JSON.parse(JSON.stringify(settingsStore.alertThresholds))
@@ -329,23 +358,25 @@ onMounted(() => {
   }
 })
 
-const openAlertModal = () => {
+const openAlertModal = async () => {
+  await settingsStore.initializeFromStorage()
   if (settingsStore.alertThresholds) {
     alertForm.value = JSON.parse(JSON.stringify(settingsStore.alertThresholds))
   }
   isAlertModalOpen.value = true
 }
 
-const saveAlertThresholds = () => {
-  settingsStore.updateSettings({
+const saveAlertThresholds = async () => {
+  await settingsStore.updateSettings({
     alertThresholds: alertForm.value
   })
-  alertStore.checkAlerts()
+  await alertStore.checkAlerts()
   isAlertModalOpen.value = false
+  alert('Seuils d’alertes enregistrés.')
 }
 
-const saveSettings = () => {
-  settingsStore.updateSettings({
+const saveSettings = async () => {
+  await settingsStore.updateSettings({
     tvaRate: parseFloat(form.value.tvaRate)
   })
   alert('Paramètres mis à jour avec succès!')
@@ -358,8 +389,8 @@ const openConditionsModal = () => {
   isConditionsModalOpen.value = true
 }
 
-const saveConditions = () => {
-  settingsStore.updateSettings({
+const saveConditions = async () => {
+  await settingsStore.updateSettings({
     conditionsGenerales: conditionsForm.value
   })
   alert('Conditions enregistrées avec succès!')
@@ -377,6 +408,25 @@ const generatePDF = () => {
   }
 
   html2pdf().set(opt).from(element).save()
+}
+
+const runAgencyResync = async () => {
+  if (isResyncing.value) return
+  isResyncing.value = true
+  try {
+    const result = await carStore.runManualAgencyResync()
+    const touchedKeys = Object.values(result || {}).filter(Boolean).length
+    if (touchedKeys > 0) {
+      alert(`Synchronisation terminée. ${touchedKeys} module(s) mis à jour.`)
+    } else {
+      alert('Synchronisation terminée. Aucune correction nécessaire.')
+    }
+  } catch (error) {
+    console.error('Agency resync failed:', error)
+    alert('Erreur lors de la synchronisation.')
+  } finally {
+    isResyncing.value = false
+  }
 }
 </script>
 

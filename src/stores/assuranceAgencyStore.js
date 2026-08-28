@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia'
+import { loadStateJson, saveStateJson } from '../services/stateJsonService'
 
 export const useAssuranceAgencyStore = defineStore('assuranceAgency', {
   state: () => ({
-    agencies: JSON.parse(localStorage.getItem('assuranceAgencies') || '[]')
+    agencies: []
   }),
 
   getters: {
@@ -11,8 +12,8 @@ export const useAssuranceAgencyStore = defineStore('assuranceAgency', {
   },
 
   actions: {
-    initializeFromStorage() {
-      this.agencies = JSON.parse(localStorage.getItem('assuranceAgencies') || '[]')
+    async initializeFromStorage() {
+      this.agencies = await loadStateJson('assuranceAgencies', [])
     },
 
     addAgency(agency) {
@@ -38,7 +39,7 @@ export const useAssuranceAgencyStore = defineStore('assuranceAgency', {
     },
 
     saveAgencies() {
-      localStorage.setItem('assuranceAgencies', JSON.stringify(this.agencies))
+      saveStateJson('assuranceAgencies', this.agencies)
     }
   }
 })

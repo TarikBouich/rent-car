@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { loadStateJson, saveStateJson } from '../services/stateJsonService'
 
 export const useSettingsStore = defineStore('settings', {
   state: () => ({
@@ -24,21 +25,20 @@ export const useSettingsStore = defineStore('settings', {
   }),
 
   actions: {
-    initializeFromStorage() {
-      const stored = localStorage.getItem('appSettings')
+    async initializeFromStorage() {
+      const stored = await loadStateJson('appSettings', null)
       if (stored) {
-        const parsed = JSON.parse(stored)
-        this.tvaRate = parsed.tvaRate !== undefined ? parsed.tvaRate : 20
-        if (parsed.alertThresholds) {
-          this.alertThresholds = { ...this.alertThresholds, ...parsed.alertThresholds }
+        this.tvaRate = stored.tvaRate !== undefined ? stored.tvaRate : 20
+        if (stored.alertThresholds) {
+          this.alertThresholds = { ...this.alertThresholds, ...stored.alertThresholds }
         }
-        if (parsed.conditionsGenerales) {
-          this.conditionsGenerales = { ...this.conditionsGenerales, ...parsed.conditionsGenerales }
+        if (stored.conditionsGenerales) {
+          this.conditionsGenerales = { ...this.conditionsGenerales, ...stored.conditionsGenerales }
         }
       }
     },
 
-    updateSettings(settings) {
+    async updateSettings(settings) {
       if (settings.tvaRate !== undefined) {
         this.tvaRate = settings.tvaRate
       }
@@ -48,15 +48,15 @@ export const useSettingsStore = defineStore('settings', {
       if (settings.conditionsGenerales !== undefined) {
         this.conditionsGenerales = { ...this.conditionsGenerales, ...settings.conditionsGenerales }
       }
-      this.saveSettings()
+      await this.saveSettings()
     },
 
-    saveSettings() {
-      localStorage.setItem('appSettings', JSON.stringify({
+    async saveSettings() {
+      await saveStateJson('appSettings', {
         tvaRate: this.tvaRate,
         alertThresholds: this.alertThresholds,
         conditionsGenerales: this.conditionsGenerales
-      }))
+      })
     }
   }
 })

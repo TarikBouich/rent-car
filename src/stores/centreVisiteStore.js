@@ -1,10 +1,10 @@
 import { defineStore } from 'pinia'
-import { generateNextId } from '../utils/idGenerator'
 import { useUserStore } from './userStore'
+import { loadStateJson, saveStateJson } from '../services/stateJsonService'
 
 export const useCentreVisiteStore = defineStore('centreVisite', {
   state: () => ({
-    centres: JSON.parse(localStorage.getItem('centresVisite') || '[]')
+    centres: []
   }),
 
   getters: {
@@ -13,8 +13,8 @@ export const useCentreVisiteStore = defineStore('centreVisite', {
   },
 
   actions: {
-    initializeFromStorage() {
-      this.centres = JSON.parse(localStorage.getItem('centresVisite') || '[]')
+    async initializeFromStorage() {
+      this.centres = await loadStateJson('centresVisite', [])
     },
 
     addCentre(centre) {
@@ -45,7 +45,7 @@ export const useCentreVisiteStore = defineStore('centreVisite', {
     },
 
     saveCentres() {
-      localStorage.setItem('centresVisite', JSON.stringify(this.centres))
+      saveStateJson('centresVisite', this.centres)
     }
   }
 })

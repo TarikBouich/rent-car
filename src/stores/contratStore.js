@@ -1,9 +1,10 @@
 import { defineStore } from 'pinia'
 import { useUserStore } from './userStore'
+import { loadStateJson, saveStateJson } from '../services/stateJsonService'
 
 export const useContratStore = defineStore('contrat', {
   state: () => ({
-    contrats: JSON.parse(localStorage.getItem('contrats') || '[]')
+    contrats: []
   }),
 
   getters: {
@@ -19,6 +20,9 @@ export const useContratStore = defineStore('contrat', {
   },
 
   actions: {
+    async initializeFromStorage() {
+      this.contrats = await loadStateJson('contrats', [])
+    },
     addContrat(contratData) {
       const userStore = useUserStore()
       const newContrat = {
@@ -30,7 +34,7 @@ export const useContratStore = defineStore('contrat', {
       }
       
       this.contrats.push(newContrat)
-      this.saveToStorage()
+      saveStateJson('contrats', this.contrats)
       return newContrat
     },
 
@@ -42,17 +46,13 @@ export const useContratStore = defineStore('contrat', {
           ...updatedContrat,
           updatedAt: new Date().toISOString()
         }
-        this.saveToStorage()
+        saveStateJson('contrats', this.contrats)
       }
     },
 
     deleteContrat(id) {
       this.contrats = this.contrats.filter(c => c.id !== id)
-      this.saveToStorage()
-    },
-
-    saveToStorage() {
-      localStorage.setItem('contrats', JSON.stringify(this.contrats))
+      saveStateJson('contrats', this.contrats)
     }
   }
 })

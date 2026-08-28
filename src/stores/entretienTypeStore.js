@@ -1,9 +1,10 @@
 import { defineStore } from 'pinia'
+import { loadStateJson, saveStateJson } from '../services/stateJsonService'
 
 export const useEntretienTypeStore = defineStore('entretienType', {
   state: () => ({
     // Initialize with standard predefined maintenance types if empty
-    types: JSON.parse(localStorage.getItem('entretienTypes') || '[]')
+    types: []
   }),
 
   getters: {
@@ -12,8 +13,8 @@ export const useEntretienTypeStore = defineStore('entretienType', {
   },
 
   actions: {
-    initializeFromStorage() {
-      const stored = JSON.parse(localStorage.getItem('entretienTypes') || '[]')
+    async initializeFromStorage() {
+      const stored = await loadStateJson('entretienTypes', [])
       if (stored.length === 0) {
         // Pre-seed basic requested defaults
         this.types = [
@@ -61,7 +62,7 @@ export const useEntretienTypeStore = defineStore('entretienType', {
     },
 
     saveTypes() {
-      localStorage.setItem('entretienTypes', JSON.stringify(this.types))
+      saveStateJson('entretienTypes', this.types)
     }
   }
 })

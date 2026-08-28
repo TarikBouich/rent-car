@@ -80,10 +80,13 @@
       </div>
       
       <!-- Action -->
-      <div class="flex items-center justify-center p-3">
-         <a href="mailto:superadmin@rentcar.com" class="text-[#fa5b0f] text-xs font-bold hover:underline">
+      <div class="flex flex-col items-center justify-center p-3 gap-1">
+         <a :href="`mailto:${supportContact.email}`" class="text-[#fa5b0f] text-xs font-bold hover:underline">
             Demander une extension (Contactez le support)
          </a>
+         <span v-if="supportContact.phone" class="text-[11px] text-gray-500 dark:text-gray-400">
+            Tél: {{ supportContact.phone }}
+         </span>
       </div>
 
     </div>
@@ -97,11 +100,14 @@ import { useCompanyStore } from '../stores/companyStore'
 import { useUserStore } from '../stores/userStore'
 import { useCarStore } from '../stores/carStore'
 import { useAgencyStore } from '../stores/agencyStore'
+import { useClientStore } from '../stores/clientStore'
+import companyService from '../services/companyService'
 
 const companyStore = useCompanyStore()
 const userStore = useUserStore()
 const carStore = useCarStore()
 const agencyStore = useAgencyStore()
+const clientStore = useClientStore()
 
 const company = ref(null)
 
@@ -111,13 +117,27 @@ const usage = ref({
    agencies: 0
 })
 
-onMounted(() => {
-   companyStore.initializeFromStorage()
+const supportContact = ref({
+   email: 'superadmin@rentcar.com',
+   phone: ''
+})
+
+onMounted(async () => {
+   await Promise.all([
+     companyStore.initializeFromStorage(),
+     carStore.initializeFromStorage(),
+     userStore.fetchUsers(),
+     agencyStore.initializeFromStorage(),
+     clientStore.initializeFromStorage()
+   ])
+
    company.value = companyStore.getCompanyById(userStore.userCompanyId)
 
    if (company.value) {
       calculateUsage(company.value.id)
    }
+
+   loadSupportContact()
 })
 
 const currentPlan = computed(() => {
@@ -130,13 +150,24 @@ const usersPercentage = computed(() => (usage.value.users / currentPlan.value.li
 const agenciesPercentage = computed(() => (usage.value.agencies / currentPlan.value.limits.agencies) * 100)
 
 const calculateUsage = (cid) => {
-   // Use internal filtered lists if possible, or read from raw localStorage to avoid missing any hidden row
-   const allCars = JSON.parse(localStorage.getItem('cars') || '[]')
-   const allUsers = JSON.parse(localStorage.getItem('users') || '[]')
-   const allAgencies = JSON.parse(localStorage.getItem('agencies') || '[]')
+   const allCars = carStore.cars || []
+   const allUsers = userStore.users || []
+   const allAgencies = agencyStore.agencies || []
 
    usage.value.cars = allCars.filter(c => c.companyId === cid).length
    usage.value.users = allUsers.filter(u => u.companyId === cid).length
    usage.value.agencies = allAgencies.filter(a => a.companyId === cid).length
+}
+
+const loadSupportContact = async () => {
+   try {
+      const { data } = await companyService.getSupportContact()
+      supportContact.value = {
+         email: data?.email || 'superadmin@rentcar.com',
+         phone: data?.phone || ''
+      }
+   } catch (error) {
+      console.error('Failed loading support contact:', error)
+   }
 }
 </script>

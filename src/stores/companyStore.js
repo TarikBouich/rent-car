@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { generateNextId } from '../utils/idGenerator'
+import companyService from '../services/companyService'
 
 export const useCompanyStore = defineStore('company', {
   state: () => ({
@@ -16,56 +16,46 @@ export const useCompanyStore = defineStore('company', {
   },
 
   actions: {
-    initializeFromStorage() {
-      const stored = localStorage.getItem('companies')
-      if (stored) {
-        this.companies = JSON.parse(stored)
-      } else {
-        // Migration: If no companies exist, define the default one for existing data
-        this.companies = [
-          {
-            id: 'COMP-001',
-            name: 'Rent a Car par défaut',
-            email: 'contact@rentcar.com',
-            status: 'Active',
-            planId: 'entreprise',
-            createdAt: new Date().toISOString()
-          }
-        ]
-        this.saveCompanies()
+    async initializeFromStorage() {
+      await this.fetchCompanies()
+    },
+
+    async fetchCompanies() {
+      try {
+        const response = await companyService.getAll()
+        this.companies = response.data
+      } catch (error) {
+        console.error('Failed to fetch companies:', error)
       }
     },
 
-    saveCompanies() {
-      localStorage.setItem('companies', JSON.stringify(this.companies))
-    },
-
-    addCompany(companyData) {
-      const newCompany = {
-        id: `COMP-${Date.now().toString(36).toUpperCase()}`,
-        name: companyData.name,
-        email: companyData.email,
-        status: companyData.status || 'Active',
-        planId: companyData.planId || 'pro',
-        createdAt: new Date().toISOString(),
-        ...companyData
-      }
-      this.companies.push(newCompany)
-      this.saveCompanies()
-      return newCompany
-    },
-
-    updateCompany(updatedCompany) {
-      const index = this.companies.findIndex(c => c.id === updatedCompany.id)
-      if (index !== -1) {
-        this.companies[index] = { ...this.companies[index], ...updatedCompany }
-        this.saveCompanies()
+    async addCompany(companyData) {
+      try {
+        const response = await companyService.create(companyData)
+        this.companies.push(response.data)
+        return response.data
+      } catch (error) {
+         console.error('Failed to add company:', error)
+         throw error
       }
     },
 
-    deleteCompany(id) {
-      this.companies = this.companies.filter(c => c.id !== id)
-      this.saveCompanies()
+    async updateCompany(updatedCompany) {
+      try {
+        const response = await companyService.update(updatedCompany.id, updatedCompany)
+        const index = this.companies.findIndex(c => c.id === updatedCompany.id)
+        if (index !== -1) {
+          this.companies[index] = { ...this.companies[index], ...response.data }
+        }
+      } catch (error) {
+        console.error('Failed to update company:', error)
+        throw error
+      }
+    },
+
+    async deleteCompany(id) {
+       // Optional: Add backend support if needed later. But usually companies aren't hard deleted.
+       console.log('Delete company not yet mapped to API', id)
     }
   }
 })

@@ -1,11 +1,11 @@
 import { defineStore } from 'pinia'
-import { generateNextId } from '../utils/idGenerator'
 import { useUserStore } from './userStore'
 import { useAlertStore } from './alertStore'
+import { loadStateJson, saveStateJson } from '../services/stateJsonService'
 
 export const useAssuranceStore = defineStore('assurance', {
   state: () => ({
-    assurances: JSON.parse(localStorage.getItem('assurances') || '[]')
+    assurances: []
   }),
 
   getters: {
@@ -21,8 +21,8 @@ export const useAssuranceStore = defineStore('assurance', {
   },
 
   actions: {
-    initializeFromStorage() {
-      this.assurances = JSON.parse(localStorage.getItem('assurances') || '[]')
+    async initializeFromStorage() {
+      this.assurances = await loadStateJson('assurances', [])
     },
 
     addAssurance(assurance) {
@@ -58,7 +58,7 @@ export const useAssuranceStore = defineStore('assurance', {
     },
 
     saveAssurances() {
-      localStorage.setItem('assurances', JSON.stringify(this.assurances))
+      saveStateJson('assurances', this.assurances)
     }
   }
 })

@@ -153,11 +153,16 @@ const getBrandName = (brandId) => {
   return brand ? brand.name : 'Inconnu';
 }
 
-const handleCreate = () => {
+const handleCreate = async () => {
   if (!newModel.value.name || !newModel.value.brandId) return;
-  modelStore.addModel(newModel.value.brandId, newModel.value.name);
-  showAddModal.value = false;
-  newModel.value = { brandId: '', name: '' };
+  try {
+    await modelStore.addModel(newModel.value.brandId, newModel.value.name);
+    showAddModal.value = false;
+    newModel.value = { brandId: '', name: '' };
+  } catch (error) {
+    const message = error?.response?.data?.message || 'Erreur lors de la création du modèle.';
+    alert(message);
+  }
 };
 
 const openEditModal = (model) => {
@@ -165,15 +170,25 @@ const openEditModal = (model) => {
   showEditModal.value = true;
 };
 
-const handleEdit = () => {
+const handleEdit = async () => {
   if (!editModelData.value.name || !editModelData.value.brandId) return;
-  modelStore.updateModel(editModelData.value);
-  showEditModal.value = false;
+  try {
+    await modelStore.updateModel(editModelData.value);
+    showEditModal.value = false;
+  } catch (error) {
+    const message = error?.response?.data?.message || 'Erreur lors de la modification du modèle.';
+    alert(message);
+  }
 };
 
-const deleteModel = (id) => {
+const deleteModel = async (id) => {
   if(confirm('Êtes-vous sûr de vouloir supprimer ce modèle ?')) {
-    modelStore.deleteModel(id);
+    try {
+      await modelStore.deleteModel(id);
+    } catch (error) {
+      const message = error?.response?.data?.message || 'Erreur lors de la suppression du modèle.';
+      alert(message);
+    }
   }
 };
 

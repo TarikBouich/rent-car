@@ -33,6 +33,22 @@
 
       <!-- Search & Filters -->
       <div class="flex flex-1 max-w-2xl justify-end gap-3 w-full">
+        <div v-if="userStore.isAdmin" class="relative w-full max-w-xs flex items-center justify-end gap-2">
+          <label class="text-sm font-medium text-gray-600 dark:text-gray-400 whitespace-nowrap">Agence:</label>
+          <select
+            v-model="selectedAgencyFilter"
+            class="w-full px-3 py-1.5 bg-white dark:bg-transparent text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 rounded-[4px] text-sm focus:outline-none focus:ring-1 focus:ring-[#fa5b0f] focus:border-[#fa5b0f]"
+          >
+            <option value="">Toutes les agences</option>
+            <option
+              v-for="agency in agencyStore.agencies"
+              :key="agency.id"
+              :value="agency.id"
+            >
+              {{ agency.name }}
+            </option>
+          </select>
+        </div>
         <div class="relative w-full max-w-xs flex items-center justify-end gap-2">
           <label class="text-sm font-medium text-gray-600 dark:text-gray-400 whitespace-nowrap">Rechercher:</label>
           <input
@@ -60,25 +76,36 @@
       </div>
     </div>
 
-    <!-- Fleet Data Table -->
-    <div class="bg-white dark:bg-[#1E2330] rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden mb-6">
+    <!-- Fleet Data Tables -->
+    <div
+      v-for="group in carGroupsForDisplay"
+      :key="group.id"
+      class="bg-white dark:bg-[#1E2330] rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden mb-6"
+    >
+      <div
+        v-if="userStore.isAdmin"
+        class="px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#1C1C1C]"
+      >
+        <h3 class="text-sm font-bold text-gray-900 dark:text-white">
+          Agence: {{ group.name }} ({{ group.cars.length }})
+        </h3>
+      </div>
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse whitespace-nowrap">
           <thead>
             <tr class="bg-white dark:bg-[#1C1C1C] border-b border-gray-200 dark:border-gray-800">
-<th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Photo</th>
+              <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Photo</th>
               <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Modèle/Marque</th>
               <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Matricule</th>
               <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Couleur</th>
               <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Agence</th>
-              <!-- <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Catégorie</th> -->
               <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Prix/Jour</th>
               <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Statut</th>
               <th class="px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider text-right">Actions</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-800">
-            <tr v-for="car in filteredCars" :key="car.id" class="hover:bg-gray-200 dark:hover:bg-gray-800/50 transition-colors">
+            <tr v-for="car in group.cars" :key="car.id" class="hover:bg-gray-200 dark:hover:bg-gray-800/50 transition-colors">
               <!-- Photo -->
               <td class="px-4 py-3">
                 <div class="h-10 w-14 rounded overflow-hidden bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-gray-800 flex items-center justify-center">
@@ -728,7 +755,6 @@ export default {
     agencyStore.initializeFromStorage();
     brandStore.initializeFromStorage();
     modelStore.initializeFromStorage();
-    transactionStore.initializeFromStorage();
     
     return {
       carStore,
@@ -742,6 +768,7 @@ export default {
   data() {
     return {
       searchQuery: '',
+      selectedAgencyFilter: '',
       categoryFilter: '',
       showModal: false,
       showSellModal: false,
@@ -803,6 +830,10 @@ export default {
   computed: {
     filteredCars() {
       let cars = this.carStore.filteredCars;
+
+      if (this.selectedAgencyFilter) {
+        cars = cars.filter(car => car.agencyId === this.selectedAgencyFilter);
+      }
       
       if (this.categoryFilter) {
         cars = cars.filter(car => car.category === this.categoryFilter);
@@ -821,6 +852,31 @@ export default {
         );
       });
     },
+    carGroupsForDisplay() {
+      const cars = this.filteredCars || [];
+
+      if (!this.userStore.isAdmin) {
+        return [{ id: 'all-cars', name: 'Toutes les voitures', cars }];
+      }
+
+      const groups = new Map();
+      cars.forEach(car => {
+        const agencyId = car.agencyId || 'unassigned';
+        const agencyName = this.getAgencyName(car.agencyId);
+        if (!groups.has(agencyId)) {
+          groups.set(agencyId, {
+            id: agencyId,
+            name: agencyName,
+            cars: []
+          });
+        }
+        groups.get(agencyId).cars.push(car);
+      });
+
+      return Array.from(groups.values()).sort((a, b) =>
+        a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' })
+      );
+    },
     filteredModalModels() {
       if (!this.currentCar.brandId) return [];
       return this.modelStore.getModelsByBrandId(this.currentCar.brandId);
@@ -836,12 +892,15 @@ export default {
   },
   methods: {
     editCar(car) {
-      this.currentCar = { ...car };
-      if (!this.currentCar.images) this.currentCar.images = [];
-      if (!this.currentCar.equipments) {
+      // Deep clone to avoid mutating store
+      this.currentCar = JSON.parse(JSON.stringify(car));
+      
+      // Ensure arrays/objects are initialized (store normalizes but just in case)
+      if (!Array.isArray(this.currentCar.images)) this.currentCar.images = [];
+      if (!this.currentCar.equipments || typeof this.currentCar.equipments !== 'object') {
         this.currentCar.equipments = { climatisation: false, cric: false, documents: false, extincteur: false };
       }
-      if (this.currentCar.oilMileage === undefined) this.currentCar.oilMileage = 10000;
+      if (!this.currentCar.oilMileage) this.currentCar.oilMileage = 10000;
       this.showModal = true;
     },
     handleImageUpload(event) {
@@ -869,17 +928,24 @@ export default {
         reader.readAsDataURL(file)
       }
     },
-    updateCar() {
-      const index = this.carStore.cars.findIndex(c => c.id === this.currentCar.id);
-      if (index > -1) {
-        this.carStore.cars[index] = { ...this.currentCar };
-        this.carStore.saveCars();
+    async updateCar() {
+      try {
+        // Rebuild name from brandId/modelId
+        const brand = this.brandStore.getBrandById(this.currentCar.brandId);
+        const model = this.modelStore.getModelById(this.currentCar.modelId);
+        if (brand && model) {
+          this.currentCar.name = `${brand.name} ${model.name}`.trim();
+        }
+        await this.carStore.updateCar(this.currentCar);
         this.showModal = false;
+      } catch(e) {
+        console.error('Car update failed:', e);
+        alert('Erreur lors de la mise à jour.');
       }
     },
-    deleteCar(car) {
+    async deleteCar(car) {
       if (confirm('Êtes-vous sûr de vouloir supprimer cette voiture ?')) {
-        this.carStore.deleteCar(car.id);
+        await this.carStore.deleteCar(car.id);
       }
     },
     openSellModal(car) {
@@ -892,7 +958,7 @@ export default {
       };
       this.showSellModal = true;
     },
-    submitSellForm() {
+    async submitSellForm() {
       if (!this.sellForm.amount || !this.sellForm.buyerName) return;
 
       // Log transaction
@@ -905,12 +971,8 @@ export default {
         agencyId: this.carToSell.agencyId
       });
 
-      // Update car status
-      const index = this.carStore.cars.findIndex(c => c.id === this.carToSell.id);
-      if (index > -1) {
-        this.carStore.cars[index].status = 'Vendu';
-        this.carStore.saveCars();
-      }
+      // Update car status via API
+      await this.carStore.updateCar({ id: this.carToSell.id, status: 'Vendu' });
 
       this.showSellModal = false;
     },
@@ -944,13 +1006,23 @@ export default {
       if (diffDays <= 7) return 'text-orange-500';
       return 'text-gray-500 dark:text-gray-400';
     },
+    normalizeStatus(status) {
+      const s = String(status || '').trim().toLowerCase();
+      if (s === 'disponile' || s === 'disponible' || s === 'available') return 'Available';
+      if (s === 'louée' || s === 'loue' || s === 'rented') return 'Rented';
+      if (s === 'maintenance' || s === 'outofservice' || s === 'out_of_service' || s === 'en maintenance' || s === 'indisponible') return 'Maintenance';
+      if (s === 'vendu' || s === 'sold') return 'Vendu';
+      return status;
+    },
     getStatusClass(status) {
+      status = this.normalizeStatus(status);
       if (status === 'Available') return 'bg-emerald-900/20 border-emerald-800/30 text-[#10B981]';
       if (status === 'Rented') return 'bg-blue-900/20 border-blue-800/30 text-[#3B82F6]';
       if (status === 'Maintenance' || status === 'OutOfService') return 'bg-red-900/20 border-red-800/30 text-[#EF4444]';
       return 'bg-gray-100/50 dark:bg-gray-800/50 border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400';
     },
     getStatusLabel(status) {
+      status = this.normalizeStatus(status);
       if (status === 'Available') return 'Disponible';
       if (status === 'Rented') return 'Louée';
       if (status === 'Maintenance' || status === 'OutOfService') return 'En Panne';
@@ -960,4 +1032,3 @@ export default {
   }
 }
 </script>
-

@@ -136,7 +136,9 @@
 </template>
 
 <script>
-import { clientStore } from "../store";
+import { useClientStore } from "../stores/clientStore";
+import { useCarStore } from "../stores/carStore";
+import { saveStateJson } from "../services/stateJsonService";
 
 export default {
   props: {
@@ -148,6 +150,8 @@ export default {
       reservations: [],
       clients: [],
       cars: [],
+      clientStore: null,
+      carStore: null,
       showConfirmationModal: false,
       selectedReservationIndex: null,
       selectedReservation: null
@@ -171,42 +175,16 @@ export default {
       });
     }
   },
-  created() {
-    this.loadReservations();
-    this.loadClients();
-    this.loadCars();
+  async created() {
+    this.clientStore = useClientStore();
+    this.carStore = useCarStore();
+    await this.carStore.initializeFromStorage();
+    await this.clientStore.initializeFromStorage();
+    this.clients = [...this.clientStore.clients, ...this.clientStore.archivedClients];
+    this.reservations = this.carStore.reservations || [];
+    this.cars = this.carStore.cars || [];
   },
   methods: {
-    loadReservations() {
-      try {
-        const savedReservations = localStorage.getItem('reservations');
-        if (savedReservations) {
-          this.reservations = JSON.parse(savedReservations);
-        }
-      } catch (error) {
-        console.error('Error loading reservations:', error);
-      }
-    },
-    loadClients() {
-      try {
-        const savedClients = localStorage.getItem('clients');
-        if (savedClients) {
-          this.clients = JSON.parse(savedClients);
-        }
-      } catch (error) {
-        console.error('Error loading clients:', error);
-      }
-    },
-    loadCars() {
-      try {
-        const savedCars = localStorage.getItem('cars');
-        if (savedCars) {
-          this.cars = JSON.parse(savedCars);
-        }
-      } catch (error) {
-        console.error('Error loading cars:', error);
-      }
-    },
     getClientName(clientId) {
       const client = this.clients.find(c => c.nationalId === clientId);
       return client ? `${client.firstName} ${client.lastName}` : 'Unknown Client';
@@ -310,14 +288,11 @@ export default {
           return r;
         });
         
-        // Save changes to localStorage
         this.reservations = updatedReservations;
-        localStorage.setItem('cars', JSON.stringify(this.cars));
-        localStorage.setItem('reservations', JSON.stringify(updatedReservations));
-        
-        // Force reload of data
-        this.loadCars();
-        this.loadReservations();
+        this.carStore.cars = this.cars;
+        this.carStore.reservations = updatedReservations;
+        saveStateJson('cars', this.cars);
+        saveStateJson('reservations', updatedReservations);
         
         // Dispatch event to notify other components
         window.dispatchEvent(new CustomEvent('reservation-updated', {

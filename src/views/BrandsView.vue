@@ -85,16 +85,26 @@ const filteredBrands = computed(() => {
   });
 });
 
-const handleCreate = () => {
+const handleCreate = async () => {
   if (!newBrand.value.name) return;
-  brandStore.addBrand(newBrand.value.name);
-  showAddModal.value = false;
-  newBrand.value = { name: '' };
+  try {
+    await brandStore.addBrand(newBrand.value.name);
+    showAddModal.value = false;
+    newBrand.value = { name: '' };
+  } catch (error) {
+    const message = error?.response?.data?.message || 'Erreur lors de la création de la marque.';
+    alert(message);
+  }
 };
 
-const deleteBrand = (id) => {
+const deleteBrand = async (id) => {
   if(confirm('Êtes-vous sûr de vouloir supprimer cette marque ?')) {
-    brandStore.deleteBrand(id);
+    try {
+      await brandStore.deleteBrand(id);
+    } catch (error) {
+      const message = error?.response?.data?.message || 'Erreur lors de la suppression de la marque.';
+      alert(message);
+    }
   }
 };
 

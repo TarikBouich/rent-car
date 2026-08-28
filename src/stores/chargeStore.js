@@ -2,10 +2,11 @@ import { defineStore } from 'pinia'
 import { generateNextId } from '../utils/idGenerator'
 import { useUserStore } from './userStore'
 import { useAlertStore } from './alertStore'
+import { loadStateJson, saveStateJson } from '../services/stateJsonService'
 
 export const useChargeStore = defineStore('charge', {
   state: () => ({
-    charges: JSON.parse(localStorage.getItem('charges') || '[]')
+    charges: []
   }),
 
   getters: {
@@ -21,9 +22,8 @@ export const useChargeStore = defineStore('charge', {
   },
 
   actions: {
-    // Initialize data from localStorage
-    initializeFromStorage() {
-      this.charges = JSON.parse(localStorage.getItem('charges') || '[]')
+    async initializeFromStorage() {
+      this.charges = await loadStateJson('charges', [])
     },
 
     // Add a new charge
@@ -36,8 +36,8 @@ export const useChargeStore = defineStore('charge', {
         charge.id = 'charge_' + Date.now()
       }
       this.charges.push(charge)
-      this.saveCharges()
-      
+      saveStateJson('charges', this.charges)
+
       const alertStore = useAlertStore()
       alertStore.checkAlerts()
     },
@@ -47,8 +47,8 @@ export const useChargeStore = defineStore('charge', {
       const index = this.charges.findIndex(c => c.id === updatedCharge.id)
       if (index !== -1) {
         this.charges[index] = { ...this.charges[index], ...updatedCharge }
-        this.saveCharges()
-        
+        saveStateJson('charges', this.charges)
+
         const alertStore = useAlertStore()
         alertStore.checkAlerts()
       }
@@ -57,15 +57,10 @@ export const useChargeStore = defineStore('charge', {
     // Delete a charge
     deleteCharge(chargeId) {
       this.charges = this.charges.filter(c => c.id !== chargeId)
-      this.saveCharges()
-      
+      saveStateJson('charges', this.charges)
+
       const alertStore = useAlertStore()
       alertStore.checkAlerts()
-    },
-
-    // Save to localStorage
-    saveCharges() {
-      localStorage.setItem('charges', JSON.stringify(this.charges))
     }
   }
 })

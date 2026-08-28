@@ -11,6 +11,21 @@
         >
           <span class="text-lg font-bold leading-none">Clients</span>
           <div class="flex items-center gap-2">
+            <div v-if="userStore.isAdmin" class="w-[280px]">
+              <select
+                v-model="selectedAgencyFilter"
+                class="form-field"
+              >
+                <option value="">Toutes les agences</option>
+                <option
+                  v-for="agency in agencies"
+                  :key="agency.id"
+                  :value="agency.id"
+                >
+                  {{ agency.name }}
+                </option>
+              </select>
+            </div>
             <div class="w-[500px]">
               <div class="relative flex items-center">
                 <input
@@ -44,8 +59,22 @@
             </RouterLink>
           </div>
         </div>
-        <div class="w-full overflow-x-auto without-scrollbar">
-          <table class="w-full form-table">
+        <div class="p-4 space-y-4">
+          <div
+            v-for="group in clientGroupsForDisplay"
+            :key="group.id"
+            class="rounded-xl border shadow-sm overflow-hidden"
+            :class="mode === 'dark' ? 'border-dark-50 bg-dark-70' : 'border-gray-100 bg-white'"
+          >
+            <div
+              v-if="userStore.isAdmin"
+              class="px-4 py-2.5 border-b text-sm font-bold"
+              :class="mode === 'dark' ? 'border-dark-50 bg-dark-1' : 'border-gray-100 bg-gray-50'"
+            >
+              Agence: {{ group.name }} ({{ group.clients.length }})
+            </div>
+            <div class="w-full overflow-x-auto without-scrollbar">
+              <table class="w-full form-table">
             <thead
               class="border-b-2"
               :class="mode === 'dark' ? 'border-dark-50' : ''"
@@ -66,7 +95,7 @@
                   : 'bg-white divide-gray-100'
               "
             >
-              <tr v-for="(client, index) in filteredClients" :key="index" 
+              <tr v-for="(client, index) in group.clients" :key="client.id || index" 
                 class="hover:bg-gray-50 dark:hover:bg-dark-60 transition-colors"
                 :class="{'bg-red-50': needsToReturnCarToday(client.nationalId)}"
               >
@@ -169,7 +198,9 @@
                 </td>
               </tr>
             </tbody>
-          </table>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -411,7 +442,7 @@
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
                 </div>
-                <select v-model="currentClient.civility" required class="input-field !pl-10 !pr-4">
+                <select v-model="currentClient.civility" class="input-field !pl-10 !pr-4">
                 <option value="Monsieur">Monsieur</option>
                 <option value="Madame">Madame</option>
                 <option value="Mlle">Mlle</option>
@@ -424,7 +455,7 @@
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
                 </div>
-                <select v-model="currentClient.clientType" required class="input-field !pl-10 !pr-4">
+                <select v-model="currentClient.clientType" class="input-field !pl-10 !pr-4">
                 <option value="Particulier">Particulier</option>
                 <option value="Professionnel">Professionnel</option>
               </select>
@@ -436,7 +467,7 @@
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                 </div>
-                <input v-model="currentClient.lastName" type="text" required class="input-field !pl-10 !pr-4" />
+                <input v-model="currentClient.lastName" type="text" class="input-field !pl-10 !pr-4" />
               </div>
             </div>
             <div class="relative">
@@ -455,7 +486,7 @@
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                 </div>
-                <input v-model="currentClient.firstName" type="text" required class="input-field !pl-10 !pr-4" />
+                <input v-model="currentClient.firstName" type="text" class="input-field !pl-10 !pr-4" />
               </div>
             </div>
             <div class="relative">
@@ -502,7 +533,7 @@
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                 </div>
-                <input v-model="currentClient.nationality" type="text" required class="input-field !pl-10 !pr-4" />
+                <input v-model="currentClient.nationality" type="text" class="input-field !pl-10 !pr-4" />
               </div>
             </div>
             <div>
@@ -534,7 +565,7 @@
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                 </div>
-                <input v-model="currentClient.companyName" type="text" required class="input-field !pl-10 !pr-4" />
+                <input v-model="currentClient.companyName" type="text" class="input-field !pl-10 !pr-4" />
               </div>
             </div>
             <div>
@@ -734,7 +765,6 @@
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Agency</label>
               <select
                 v-model="currentClient.agencyId"
-                required
                 class="form-field"
               >
                 <option value="">Select Agency</option>
@@ -810,8 +840,9 @@ import TopBar from "../components/TopBar.vue";
 import { useClientStore } from '../stores/clientStore'
 import { useCarStore } from '../stores/carStore'
 import { useUserStore } from '../stores/userStore'
-import { sortByIdDesc, generateNextId } from '../utils/idGenerator'
-import { ref, onMounted } from 'vue'
+import { useAgencyStore } from '../stores/agencyStore'
+import { sortByIdDesc } from '../utils/idGenerator'
+import { computed, onMounted } from 'vue'
 
 export default {
   components: {
@@ -825,28 +856,19 @@ export default {
     const clientStore = useClientStore()
     const carStore = useCarStore()
     const userStore = useUserStore()
-    const agencies = ref([])
+    const agencyStore = useAgencyStore()
+    const agencies = computed(() => agencyStore.agencies || [])
     
-    const loadAgencies = () => {
-      try {
-        const savedAgencies = localStorage.getItem('agencies')
-        if (savedAgencies) {
-          agencies.value = JSON.parse(savedAgencies)
-        }
-      } catch (error) {
-        console.error('Error loading agencies:', error)
-      }
-    }
-    
-    onMounted(() => {
-      loadAgencies();
+    onMounted(async () => {
+      await agencyStore.initializeFromStorage()
     });
 
-    return { clientStore, carStore, userStore, agencies }
+    return { clientStore, carStore, userStore, agencyStore, agencies }
   },
   data() {
     return {
       searchQuery: '',
+      selectedAgencyFilter: '',
       showDetailsModal: false,
       showEditModal: false,
       showImageModal: false,
@@ -893,7 +915,12 @@ export default {
   },
   computed: {
     filteredClients() {
-      const sortedClients = sortByIdDesc(this.clientStore.filteredClients)
+      let sortedClients = sortByIdDesc(this.clientStore.filteredClients)
+
+      if (this.selectedAgencyFilter) {
+        sortedClients = sortedClients.filter(client => client.agencyId === this.selectedAgencyFilter)
+      }
+
       if (!this.searchQuery) return sortedClients
       
       const query = this.searchQuery.toLowerCase()
@@ -903,51 +930,42 @@ export default {
         client.nationalId?.toLowerCase().includes(query) ||
         client.phoneNumber?.toLowerCase().includes(query)
       )
+    },
+    clientGroupsForDisplay() {
+      const clients = this.filteredClients || []
+
+      if (!this.userStore.isAdmin) {
+        return [{ id: 'all-clients', name: 'Tous les clients', clients }]
+      }
+
+      const groups = new Map()
+      clients.forEach(client => {
+        const agencyId = client.agencyId || 'unassigned'
+        const agencyName = this.getAgencyName(client.agencyId) || 'Non Assignée'
+        if (!groups.has(agencyId)) {
+          groups.set(agencyId, {
+            id: agencyId,
+            name: agencyName,
+            clients: []
+          })
+        }
+        groups.get(agencyId).clients.push(client)
+      })
+
+      return Array.from(groups.values()).sort((a, b) =>
+        a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' })
+      )
     }
   },
-  mounted() {
+  async mounted() {
     // Initialize stores
-    this.clientStore.initializeFromStorage()
-    this.carStore.initializeFromStorage()
+    await this.clientStore.initializeFromStorage()
+    await this.carStore.initializeFromStorage()
   },
   methods: {
-    getAgencyName(agencyId) {
-      const agency = this.agencies.find(a => a.id === agencyId);
-      return agency ? agency.name : 'Unknown Agency';
-    },
-    needsToReturnCarToday(clientId) {
-      const today = new Date().toDateString()
-      return this.carStore.filteredReservations.some(reservation => 
-        reservation.clientId === clientId && 
-        reservation.status === 'Active' &&
-        new Date(reservation.endDate).toDateString() === today
-      )
-    },
-    showImage(image) {
-      this.currentImage = image
-      this.showImageModal = true
-    },
-    showClientDetails(client, index) {
-      try {
-        this.selectedClient = { ...client }
-        this.currentClientIndex = index
-        this.showDetailsModal = true
-      } catch (error) {
-        console.error('Error loading client details:', error)
-        this.error = 'Error loading client details. Please try again.'
-      }
-    },
-    editClient(client, index) {
-      this.currentClient = { ...client }
-      this.currentClientIndex = index
-      if (!this.currentClient.agencyId && this.userStore.currentAgencyId) {
-        this.currentClient.agencyId = this.userStore.currentAgencyId;
-      }
-      this.showEditModal = true
-    },
-    closeEditModal() {
-      this.showEditModal = false
-      this.currentClient = {
+    getEmptyClient() {
+      return {
+        id: '',
         civility: 'Monsieur',
         clientType: 'Particulier',
         firstName: '',
@@ -978,8 +996,77 @@ export default {
         idCardFront: '',
         idCardBack: '',
         passportFront: '',
-        passportBack: ''
+        passportBack: '',
+        agencyId: '',
       }
+    },
+    normalizeDateForInput(dateString) {
+      if (!dateString) return ''
+      const raw = String(dateString)
+      if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw
+      const d = new Date(raw)
+      if (Number.isNaN(d.getTime())) return ''
+      return d.toISOString().split('T')[0]
+    },
+    normalizeClientForForm(client) {
+      const normalized = { ...this.getEmptyClient(), ...(client || {}) }
+      Object.keys(normalized).forEach(key => {
+        if (normalized[key] === null || normalized[key] === undefined) {
+          normalized[key] = ''
+        }
+      })
+      normalized.birthDate = this.normalizeDateForInput(normalized.birthDate)
+      normalized.cnieIssueDate = this.normalizeDateForInput(normalized.cnieIssueDate)
+      normalized.cnieExpiryDate = this.normalizeDateForInput(normalized.cnieExpiryDate)
+      return normalized
+    },
+    getAgencyName(agencyId) {
+      const agency = this.agencies.find(a => a.id === agencyId);
+      return agency ? agency.name : 'Unknown Agency';
+    },
+    needsToReturnCarToday(clientId) {
+      const today = new Date().toDateString()
+      return this.carStore.filteredReservations.some(reservation => 
+        reservation.clientId === clientId && 
+        reservation.status === 'Active' &&
+        new Date(reservation.endDate).toDateString() === today
+      )
+    },
+    showImage(image) {
+      this.currentImage = image
+      this.showImageModal = true
+    },
+    showClientDetails(client, index) {
+      try {
+        this.selectedClient = { ...client }
+        this.currentClientIndex = index
+        this.showDetailsModal = true
+      } catch (error) {
+        console.error('Error loading client details:', error)
+        this.error = 'Error loading client details. Please try again.'
+      }
+    },
+    async editClient(client, index) {
+      this.loading = true
+      this.error = null
+      try {
+        const fullClient = await this.clientStore.fetchClientById(client.id)
+        this.currentClient = this.normalizeClientForForm(fullClient || client)
+      } catch (error) {
+        console.error('Error loading full client for edit:', error)
+        this.currentClient = this.normalizeClientForForm(client)
+      } finally {
+        this.currentClientIndex = index
+        if (!this.currentClient.agencyId && this.userStore.userAgencyId) {
+          this.currentClient.agencyId = this.userStore.userAgencyId
+        }
+        this.showEditModal = true
+        this.loading = false
+      }
+    },
+    closeEditModal() {
+      this.showEditModal = false
+      this.currentClient = this.getEmptyClient()
       this.error = null
     },
     handleFileUpload(event, field) {
@@ -992,7 +1079,7 @@ export default {
         reader.readAsDataURL(file)
       }
     },
-    saveClient() {
+    async saveClient() {
       this.loading = true
       this.error = null
       try {
@@ -1005,7 +1092,7 @@ export default {
         }
         
         // Update the client in the store using its ID
-        this.clientStore.updateClient(this.currentClient.id, clientToSave)
+        await this.clientStore.updateClient(this.currentClient.id, clientToSave)
         this.closeEditModal()
       } catch (error) {
         this.error = 'Error saving client. Please try again.'
@@ -1015,25 +1102,19 @@ export default {
       }
     },
     formatDateForStorage(dateString) {
-      if (!dateString) return ''
-      
-      try {
-        // Convert the date to YYYY-MM-DD format for storage
-        const date = new Date(dateString)
-        if (isNaN(date.getTime())) {
-          console.warn('Invalid date:', dateString)
-          return dateString
-        }
-        return date.toISOString().split('T')[0]
-      } catch (error) {
-        console.error('Error formatting date for storage:', error)
-        return dateString
-      }
+      if (!dateString) return null
+      const trimmed = String(dateString).trim()
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/
+      if (!dateRegex.test(trimmed)) return null
+      const date = new Date(`${trimmed}T00:00:00`)
+      if (Number.isNaN(date.getTime())) return null
+      const normalized = date.toISOString().split('T')[0]
+      return normalized === trimmed ? trimmed : null
     },
-    deleteClient(index) {
+    async deleteClient(index) {
       if (confirm('Are you sure you want to delete this client?')) {
         try {
-          this.clientStore.deleteClient(this.currentClient.id)
+          await this.clientStore.deleteClient(this.currentClient.id)
         } catch (error) {
           console.error('Error deleting client:', error)
           this.error = 'Error deleting client. Please try again.'
@@ -1098,4 +1179,3 @@ export default {
   @apply bg-gray-50 dark:bg-[#1C1F2B] p-4 rounded-xl border border-dashed border-gray-300 dark:border-gray-700;
 }
 </style>
-

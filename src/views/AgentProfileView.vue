@@ -17,7 +17,7 @@
         <button class="px-4 py-2 bg-white dark:bg-[#1E2330] border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors shadow-sm">
           Réinitialiser le mot de passe
         </button>
-        <button class="px-4 py-2 bg-[#fa5b0f] text-white text-sm font-medium rounded-lg hover:bg-orange-500 transition-colors shadow-sm">
+        <button @click="saveChanges" class="px-4 py-2 bg-[#fa5b0f] text-white text-sm font-medium rounded-lg hover:bg-orange-500 transition-colors shadow-sm">
           Sauvegarder
         </button>
       </div>
@@ -70,21 +70,44 @@
       <!-- Right Column: Details & Access -->
       <div class="lg:col-span-2 space-y-6">
         
-        <!-- General Info -->
+        <!-- General Info (Editable) -->
         <div class="bg-white dark:bg-[#1E2330] rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm p-6">
           <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-6 border-b border-gray-200 dark:border-gray-800 pb-4">Informations personnelles</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">Nom Complet</label>
-              <p class="text-base text-gray-900 dark:text-white font-medium">{{ agent.name }}</p>
+              <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">Prénom</label>
+              <input v-model="agent.firstName" type="text" class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#151923] text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-1 focus:ring-[#fa5b0f] focus:border-[#fa5b0f]" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">Nom</label>
+              <input v-model="agent.lastName" type="text" class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#151923] text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-1 focus:ring-[#fa5b0f] focus:border-[#fa5b0f]" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">CNE / Identifiant</label>
+              <input v-model="agent.cne" type="text" class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#151923] text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-1 focus:ring-[#fa5b0f] focus:border-[#fa5b0f]" />
             </div>
             <div>
               <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">Adresse E-mail</label>
-              <p class="text-base text-gray-900 dark:text-white font-medium">{{ agent.email }}</p>
+              <input v-model="agent.email" type="email" class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#151923] text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-1 focus:ring-[#fa5b0f] focus:border-[#fa5b0f]" />
             </div>
             <div>
+              <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">Téléphone</label>
+              <input v-model="agent.telephone" type="tel" class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#151923] text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-1 focus:ring-[#fa5b0f] focus:border-[#fa5b0f]" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">Rôle</label>
+              <select v-model="agent.role" class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#151923] text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-1 focus:ring-[#fa5b0f] focus:border-[#fa5b0f]">
+                <option value="employé">Employé</option>
+                <option value="gérant">Gérant</option>
+                <option value="admin">Administrateur</option>
+              </select>
+            </div>
+            <div class="md:col-span-2">
               <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">Agence Affectée</label>
-              <p class="text-base text-gray-900 dark:text-white font-medium">{{ getAgencyName(agent.agencyId) }}</p>
+              <select v-model="agent.agencyId" class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#151923] text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-1 focus:ring-[#fa5b0f] focus:border-[#fa5b0f]">
+                <option value="">Toutes les agences</option>
+                <option v-for="ag in agencies" :key="ag.id" :value="ag.id">{{ ag.name }}</option>
+              </select>
             </div>
           </div>
         </div>
@@ -139,11 +162,13 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useUserStore } from '../stores/userStore'
+import { useAgencyStore } from '../stores/agencyStore'
 
 const route = useRoute()
 const userStore = useUserStore()
+const agencyStore = useAgencyStore()
 const agent = ref(null)
-const agencies = ref([])
+const agencies = computed(() => agencyStore.agencies)
 
 // Enforce default polyfill for older users without initialized permissions
 const defaultModules = [
@@ -153,18 +178,38 @@ const defaultModules = [
   'Statistiques', 'Rapports généraux', 'Employés', 'Paramètres'
 ]
 
-onMounted(() => {
+onMounted(async () => {
   const id = route.params.id
-  agent.value = userStore.getAllUsers.find(u => String(u.id) === String(id)) || null
   
-  if (agent.value && !agent.value.permissions) {
+  // Ensure users are loaded
+  if (!userStore.users.length) {
+    await userStore.fetchUsers()
+  }
+  
+  const found = userStore.getAllUsers.find(u => String(u.id) === String(id)) || null
+  agent.value = found
+  
+  if (agent.value) {
+    // Normalize permissions: MySQL may return JSON as string or object with numeric keys
+    let perms = agent.value.permissions
+    if (typeof perms === 'string') {
+      try { perms = JSON.parse(perms) } catch(e) { perms = {} }
+    }
+    // Normalize boolean values (could be 0/1 or "true"/"false" from DB)
+    if (perms && typeof perms === 'object' && !Array.isArray(perms)) {
+      const normalized = {}
+      for (const key of Object.keys(perms)) {
+        normalized[key] = perms[key] === true || perms[key] === 1 || perms[key] === 'true'
+      }
+      agent.value.permissions = normalized
+    } else {
+      // Build default permissions
       agent.value.permissions = {}
       defaultModules.forEach(mod => {
-         agent.value.permissions[mod] = agent.value.role === 'admin' ? true : false
+        agent.value.permissions[mod] = agent.value.role === 'admin'
       })
+    }
   }
-
-  agencies.value = JSON.parse(localStorage.getItem('agencies') || '[]')
 })
 
 const getInitials = (name) => {
@@ -194,16 +239,35 @@ const getRoleBadgeClasses = (role) => {
   return 'bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/20'
 }
 
-const toggleStatus = () => {
+const toggleStatus = async () => {
   if (agent.value) {
     agent.value.isActive = agent.value.isActive === false ? true : false
     
-    // Save to localStorage globally to ensure updates
-    const users = JSON.parse(localStorage.getItem('users') || '[]')
-    const index = users.findIndex(u => u.id === agent.value.id)
-    if (index > -1) {
-      users[index] = { ...users[index], isActive: agent.value.isActive }
-      localStorage.setItem('users', JSON.stringify(users))
+    // Save locally to API instantly
+    try {
+      await userStore.updateUser({
+         id: agent.value.id,
+         isActive: agent.value.isActive
+      })
+    } catch(e) {
+      console.error('Echec toggle status', e)
+      alert("Erreur réseau")
+    }
+  }
+}
+
+const saveChanges = async () => {
+  if (agent.value) {
+    try {
+       // Rebuild name from first + last name
+       if (agent.value.firstName || agent.value.lastName) {
+         agent.value.name = `${agent.value.firstName || ''} ${agent.value.lastName || ''}`.trim()
+       }
+       await userStore.updateUser(agent.value)
+       alert('Profil utilisateur mis à jour avec succès')
+    } catch(e) {
+       console.error(e)
+       alert('Erreur lors de la mise à jour')
     }
   }
 }
@@ -231,18 +295,16 @@ const permissionsList = computed(() => {
 // Used inside template <h3 class="text-lg font-bold"> etc.
 const getPermissions = () => permissionsList.value
 
-const togglePermission = (permName) => {
+const togglePermission = async (permName) => {
   // Only admins can click to change
   if (!userStore.isAdmin || !agent.value) return;
 
   agent.value.permissions[permName] = !agent.value.permissions[permName];
 
-  // Save changes locally
-  const users = JSON.parse(localStorage.getItem('users') || '[]')
-  const index = users.findIndex(u => u.id === agent.value.id)
-  if (index > -1) {
-    users[index] = { ...users[index], permissions: agent.value.permissions }
-    localStorage.setItem('users', JSON.stringify(users))
+  try {
+     await userStore.updateUser({ id: agent.value.id, permissions: agent.value.permissions })
+  } catch(e) {
+     console.error('Toggle perm error', e)
   }
 }
 </script>

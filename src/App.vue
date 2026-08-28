@@ -12,19 +12,33 @@
 import AuthLayout from './layouts/AuthLayout.vue'
 import NewDefaultLayout from './layouts/NewDefaultLayout.vue'
 import PrintLayout from './layouts/PrintLayout.vue'
-import { initializeDefaultData } from './utils/initDefaultData'
+import LandingLayout from './layouts/LandingLayout.vue'
 import { useUserStore } from './stores/userStore'
 import { useCarStore } from './stores/carStore'
 import { useClientStore } from './stores/clientStore'
 import { useAlertStore } from './stores/alertStore'
 import { useChargeStore } from './stores/chargeStore'
+import { useAgencyStore } from './stores/agencyStore'
+import { useCompanyStore } from './stores/companyStore'
+import { useUserStore as useUsersStoreForList } from './stores/userStore'
+import { useAssuranceStore } from './stores/assuranceStore'
+import { useAssuranceAgencyStore } from './stores/assuranceAgencyStore'
+import { useCentreVisiteStore } from './stores/centreVisiteStore'
+import { useEntretienTypeStore } from './stores/entretienTypeStore'
+import { useEntretienStore } from './stores/entretienStore'
+import { useTransactionStore } from './stores/transactionStore'
+import { useVisiteStore } from './stores/visiteStore'
+import { useContratStore } from './stores/contratStore'
+import { useChatStore } from './stores/chatStore'
+import { useSettingsStore } from './stores/settingsStore'
 
 export default {
   name: 'App',
   components: {
     AuthLayout,
     NewDefaultLayout,
-    PrintLayout
+    PrintLayout,
+    LandingLayout
   },
   setup() {
     const userStore = useUserStore()
@@ -32,13 +46,39 @@ export default {
     const clientStore = useClientStore()
     const alertStore = useAlertStore()
     const chargeStore = useChargeStore()
+    const agencyStore = useAgencyStore()
+    const companyStore = useCompanyStore()
+    const usersStoreForList = useUsersStoreForList()
+    const assuranceStore = useAssuranceStore()
+    const assuranceAgencyStore = useAssuranceAgencyStore()
+    const centreVisiteStore = useCentreVisiteStore()
+    const entretienTypeStore = useEntretienTypeStore()
+    const entretienStore = useEntretienStore()
+    const transactionStore = useTransactionStore()
+    const visiteStore = useVisiteStore()
+    const contratStore = useContratStore()
+    const chatStore = useChatStore()
+    const settingsStore = useSettingsStore()
 
     return {
       userStore,
       carStore,
       clientStore,
       alertStore,
-      chargeStore
+      chargeStore,
+      agencyStore,
+      companyStore,
+      usersStoreForList,
+      assuranceStore,
+      assuranceAgencyStore,
+      centreVisiteStore,
+      entretienTypeStore,
+      entretienStore,
+      transactionStore,
+      visiteStore,
+      contratStore,
+      chatStore,
+      settingsStore
     }
   },
   data() {
@@ -52,6 +92,7 @@ export default {
       const layout = this.$route.meta.layout || 'new-default'
       if (layout === 'auth') return AuthLayout
       if (layout === 'print') return PrintLayout
+      if (layout === 'landing') return LandingLayout
       return NewDefaultLayout
     }
   },
@@ -68,6 +109,22 @@ export default {
         document.documentElement.classList.remove('dark', 'is-dark')
       }
     },
+    purgeStaleLocalStorage() {
+      // Keys to KEEP (auth + UI preferences)
+      const KEEP_KEYS = new Set(['token', 'currentUser', 'companyId', 'mode', 'currentAgency'])
+      const DATA_PURGE_VERSION = 'db_purge_v2'
+
+      if (!localStorage.getItem(DATA_PURGE_VERSION)) {
+        const allKeys = Object.keys(localStorage)
+        allKeys.forEach(key => {
+          if (!KEEP_KEYS.has(key)) {
+            localStorage.removeItem(key)
+          }
+        })
+        localStorage.setItem(DATA_PURGE_VERSION, 'true')
+        console.log('[App] Stale localStorage data purged. Now using MySQL backend.')
+      }
+    },
     async initializeStores() {
       try {
         // Initialize user store first
@@ -75,9 +132,30 @@ export default {
 
         // Only initialize other stores if user is authenticated
         if (this.userStore.isAuthenticated) {
+          // Superadmin should load only SaaS supervision data to avoid heavy/unneeded calls.
+          if (this.userStore.isSuperAdmin) {
+            await this.companyStore.fetchCompanies()
+            return
+          }
+
+          await this.agencyStore.initializeFromStorage()
+          await this.companyStore.fetchCompanies()
+          await this.usersStoreForList.fetchUsers()
+
           await this.carStore.initializeFromStorage();
           await this.clientStore.initializeFromStorage();
-          this.chargeStore.initializeFromStorage();
+          await this.chargeStore.initializeFromStorage();
+          await this.assuranceStore.initializeFromStorage();
+          await this.assuranceAgencyStore.initializeFromStorage();
+          await this.centreVisiteStore.initializeFromStorage();
+          await this.entretienTypeStore.initializeFromStorage();
+          await this.entretienStore.initializeFromStorage();
+          await this.transactionStore.initializeFromStorage();
+          await this.visiteStore.initializeFromStorage();
+          await this.contratStore.initializeFromStorage();
+          await this.chatStore.initializeFromStorage();
+          await this.settingsStore.initializeFromStorage();
+
           await this.alertStore.initialize();
           console.log('All stores initialized successfully');
         }
@@ -90,8 +168,8 @@ export default {
     // Apply current theme first
     this.applyTheme()
     
-    // Initialize default data
-    initializeDefaultData()
+    // Purge all stale localStorage data, keep only auth & UI preferences
+    this.purgeStaleLocalStorage()
     
     // Initialize stores
     this.initializeStores()

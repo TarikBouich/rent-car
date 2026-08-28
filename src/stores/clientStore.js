@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { useUserStore } from './userStore'
+import clientService from '../services/clientService'
 
 export const useClientStore = defineStore('client', {
   state: () => ({
@@ -15,7 +16,8 @@ export const useClientStore = defineStore('client', {
       if (userStore.isAdmin) {
         return state.clients
       }
-      return state.clients.filter(client => client.agencyId === userStore.currentAgencyId)
+      const agencyId = userStore.userAgencyId || userStore.currentAgencyId
+      return state.clients.filter(client => client.agencyId === agencyId)
     },
 
     // Get archived clients filtered by agency
@@ -24,82 +26,89 @@ export const useClientStore = defineStore('client', {
       if (userStore.isAdmin) {
         return state.archivedClients
       }
-      return state.archivedClients.filter(client => client.agencyId === userStore.currentAgencyId)
+      const agencyId = userStore.userAgencyId || userStore.currentAgencyId
+      return state.archivedClients.filter(client => client.agencyId === agencyId)
     }
   },
 
   actions: {
-    // Initialize data from localStorage
-    initializeFromStorage() {
-      const storedClients = localStorage.getItem('clients')
-      const storedArchivedClients = localStorage.getItem('archivedClients')
-
-      if (storedClients) this.clients = JSON.parse(storedClients)
-      if (storedArchivedClients) this.archivedClients = JSON.parse(storedArchivedClients)
+    _setClients(clients = []) {
+      this.archivedClients = clients.filter(c => c.archived === true)
+      this.clients = clients.filter(c => c.archived !== true)
     },
 
-    // Add a new client
-    addClient(client) {
-      const userStore = useUserStore()
-      client.companyId = userStore.userCompanyId
-      this.clients.push(client)
-      this.saveClients()
-    },
-
-    // Update a client
-    updateClient(clientId, updates) {
-      const index = this.clients.findIndex(c => c.id === clientId)
-      if (index !== -1) {
-        this.clients[index] = { ...this.clients[index], ...updates }
-        this.saveClients()
+    async initializeFromStorage() {
+      try {
+        const response = await clientService.getAll()
+        this._setClients(response.data || [])
+      } catch (error) {
+        console.error('Failed to fetch clients:', error)
       }
     },
 
-    // Archive a client
-    archiveClient(clientId) {
-      const index = this.clients.findIndex(c => c.id === clientId)
-      if (index !== -1) {
-        const archivedClient = { ...this.clients[index], archived: true }
-        this.archivedClients.push(archivedClient)
-        this.clients.splice(index, 1)
-        this.saveAll()
+    async addClient(client) {
+      try {
+        const response = await clientService.create(client)
+        const created = response.data
+        if (created.archived) {
+          this.archivedClients.unshift(created)
+        } else {
+          this.clients.unshift(created)
+        }
+        return created
+      } catch (error) {
+        console.error('Failed to add client:', error)
+        throw error
       }
     },
 
-    // Restore an archived client
-    restoreClient(clientId) {
-      const index = this.archivedClients.findIndex(c => c.id === clientId)
-      if (index !== -1) {
-        const restoredClient = { ...this.archivedClients[index], archived: false }
-        this.clients.push(restoredClient)
-        this.archivedClients.splice(index, 1)
-        this.saveAll()
+    async fetchClientById(clientId) {
+      try {
+        const response = await clientService.getById(clientId)
+        return response.data
+      } catch (error) {
+        console.error('Failed to fetch client by id:', error)
+        throw error
       }
     },
 
-    // Delete a client permanently
-    deleteClient(clientId, isArchived = false) {
-      if (isArchived) {
-        this.archivedClients = this.archivedClients.filter(c => c.id !== clientId)
-        this.saveArchivedClients()
-      } else {
+    async updateClient(clientId, updates) {
+      try {
+        const response = await clientService.update(clientId, updates)
+        const updated = response.data
+
         this.clients = this.clients.filter(c => c.id !== clientId)
-        this.saveClients()
+        this.archivedClients = this.archivedClients.filter(c => c.id !== clientId)
+
+        if (updated.archived) {
+          this.archivedClients.unshift(updated)
+        } else {
+          this.clients.unshift(updated)
+        }
+        return updated
+      } catch (error) {
+        console.error('Failed to update client:', error)
+        throw error
       }
     },
 
-    // Save methods
-    saveClients() {
-      localStorage.setItem('clients', JSON.stringify(this.clients))
+    async archiveClient(clientId) {
+      return this.updateClient(clientId, { archived: true, status: 'Archivé' })
     },
 
-    saveArchivedClients() {
-      localStorage.setItem('archivedClients', JSON.stringify(this.archivedClients))
+    async restoreClient(clientId) {
+      return this.updateClient(clientId, { archived: false, status: 'Actif' })
     },
 
-    saveAll() {
-      this.saveClients()
-      this.saveArchivedClients()
+    async deleteClient(clientId) {
+      try {
+        await clientService.delete(clientId)
+        this.clients = this.clients.filter(c => c.id !== clientId)
+        this.archivedClients = this.archivedClients.filter(c => c.id !== clientId)
+      } catch (error) {
+        console.error('Failed to delete client:', error)
+        throw error
+      }
     }
   }
-}) 
+})

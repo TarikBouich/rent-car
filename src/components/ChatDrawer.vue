@@ -12,8 +12,14 @@
            <button v-if="activeConversation || showNewChat" @click="goBack" class="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg text-gray-500 transition-colors">
              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
            </button>
+           <div
+             v-if="activeConversation && activeUserTarget"
+             class="w-9 h-9 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-bold text-sm flex items-center justify-center shrink-0"
+           >
+             {{ getUserInitial(activeUserTarget) }}
+           </div>
            <h2 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">
-             {{ activeUserTarget ? activeUserTarget.name : 'Messagerie Interne' }}
+             {{ activeUserTarget ? getUserDisplayName(activeUserTarget) : 'Messagerie Interne' }}
            </h2>
         </div>
         <button @click="chatStore.toggleDrawer()" class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
@@ -39,11 +45,11 @@
                class="p-4 border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer flex gap-3 transition-colors"
             >
                <div class="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-600 dark:text-gray-300 font-bold shrink-0">
-                  {{ getOtherUser(conv)?.name?.charAt(0) || '?' }}
+                  {{ getUserDisplayName(getOtherUser(conv)).charAt(0) || '?' }}
                </div>
                <div class="flex-1 min-w-0">
                   <div class="flex justify-between items-start mb-1">
-                     <h4 class="font-bold text-gray-900 dark:text-white truncate pr-2 text-sm">{{ getOtherUser(conv)?.name || 'Utilisateur inconnu' }}</h4>
+                     <h4 class="font-bold text-gray-900 dark:text-white truncate pr-2 text-sm">{{ getUserDisplayName(getOtherUser(conv)) }}</h4>
                      <span class="text-xs text-gray-400 whitespace-nowrap">{{ formatDate(conv.updatedAt) }}</span>
                   </div>
                   <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
@@ -79,10 +85,10 @@
                class="px-4 py-3 flex items-center gap-3 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer transition-colors"
             >
                <div class="w-10 h-10 bg-[#fa5b0f]/10 text-[#fa5b0f] rounded-full flex items-center justify-center font-bold text-sm">
-                  {{ user.name?.charAt(0) }}
+                  {{ getUserDisplayName(user).charAt(0) }}
                </div>
                <div>
-                  <div class="text-sm font-bold text-gray-900 dark:text-white">{{ user.name }}</div>
+                  <div class="text-sm font-bold text-gray-900 dark:text-white">{{ getUserDisplayName(user) }}</div>
                   <div class="text-xs text-gray-500">{{ user.role }}</div>
                </div>
             </div>
@@ -93,32 +99,41 @@
       <div v-else class="flex-1 flex flex-col h-full overflow-hidden bg-gray-50/30 dark:bg-transparent">
          <!-- Messages Area -->
          <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-3" ref="messagesContainer">
-            <div v-for="msg in activeMessages" :key="msg.id" class="flex flex-col w-full" :class="msg.senderId === currentUser.id ? 'items-end' : 'items-start'">
-               
-               <!-- Msg Content -->
-               <div 
-                  class="max-w-[85%] rounded-2xl text-sm overflow-hidden"
-                  :class="msg.senderId === currentUser.id ? 'bg-[#fa5b0f] text-white rounded-tr-sm' : 'bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-tl-sm'"
-               >
-                  <!-- Optional File Attachment -->
-                  <div v-if="msg.file" class="p-2 border-b border-black/10 dark:border-white/10">
-                     <!-- Image block -->
-                     <img v-if="msg.file.type.startsWith('image/')" :src="msg.file.dataURL" class="w-full h-auto max-w-[200px] rounded-lg cursor-pointer" @click="downloadFile(msg.file)" title="Télécharger l'image" />
-                     <!-- Document block -->
-                     <a v-else :href="msg.file.dataURL" :download="msg.file.name" class="flex items-center gap-2 px-3 py-2 bg-black/5 dark:bg-white/5 rounded-lg hover:bg-black/10 transition-colors">
-                        <svg class="w-5 h-5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                        <span class="truncate text-xs font-bold">{{ msg.file.name }}</span>
-                     </a>
+            <div v-for="msg in activeMessages" :key="msg.id" class="w-full">
+               <div class="flex items-end gap-2" :class="msg.senderId === currentUser.id ? 'justify-end' : 'justify-start'">
+                  <div
+                    v-if="msg.senderId !== currentUser.id"
+                    class="w-7 h-7 rounded-full bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-[11px] font-bold flex items-center justify-center shrink-0 mb-1"
+                  >
+                    {{ getUserInitial(getMessageSender(msg)) }}
                   </div>
-                  
-                  <!-- Optional Text -->
-                  <div v-if="msg.text" class="px-3 py-2">
-                     {{ msg.text }}
+
+                  <div 
+                     class="max-w-[80%] rounded-2xl text-sm overflow-hidden"
+                     :class="msg.senderId === currentUser.id ? 'bg-[#fa5b0f] text-white rounded-tr-sm' : 'bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-tl-sm'"
+                  >
+                     <div v-if="msg.file" class="p-2 border-b border-black/10 dark:border-white/10">
+                        <img v-if="msg.file.type.startsWith('image/')" :src="msg.file.dataURL" class="w-full h-auto max-w-[200px] rounded-lg cursor-pointer" @click="downloadFile(msg.file)" title="Télécharger l'image" />
+                        <a v-else :href="msg.file.dataURL" :download="msg.file.name" class="flex items-center gap-2 px-3 py-2 bg-black/5 dark:bg-white/5 rounded-lg hover:bg-black/10 transition-colors">
+                           <svg class="w-5 h-5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                           <span class="truncate text-xs font-bold">{{ msg.file.name }}</span>
+                        </a>
+                     </div>
+                     <div v-if="msg.text" class="px-3 py-2">
+                        {{ msg.text }}
+                     </div>
+                  </div>
+
+                  <div
+                    v-if="msg.senderId === currentUser.id"
+                    class="w-7 h-7 rounded-full bg-[#fa5b0f] text-white text-[11px] font-bold flex items-center justify-center shrink-0 mb-1"
+                  >
+                    {{ getUserInitial(currentUser) }}
                   </div>
                </div>
-               
-               <!-- Timestamp -->
-               <span class="text-[10px] text-gray-400 mt-1 mx-1">{{ formatTime(msg.timestamp) }}</span>
+               <div class="mt-1 px-1 text-[10px] text-gray-400" :class="msg.senderId === currentUser.id ? 'text-right' : 'text-left'">
+                  {{ formatTime(msg.timestamp) }}
+               </div>
             </div>
          </div>
          
@@ -191,9 +206,10 @@ const pendingFile = ref(null)
 const userConversations = computed(() => chatStore.getUserConversations(currentUser.value.id))
 
 const filteredColleagues = computed(() => {
+   const query = (searchColleague.value || '').toLowerCase()
    return allUsers.value.filter(u => 
       u.id !== currentUser.value.id && 
-      u.name.toLowerCase().includes(searchColleague.value.toLowerCase())
+      getUserDisplayName(u).toLowerCase().includes(query)
    )
 })
 
@@ -207,9 +223,26 @@ const activeUserTarget = computed(() => {
    return getOtherUser(activeConversation.value)
 })
 
+const getUserDisplayName = (user) => {
+   if (!user) return 'Utilisateur inconnu'
+   const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim()
+   return user.name || fullName || user.email || 'Utilisateur inconnu'
+}
+
+const getUserInitial = (user) => {
+   const label = getUserDisplayName(user)
+   return (label && label.charAt(0).toUpperCase()) || '?'
+}
+
 const getOtherUser = (conv) => {
    const otherId = conv.participants.find(id => id !== currentUser.value.id)
    return allUsers.value.find(u => u.id === otherId) || null
+}
+
+const getMessageSender = (msg) => {
+   if (!msg?.senderId) return null
+   if (msg.senderId === currentUser.value.id) return currentUser.value
+   return allUsers.value.find(u => u.id === msg.senderId) || activeUserTarget.value || null
 }
 
 const hasLastMessageFile = (conv) => {
@@ -260,8 +293,9 @@ const openConversation = (conv) => {
    setTimeout(() => msgInput.value?.focus(), 100)
 }
 
-const startChatWith = (targetUser) => {
-   const conv = chatStore.getOrCreateConversation(currentUser.value.id, targetUser.id)
+const startChatWith = async (targetUser) => {
+   const conv = await chatStore.getOrCreateConversation(currentUser.value.id, targetUser.id)
+   if (!conv) return
    openConversation(conv)
 }
 
@@ -275,9 +309,9 @@ const onFileSelected = (event) => {
    const file = event.target.files[0]
    if (!file) return
    
-   // Limit to ~2MB to protect LocalStorage in this simulated phase
+   // Keep attachments reasonably small for API payload stability
    if (file.size > 2 * 1024 * 1024) {
-      alert("Le fichier est trop volumineux. La limite est de 2Mo dans cette version de démonstration.")
+      alert("Le fichier est trop volumineux. La limite est de 2Mo.")
       fileInput.value.value = ''
       return
    }
@@ -303,10 +337,10 @@ const downloadFile = (fileObj) => {
    document.body.removeChild(a)
 }
 
-const sendMessage = () => {
+const sendMessage = async () => {
    if ((!newMessage.value.trim() && !pendingFile.value) || !activeConversation.value) return
    
-   chatStore.sendMessage(
+   await chatStore.sendMessage(
       activeConversation.value.id, 
       currentUser.value.id, 
       newMessage.value.trim(),

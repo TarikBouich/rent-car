@@ -272,7 +272,9 @@
 </template>
 
 <script>
-import { sortByIdDesc } from '../utils/idGenerator';
+import { useClientStore } from '../stores/clientStore';
+import { useCarStore } from '../stores/carStore';
+import { saveStateJson } from '../services/stateJsonService';
 
 export default {
   name: "ArchivedReservationsView",
@@ -282,6 +284,8 @@ export default {
       cars: [],
       clients: [],
       reservations: [],
+      clientStore: null,
+      carStore: null,
       showDeleteModal: false,
       reservationToDelete: null,
       startDate: "",
@@ -352,34 +356,21 @@ export default {
   },
   methods: {
     loadReservations() {
-      try {
-        const savedReservations = localStorage.getItem('reservations');
-        if (savedReservations) {
-          this.reservations = JSON.parse(savedReservations);
-        }
-      } catch (error) {
-        console.error('Error loading reservations:', error);
-      }
+      this.reservations = this.carStore?.reservations || [];
     },
-    loadClients() {
+    async loadClients() {
       try {
-        const savedClients = localStorage.getItem('clients');
-        if (savedClients) {
-          this.clients = JSON.parse(savedClients);
+        if (!this.clientStore) {
+          this.clientStore = useClientStore();
         }
+        await this.clientStore.initializeFromStorage();
+        this.clients = [...this.clientStore.clients, ...this.clientStore.archivedClients];
       } catch (error) {
-        console.error('Error loading clients:', error);
+        console.error('Error loading clients from API:', error);
       }
     },
     loadCars() {
-      try {
-        const savedCars = localStorage.getItem('cars');
-        if (savedCars) {
-          this.cars = JSON.parse(savedCars);
-        }
-      } catch (error) {
-        console.error('Error loading cars:', error);
-      }
+      this.cars = this.carStore?.cars || [];
     },
     getClientName(clientId) {
       const client = this.clients.find(c => c.nationalId === clientId);
@@ -412,7 +403,8 @@ export default {
         const index = this.reservations.findIndex(r => r.id === this.reservationToDelete);
         if (index !== -1) {
           this.reservations.splice(index, 1);
-          localStorage.setItem('reservations', JSON.stringify(this.reservations));
+          this.carStore.reservations = this.reservations;
+          saveStateJson('reservations', this.reservations);
         }
         this.showDeleteModal = false;
         this.reservationToDelete = null;
@@ -427,10 +419,12 @@ export default {
       }
     }
   },
-  created() {
+  async created() {
+    this.carStore = useCarStore();
+    await this.carStore.initializeFromStorage();
     this.loadReservations();
-    this.loadClients();
+    await this.loadClients();
     this.loadCars();
   }
 };
-</script> 
+</script>

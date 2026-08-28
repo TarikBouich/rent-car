@@ -3,10 +3,10 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 import './assets/main.css'
-import { initializeData } from './utils/initData'
+// Data initialization is disabled as we migrate to MySQL backend
+// import { initializeData } from './utils/initData'
 
-// Initialize sample data
-initializeData()
+// initializeData()
 
 // Create the app instance
 const app = createApp(App)

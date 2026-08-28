@@ -197,15 +197,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/userStore'
+import { useAgencyStore } from '../stores/agencyStore'
 import { useCompanyStore } from '../stores/companyStore'
 import { SAAS_PLANS } from '../utils/planConstants'
 import { generateNextId } from '../utils/idGenerator'
 
 const router = useRouter()
 const userStore = useUserStore()
+const agencyStore = useAgencyStore()
 const currentStep = ref(1)
 
 const form = ref({
@@ -220,10 +222,9 @@ const form = ref({
 })
 
 const showPassword = ref(false)
-const agencies = ref([])
+const agencies = computed(() => agencyStore.agencies)
 
 onMounted(() => {
-  agencies.value = JSON.parse(localStorage.getItem('agencies') || '[]')
 })
 
 const nextStep = () => {
@@ -243,7 +244,7 @@ const generatePassword = () => {
   showPassword.value = true
 }
 
-const saveAgent = () => {
+const saveAgent = async () => {
   if (!form.value.password || (form.value.role !== 'admin' && !form.value.agencyId)) return alert('Détails d\'accès requis')
 
   // Generate Default Permissions Map corresponding to the Sidebar layout
@@ -260,7 +261,7 @@ const saveAgent = () => {
   });
 
   try {
-    const users = JSON.parse(localStorage.getItem('users') || '[]')
+    const users = userStore.getAllUsers;
     const companyStore = useCompanyStore()
     const comp = companyStore.getCompanyById(userStore.userCompanyId)
     
@@ -276,19 +277,17 @@ const saveAgent = () => {
 
     const newUser = {
       ...form.value,
-      id: generateNextId(users),
-      // Set missing agency string specifically for admin so filter lists don't break
       agencyId: form.value.role === 'admin' ? null : form.value.agencyId,
-      companyId: userStore.userCompanyId, // Link this new employee to the creator's SaaS tenant
+      companyId: userStore.userCompanyId, 
       permissions: permissionsMap
     }
     
-    users.push(newUser)
-    localStorage.setItem('users', JSON.stringify(users))
+    await userStore.addUser(newUser)
     
     router.push('/agents')
   } catch (e) {
     console.error('Failed to create user', e)
+    alert('Erreur lors de la création de l\'utilisateur')
   }
 }
 </script>

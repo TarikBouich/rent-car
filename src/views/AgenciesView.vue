@@ -98,6 +98,10 @@
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
               Fiche
             </button>
+            <button @click="goToLanding(agency.id)" class="px-3 py-1.5 text-xs font-bold text-[#fa5b0f] bg-[#fa5b0f]/10 dark:bg-[#fa5b0f]/10 border border-[#fa5b0f]/30 rounded-md hover:bg-[#fa5b0f] hover:text-white transition-colors flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              Landing page
+            </button>
             <button @click="goToProfile(agency.id)" class="px-2 py-1.5 text-blue-500 bg-white dark:bg-[#1C1F2B] border border-gray-200 dark:border-gray-700 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
             </button>
@@ -266,10 +270,10 @@ const filteredAgencies = computed(() => {
 
 
 
-const handleCreate = () => {
+const handleCreate = async () => {
   if (!newAgency.value.name || !newAgency.value.location) return;
 
-  const createdAgency = agencyStore.addAgency(
+  const createdAgency = await agencyStore.addAgency(
     newAgency.value.name, 
     newAgency.value.location,
     [],
@@ -285,7 +289,7 @@ const handleCreate = () => {
       createdAgency.patente = newAgency.value.patente;
       createdAgency.ice = newAgency.value.ice;
       createdAgency.gerantId = newAgency.value.gerantId;
-      agencyStore.updateAgency(createdAgency);
+      await agencyStore.updateAgency(createdAgency);
       
       showAddModal.value = false;
       newAgency.value = { name: '', location: '', email: '', phone: '', initialEspece: 0, initialBanque: 0, if: '', rc: '', patente: '', ice: '', gerantId: '' };
@@ -299,6 +303,10 @@ const handleCreate = () => {
 
 const goToProfile = (id) => {
   router.push(`/agencies/${id}`);
+};
+
+const goToLanding = (id) => {
+  window.open(`/agencies/${id}/landing`, '_blank');
 };
 
 const deleteAgency = (id) => {

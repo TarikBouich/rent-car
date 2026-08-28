@@ -155,7 +155,7 @@ export default {
 
     const showDropdown = ref(false)
     const isMobileMenuOpen = ref(false)
-    const userName = computed(() => userStore.currentUser?.name || 'Tarik')
+    const userName = computed(() => userStore.currentUser?.name || '')
     const userRole = computed(() => userStore.currentUser?.role === 'admin' ? 'Administrateur' : 'Agent')
     const userInitial = computed(() => userName.value?.charAt(0).toUpperCase() || 'T')
     

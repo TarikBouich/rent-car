@@ -154,6 +154,12 @@ const router = createRouter({
       meta: { requiresAuth: true, layout: 'new-default', requiresAdmin: true }
     },
     {
+      path: '/agencies/:id/landing',
+      name: 'agency-landing',
+      component: () => import('../views/AgencyLandingView.vue'),
+      meta: { requiresAuth: true, layout: 'landing', requiresAdmin: true }
+    },
+    {
       path: '/accounting',
       name: 'accounting',
       component: () => import('../views/AccountingView.vue'),
@@ -284,6 +290,12 @@ const router = createRouter({
       name: 'super-admin-tenant',
       component: () => import('../views/TenantProfileView.vue'),
       meta: { requiresAuth: true, layout: 'new-default' }
+    },
+    {
+      path: '/super-admin/settings',
+      name: 'super-admin-settings',
+      component: () => import('../views/SuperAdminSettingsView.vue'),
+      meta: { requiresAuth: true, layout: 'new-default' }
     }
   ],
 });
@@ -302,11 +314,14 @@ router.beforeEach((to, from, next) => {
     }
   });
   
-  if (checkAccess(to, router)) {
+  const redirectTo = checkAccess(to);
+
+  if (!redirectTo) {
     console.log('Access granted to:', to.path);
     next();
   } else {
     console.log('Access denied to:', to.path);
+    next(redirectTo);
   }
 });
 

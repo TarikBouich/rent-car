@@ -3,6 +3,9 @@ import { useUserStore } from './userStore';
 import { useSettingsStore } from './settingsStore';
 import { useModelStore } from './modelStore';
 import { useBrandStore } from './brandStore';
+import { useCarStore } from './carStore';
+import { useEntretienStore } from './entretienStore';
+import { useEntretienTypeStore } from './entretienTypeStore';
 
 export const useAlertStore = defineStore('alert', {
   state: () => ({
@@ -27,9 +30,10 @@ export const useAlertStore = defineStore('alert', {
   },
 
   actions: {
-    checkAlerts() {
+    async checkAlerts() {
+      const userStore = useUserStore();
       const settingsStore = useSettingsStore();
-      settingsStore.initializeFromStorage();
+      await settingsStore.initializeFromStorage();
       
       const thresholds = settingsStore.alertThresholds || { active: true };
 
@@ -38,14 +42,17 @@ export const useAlertStore = defineStore('alert', {
         return;
       }
 
-      const reservations = JSON.parse(localStorage.getItem('reservations') || '[]');
-      const cars = JSON.parse(localStorage.getItem('cars') || '[]');
+      const carStore = useCarStore();
+      await carStore.initializeFromStorage();
+      const reservations = carStore.reservations || [];
+      const cars = carStore.cars || [];
       const newAlerts = [];
+      const currentCompanyId = userStore.userCompanyId || userStore.currentUser?.companyId || null;
 
       const modelStore = useModelStore();
       const brandStore = useBrandStore();
-      modelStore.initializeFromStorage();
-      brandStore.initializeFromStorage();
+      await modelStore.initializeFromStorage();
+      await brandStore.initializeFromStorage();
 
       const getCarName = (car) => {
         if (!car) return 'Véhicule Inconnu';
@@ -63,6 +70,14 @@ export const useAlertStore = defineStore('alert', {
         return d;
       };
 
+      const pushAlert = (payload) => {
+        newAlerts.push({
+          ...payload,
+          companyId: payload.companyId || currentCompanyId,
+          agencyId: payload.agencyId || null
+        });
+      };
+
       // Check car returns using retourContrat threshold
       const retourThresholdDate = getFutureDate(thresholds.retourContrat || 0);
 
@@ -74,13 +89,14 @@ export const useAlertStore = defineStore('alert', {
           if (endDate <= retourThresholdDate && endDate >= today) {
             const car = cars.find(c => c.licensePlate === reservation.carId);
             const carNameStr = car ? getCarName(car) : (reservation.carName || 'Inconnu');
-            newAlerts.push({
+            pushAlert({
               id: `return-${reservation.id}`,
               type: 'return',
               message: `Retour Prévu: Le véhicule ${carNameStr} (${reservation.carId}) doit être retourné aujourd'hui par ${reservation.clientName} (${reservation.clientPhone})`,
               priority: 'high',
               category: 'locations',
-              agencyId: car?.agencyId || reservation.agencyId
+              agencyId: car?.agencyId || reservation.agencyId,
+              companyId: car?.companyId || reservation.companyId || currentCompanyId
             });
           }
         }
@@ -93,23 +109,25 @@ export const useAlertStore = defineStore('alert', {
         if (car.visiteTechniqueEndDate) {
           const inspectionDate = new Date(car.visiteTechniqueEndDate);
           if (inspectionDate < today) {
-            newAlerts.push({
+            pushAlert({
               id: `inspection-expired-${car.licensePlate}`,
               type: 'inspection',
               message: `⚠️ Visite technique EXPIRÉE pour ${getCarName(car)} (${car.licensePlate})`,
               priority: 'high',
               category: 'voitures',
-              agencyId: car.agencyId
+              agencyId: car.agencyId,
+              companyId: car.companyId || currentCompanyId
             });
           } else if (inspectionDate <= vtThresholdDate && inspectionDate >= today) {
             const daysLeft = Math.ceil((inspectionDate - today) / (1000 * 60 * 60 * 24));
-            newAlerts.push({
+            pushAlert({
               id: `inspection-soon-${car.licensePlate}`,
               type: 'inspection',
               message: `Visite technique dans ${daysLeft}j pour ${getCarName(car)} (${car.licensePlate}) - ${inspectionDate.toLocaleDateString('fr-FR')}`,
               priority: 'medium',
               category: 'voitures',
-              agencyId: car.agencyId
+              agencyId: car.agencyId,
+              companyId: car.companyId || currentCompanyId
             });
           }
         }
@@ -119,22 +137,24 @@ export const useAlertStore = defineStore('alert', {
         if (car.currentMileage !== undefined && car.nextVidangeKm) {
           const kmLeft = car.nextVidangeKm - car.currentMileage;
           if (kmLeft <= kmThreshold && kmLeft > 0) {
-            newAlerts.push({
+            pushAlert({
               id: `vidange-soon-${car.licensePlate}`,
               type: 'vidange',
               message: `Vidange proche pour ${getCarName(car)} (${car.licensePlate}) - ${kmLeft}km restants (limite: ${kmThreshold}km)`,
               priority: 'medium',
               category: 'voitures',
-              agencyId: car.agencyId
+              agencyId: car.agencyId,
+              companyId: car.companyId || currentCompanyId
             });
           } else if (car.currentMileage >= car.nextVidangeKm) {
-            newAlerts.push({
+            pushAlert({
               id: `vidange-due-${car.licensePlate}`,
               type: 'vidange',
               message: `⚠️ Vidange DÛE pour ${getCarName(car)} (${car.licensePlate}) - Actuel: ${car.currentMileage}km >= ${car.nextVidangeKm}km`,
               priority: 'high',
               category: 'voitures',
-              agencyId: car.agencyId
+              agencyId: car.agencyId,
+              companyId: car.companyId || currentCompanyId
             });
           }
         }
@@ -145,31 +165,37 @@ export const useAlertStore = defineStore('alert', {
           const assuranceDate = new Date(car.assuranceEndDate);
           assuranceDate.setHours(0, 0, 0, 0);
           if (assuranceDate < today) {
-            newAlerts.push({
+            pushAlert({
               id: `assurance-expired-${car.licensePlate}`,
               type: 'assurance',
               message: `⚠️ Assurance EXPIRÉE pour ${getCarName(car)} (${car.licensePlate})`,
               priority: 'high',
               category: 'voitures',
-              agencyId: car.agencyId
+              agencyId: car.agencyId,
+              companyId: car.companyId || currentCompanyId
             });
           } else if (assuranceDate <= assuranceThresholdDate && assuranceDate >= today) {
             const daysLeft = Math.ceil((assuranceDate - today) / (1000 * 60 * 60 * 24));
-            newAlerts.push({
+            pushAlert({
               id: `assurance-soon-${car.licensePlate}`,
               type: 'assurance',
               message: `Assurance expire dans ${daysLeft}j pour ${getCarName(car)} (${car.licensePlate}) - ${assuranceDate.toLocaleDateString('fr-FR')}`,
               priority: 'medium',
               category: 'voitures',
-              agencyId: car.agencyId
+              agencyId: car.agencyId,
+              companyId: car.companyId || currentCompanyId
             });
           }
         }
       });
 
       // Check Entretiens (Polymorphic Maintenance Logs)
-      const entretiens = JSON.parse(localStorage.getItem('entretiens') || '[]');
-      const entretienTypes = JSON.parse(localStorage.getItem('entretienTypes') || '[]');
+      const entretienStore = useEntretienStore();
+      const entretienTypeStore = useEntretienTypeStore();
+      await entretienStore.initializeFromStorage();
+      await entretienTypeStore.initializeFromStorage();
+      const entretiens = entretienStore.entretiens || [];
+      const entretienTypes = entretienTypeStore.types || [];
       
       const entretienDateThreshold = getFutureDate(thresholds.entretienParDate || 15);
       const kmThreshold = Number(thresholds.kmAvantEntretien || 1000);
@@ -196,22 +222,24 @@ export const useAlertStore = defineStore('alert', {
           // Note: Vidange uses custom standard system higher up, but this catches Chaine and custom km types
           if (!typeConfig.name.toLowerCase().includes('vidange')) {
             if (kmLeft <= kmThreshold && kmLeft > 0) {
-              newAlerts.push({
+              pushAlert({
                 id: `entretien-km-soon-${log.id}`,
                 type: 'entretien',
                 message: `${typeConfig.name} proche pour ${getCarName(car)} (${car.licensePlate}) - ${kmLeft}km restants.`,
                 priority: 'medium',
                 category: 'voitures',
-                agencyId: car.agencyId
+                agencyId: car.agencyId,
+                companyId: car.companyId || currentCompanyId
               });
             } else if (car.currentMileage >= log.nextKm) {
-              newAlerts.push({
+              pushAlert({
                 id: `entretien-km-due-${log.id}`,
                 type: 'entretien',
                 message: `⚠️ ${typeConfig.name} DÛ pour ${getCarName(car)} (${car.licensePlate}) - Kilométrage dépassé!`,
                 priority: 'high',
                 category: 'voitures',
-                agencyId: car.agencyId
+                agencyId: car.agencyId,
+                companyId: car.companyId || currentCompanyId
               });
             }
           }
@@ -223,23 +251,25 @@ export const useAlertStore = defineStore('alert', {
           nextDateObj.setHours(0, 0, 0, 0);
 
           if (nextDateObj < today) {
-            newAlerts.push({
+            pushAlert({
               id: `entretien-date-expired-${log.id}`,
               type: 'entretien',
               message: `⚠️ ${typeConfig.name} DÉPASSÉ pour ${getCarName(car)} (${car.licensePlate}) depuis ${nextDateObj.toLocaleDateString('fr-FR')}`,
               priority: 'high',
               category: 'voitures',
-              agencyId: car.agencyId
+              agencyId: car.agencyId,
+              companyId: car.companyId || currentCompanyId
             });
           } else if (nextDateObj <= entretienDateThreshold && nextDateObj >= today) {
             const daysLeft = Math.ceil((nextDateObj - today) / (1000 * 60 * 60 * 24));
-            newAlerts.push({
+            pushAlert({
               id: `entretien-date-soon-${log.id}`,
               type: 'entretien',
               message: `${typeConfig.name} prévu dans ${daysLeft}j pour ${getCarName(car)} (${car.licensePlate})`,
               priority: 'medium',
               category: 'voitures',
-              agencyId: car.agencyId
+              agencyId: car.agencyId,
+              companyId: car.companyId || currentCompanyId
             });
           }
         }
@@ -255,8 +285,8 @@ export const useAlertStore = defineStore('alert', {
       console.log('Current alerts:', newAlerts);
     },
 
-    initialize() {
-      this.checkAlerts();
+    async initialize() {
+      await this.checkAlerts();
     }
   }
 });

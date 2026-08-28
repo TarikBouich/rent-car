@@ -69,8 +69,11 @@ export default {
         await this.userStore.login(this.email, this.password)
         if (this.userStore.isSuperAdmin) {
           this.$router.push('/super-admin')
-        } else {
+        } else if (this.userStore.isAdmin) {
           this.$router.push('/dashboard')
+        } else {
+          // Non-admin users should land on cars directly to avoid dashboard permission bounce.
+          this.$router.push('/cars')
         }
       } catch (error) {
         this.error = error.message || 'Invalid email or password'

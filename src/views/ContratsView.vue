@@ -48,8 +48,19 @@
       </div>
     </div>
 
-    <!-- Table -->
-    <div class="bg-white dark:bg-[#1C1F2B] border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm mb-6">
+    <div
+      v-for="group in contratGroupsForDisplay"
+      :key="group.id"
+      class="bg-white dark:bg-[#1C1F2B] border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm mb-6"
+    >
+      <div
+        v-if="userStore.isAdmin"
+        class="px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#151923]"
+      >
+        <h3 class="text-sm font-bold text-gray-900 dark:text-white">
+          Agence: {{ group.name }} ({{ group.contrats.length }})
+        </h3>
+      </div>
       <div class="overflow-x-auto">
         <table class="w-full text-sm text-left">
           <thead class="text-xs text-gray-500 dark:text-gray-400 uppercase bg-gray-50 dark:bg-[#151923] border-b border-gray-200 dark:border-gray-800">
@@ -64,7 +75,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="contrat in paginatedContrats" :key="contrat.id" class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-[#151923]/50 transition-colors">
+            <tr v-for="contrat in group.contrats" :key="contrat.id" class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-[#151923]/50 transition-colors">
               <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">
                 {{ contrat.numero }}
               </td>
@@ -112,33 +123,34 @@
                 </button>
               </td>
             </tr>
-            <tr v-if="paginatedContrats.length === 0">
-               <td colspan="7" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
-                  <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                  Aucun contrat ne correspond à votre recherche.
-               </td>
-            </tr>
           </tbody>
         </table>
       </div>
-      
-      <!-- Pagination -->
-      <div v-if="totalPages > 1" class="px-6 py-4 flex items-center justify-between border-t border-gray-200 dark:border-gray-800">
-         <span class="text-sm text-gray-600 dark:text-gray-400">
-            Affichage {{ (currentPage - 1) * itemsPerPage + 1 }} à {{ Math.min(currentPage * itemsPerPage, filteredContrats.length) }} sur {{ filteredContrats.length }} entrées
-         </span>
-         <div class="flex items-center gap-1">
-            <button @click="currentPage--" :disabled="currentPage === 1" class="px-3 py-1.5 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded disabled:opacity-50 transition-colors">Précédent</button>
-            <button 
-               v-for="page in totalPages" :key="page" 
-               @click="currentPage = page"
-               class="px-3 py-1.5 border border-gray-200 dark:border-gray-700 rounded transition-colors"
-               :class="currentPage === page ? 'bg-[#fa5b0f] text-white border-[#fa5b0f]' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'"
-            >
-               {{ page }}
-            </button>
-            <button @click="currentPage++" :disabled="currentPage === totalPages" class="px-3 py-1.5 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded disabled:opacity-50 transition-colors">Suivant</button>
-         </div>
+    </div>
+
+    <div v-if="paginatedContrats.length === 0" class="bg-white dark:bg-[#1C1F2B] border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm mb-6">
+      <div class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+        <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+        Aucun contrat ne correspond à votre recherche.
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div v-if="totalPages > 1" class="px-6 py-4 flex items-center justify-between border border-gray-200 dark:border-gray-800 rounded-xl bg-white dark:bg-[#1C1F2B]">
+      <span class="text-sm text-gray-600 dark:text-gray-400">
+        Affichage {{ (currentPage - 1) * itemsPerPage + 1 }} à {{ Math.min(currentPage * itemsPerPage, filteredContrats.length) }} sur {{ filteredContrats.length }} entrées
+      </span>
+      <div class="flex items-center gap-1">
+        <button @click="currentPage--" :disabled="currentPage === 1" class="px-3 py-1.5 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded disabled:opacity-50 transition-colors">Précédent</button>
+        <button
+          v-for="page in totalPages" :key="page"
+          @click="currentPage = page"
+          class="px-3 py-1.5 border border-gray-200 dark:border-gray-700 rounded transition-colors"
+          :class="currentPage === page ? 'bg-[#fa5b0f] text-white border-[#fa5b0f]' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'"
+        >
+          {{ page }}
+        </button>
+        <button @click="currentPage++" :disabled="currentPage === totalPages" class="px-3 py-1.5 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded disabled:opacity-50 transition-colors">Suivant</button>
       </div>
     </div>
     </div>
@@ -262,6 +274,8 @@ import { useContratStore } from '../stores/contratStore'
 import { useClientStore } from '../stores/clientStore'
 import { useCarStore } from '../stores/carStore'
 import { useTransactionStore } from '../stores/transactionStore'
+import { useAgencyStore } from '../stores/agencyStore'
+import { useUserStore } from '../stores/userStore'
 import CarDamageMap from '../components/CarDamageMap.vue'
 
 const router = useRouter()
@@ -269,6 +283,8 @@ const contratStore = useContratStore()
 const clientStore = useClientStore()
 const carStore = useCarStore()
 const transactionStore = useTransactionStore()
+const agencyStore = useAgencyStore()
+const userStore = useUserStore()
 
 const searchQuery = ref('')
 const itemsPerPage = ref(10)
@@ -298,6 +314,32 @@ const paginatedContrats = computed(() => {
    return filteredContrats.value.slice(start, end)
 })
 
+const contratGroupsForDisplay = computed(() => {
+   const contrats = paginatedContrats.value || []
+
+   if (!userStore.isAdmin) {
+      return [{ id: 'all-contrats', name: 'Tous les contrats', contrats }]
+   }
+
+   const groups = new Map()
+   contrats.forEach(contrat => {
+      const agencyId = contrat.agencyId || 'unassigned'
+      const agencyName = getAgencyName(contrat.agencyId)
+      if (!groups.has(agencyId)) {
+         groups.set(agencyId, {
+            id: agencyId,
+            name: agencyName,
+            contrats: []
+         })
+      }
+      groups.get(agencyId).contrats.push(contrat)
+   })
+
+   return Array.from(groups.values()).sort((a, b) =>
+      a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' })
+   )
+})
+
 const getClientName = (clientId) => {
    const c = clientStore.clients.find(x => x.id === clientId || x.nationalId === clientId)
    return c ? `${c.firstName} ${c.lastName}` : 'Client inconnu'
@@ -306,6 +348,11 @@ const getClientName = (clientId) => {
 const getCarName = (carId) => {
    const c = carStore.cars.find(x => x.id === carId)
    return c ? `${c.licensePlate} (${c.name})` : 'Véhicule supprimé'
+}
+
+const getAgencyName = (agencyId) => {
+   const agency = agencyStore.agencies.find(a => a.id === agencyId)
+   return agency ? agency.name : 'Agence non assignée'
 }
 
 const formatDate = (dateStr) => {
@@ -352,7 +399,7 @@ const closeReturnModal = () => {
    selectedReturnContrat.value = null
 }
 
-const executeReturn = () => {
+const executeReturn = async () => {
    const contrat = selectedReturnContrat.value
    
    if (contrat.reste > 0) {
@@ -379,12 +426,13 @@ const executeReturn = () => {
    if (contrat.carId) {
        const car = carStore.cars.find(c => c.id === contrat.carId)
        if (car) {
-           carStore.updateCar({
+           await carStore.updateCar({
                ...car,
                damages: [...returnForm.value.retourDamages],
                currentDamages: [...returnForm.value.retourDamages], // keeping for retro-compatibility if needed anywhere
                currentMileage: Math.max(car.currentMileage || car.mileage || 0, returnForm.value.kmRetour),
-               mileage: Math.max(car.mileage || car.currentMileage || 0, returnForm.value.kmRetour)
+               mileage: Math.max(car.mileage || car.currentMileage || 0, returnForm.value.kmRetour),
+               status: 'Available'
            })
        }
    }
@@ -409,8 +457,10 @@ const prolongationForm = ref({
 const openProlongation = (contrat) => {
    selectedProlongationContrat.value = contrat
    
-   // Default date to +1 day from current return date
-   const currentDate = new Date(contrat.dateRetour)
+   // Default date to +1 day from current return date (fallback to today if invalid)
+   const parsedReturnDate = new Date(contrat.dateRetour)
+   const fallback = new Date()
+   const currentDate = isNaN(parsedReturnDate.getTime()) ? fallback : parsedReturnDate
    currentDate.setDate(currentDate.getDate() + 1)
    
    // Keep local timezone formatting for datetime-local input
@@ -431,9 +481,11 @@ const closeProlongationModal = () => {
 
 const prolongationDays = computed(() => {
    if (!selectedProlongationContrat.value || !prolongationForm.value.nouvelleDate) return 0
-   const oldTime = new Date(selectedProlongationContrat.value.dateRetour).getTime()
+   const oldDate = new Date(selectedProlongationContrat.value.dateRetour)
+   if (isNaN(oldDate.getTime())) return 0
+   const oldTime = oldDate.getTime()
    const newTime = new Date(prolongationForm.value.nouvelleDate).getTime()
-   if (newTime <= oldTime) return 0
+   if (isNaN(newTime) || newTime <= oldTime) return 0
    
    return Math.ceil((newTime - oldTime) / (1000 * 3600 * 24))
 })
@@ -475,4 +527,6 @@ const submitProlongation = () => {
    contratStore.updateContrat(updated)
    closeProlongationModal()
 }
+
+agencyStore.initializeFromStorage()
 </script>

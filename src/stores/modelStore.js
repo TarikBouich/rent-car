@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import modelService from '../services/modelService';
 
 export const useModelStore = defineStore('model', {
   state: () => ({
@@ -10,43 +11,51 @@ export const useModelStore = defineStore('model', {
     getModelsByBrandId: (state) => (brandId) => state.models.filter(model => model.brandId === brandId)
   },
   actions: {
-    initializeFromStorage() {
-      const storedModels = localStorage.getItem('models');
-      if (storedModels) {
-        this.models = JSON.parse(storedModels);
-      } else {
-        // Initialize default
-        const defaultModels = [
-          { id: 'model1', brandId: 'brand1', name: 'Corolla', category: 'Berline' },
-          { id: 'model2', brandId: 'brand2', name: 'C-Class', category: 'Berline' },
-          { id: 'model3', brandId: 'brand3', name: 'X5', category: 'SUV' },
-          { id: 'model4', brandId: 'brand4', name: 'Clio 4', category: 'Citadine' }
-        ];
-        this.models = defaultModels;
-        localStorage.setItem('models', JSON.stringify(this.models));
+    async initializeFromStorage() {
+      try {
+        const response = await modelService.getAll();
+        this.models = response.data;
+      } catch (error) {
+        console.error('Failed to fetch models:', error);
       }
     },
-    addModel(brandId, name) {
-      this.initializeFromStorage(); // Ensure loaded
-      const newModel = {
-        id: 'model' + Date.now(),
-        brandId,
-        name
-      };
-      this.models.unshift(newModel);
-      localStorage.setItem('models', JSON.stringify(this.models));
-      return newModel;
-    },
-    updateModel(updatedModel) {
-      const index = this.models.findIndex(m => m.id === updatedModel.id);
-      if (index !== -1) {
-        this.models[index] = { ...this.models[index], ...updatedModel };
-        localStorage.setItem('models', JSON.stringify(this.models));
+    async addModel(brandId, name, category) {
+      try {
+        const newModel = {
+          id: 'model_' + Date.now(),
+          brandId,
+          name,
+          category
+        };
+        const response = await modelService.create(newModel);
+        this.models.unshift(response.data);
+        return response.data;
+      } catch (error) {
+        console.error('Failed to create model', error);
+        throw error;
       }
     },
-    deleteModel(modelId) {
-      this.models = this.models.filter(m => m.id !== modelId);
-      localStorage.setItem('models', JSON.stringify(this.models));
+    async updateModel(updatedModel) {
+      try {
+        const response = await modelService.update(updatedModel.id, updatedModel);
+        const index = this.models.findIndex(m => m.id === updatedModel.id);
+        if (index !== -1) {
+          this.models[index] = { ...this.models[index], ...response.data };
+        }
+        return response.data;
+      } catch (error) {
+        console.error('Failed to update model', error);
+        throw error;
+      }
+    },
+    async deleteModel(modelId) {
+      try {
+        await modelService.delete(modelId);
+        this.models = this.models.filter(m => m.id !== modelId);
+      } catch (error) {
+        console.error('Failed to delete model', error);
+        throw error;
+      }
     }
   }
 });

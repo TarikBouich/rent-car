@@ -378,6 +378,18 @@ export default {
     const userStore = useUserStore()
     
     const openDropdown = ref('Voitures') // Default open
+    const normalizeRole = (role) => String(role || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    const isAgencyRestrictedRole = computed(() => {
+      const role = normalizeRole(userStore.currentUser?.role)
+      return role === 'gerant' || role === 'employe' || role === 'agent'
+    })
+    const agenciesMenuPath = computed(() => {
+      if (userStore.isAdmin || userStore.isSuperAdmin || !isAgencyRestrictedRole.value) {
+        return '/agencies'
+      }
+      const ownAgencyId = userStore.userAgencyId
+      return ownAgencyId ? `/agencies/${ownAgencyId}` : '/agencies'
+    })
 
     const toggleDropdown = (name) => {
       openDropdown.value = openDropdown.value === name ? '' : name;
@@ -390,8 +402,7 @@ export default {
             title: 'SaaS SUPERVISION',
             items: [
               { name: 'Tableau de bord', path: '/super-admin', icon: DashboardIcon },
-              // Use the same dashboard view for clients since it's practically the client list
-              { name: 'Manage Clients', path: '/super-admin', icon: ClientsIcon }
+              { name: 'Paramètres', path: '/super-admin/settings', icon: SettingsIcon }
             ]
           }
         ]
@@ -401,7 +412,7 @@ export default {
           title: '',
           items: [
             { name: 'Tableau de bord', path: '/dashboard', icon: DashboardIcon },
-            { name: 'Agences', path: '/agencies', icon: AgencyIcon },
+            { name: 'Agences', path: agenciesMenuPath.value, icon: AgencyIcon },
             { name: 'Clients', path: '/clients', icon: ClientsIcon }
           ]
         },
@@ -498,6 +509,11 @@ export default {
 
   const isActive = (path) => {
       if (route.path === path) return true
+
+      // Superadmin root dashboard should not stay active on its subpages (ex: /super-admin/settings)
+      if (path === '/super-admin') {
+         return route.path === '/super-admin'
+      }
       
       // Special exclusion for /cars dashboard subpages so they don't highlight "Liste voitures"
       if (path === '/cars') {
@@ -526,6 +542,7 @@ export default {
     const userInitial = computed(() => userName.value?.charAt(0).toUpperCase() || 'U')
 
     const hasPermission = (itemName) => {
+      if (userStore.isSuperAdmin) return true;
       if (userStore.isAdmin) return true;
       if (!userStore.currentUser || !userStore.currentUser.permissions) return false;
       
@@ -596,4 +613,3 @@ nav ul li a {
   mask-image: url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M0%2C0%20Q20%2C0%2020%2C20%20L20%2C0%20Z%22/%3E%3C/svg%3E");
 }
 </style>
-
