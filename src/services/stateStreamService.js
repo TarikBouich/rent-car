@@ -24,13 +24,8 @@ function resolveApiBaseUrl() {
     return configuredBase.endsWith('/api') ? configuredBase : `${configuredBase.replace(/\/+$/, '')}/api`;
   }
 
-  if (typeof window !== 'undefined') {
-    const protocol = window.location.protocol || 'http:';
-    const host = window.location.hostname || 'localhost';
-    return `${protocol}//${host}:3000/api`;
-  }
-
-  return 'http://localhost:3000/api';
+  // Same-domain default (Vercel full-stack).
+  return '/api';
 }
 
 const API_BASE = resolveApiBaseUrl();

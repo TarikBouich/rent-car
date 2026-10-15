@@ -27,14 +27,9 @@ function resolveApiBaseUrl() {
     return configuredBase.endsWith('/api') ? configuredBase : `${configuredBase.replace(/\/+$/, '')}/api`;
   }
 
-  // LAN-friendly default for development: reuse current host, backend on :3000.
-  if (typeof window !== 'undefined') {
-    const protocol = window.location.protocol || 'http:';
-    const host = window.location.hostname || 'localhost';
-    return `${protocol}//${host}:3000/api`;
-  }
-
-  return 'http://localhost:3000/api';
+  // Same-domain default (Vercel full-stack: frontend + /api on one domain).
+  // No VITE_* needed. Avoids CORS and :3000 fallback in prod.
+  return '/api';
 }
 
 const api = axios.create({
