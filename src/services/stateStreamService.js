@@ -20,7 +20,11 @@ function resolveApiBaseUrl() {
   }
 
   const configuredBase = configuredProdBase;
-  if (configuredBase) {
+  if (
+    configuredBase &&
+    !configuredBase.includes('rent-car.com') &&
+    !configuredBase.includes('localhost')
+  ) {
     return configuredBase.endsWith('/api') ? configuredBase : `${configuredBase.replace(/\/+$/, '')}/api`;
   }
 

@@ -23,12 +23,16 @@ function resolveApiBaseUrl() {
   }
 
   const configuredBase = configuredProdBase;
-  if (configuredBase) {
-    return configuredBase.endsWith('/api') ? configuredBase : `${configuredBase.replace(/\/+$/, '')}/api`;
-  }
-
+  // Ignore placeholder/example domains (repo .env) -> force same-domain /api.
   // Same-domain default (Vercel full-stack: frontend + /api on one domain).
   // No VITE_* needed. Avoids CORS and :3000 fallback in prod.
+  if (
+    configuredBase &&
+    !configuredBase.includes('rent-car.com') &&
+    !configuredBase.includes('localhost')
+  ) {
+    return configuredBase.endsWith('/api') ? configuredBase : `${configuredBase.replace(/\/+$/, '')}/api`;
+  }
   return '/api';
 }
 
