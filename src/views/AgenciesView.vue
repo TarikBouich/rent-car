@@ -189,9 +189,9 @@
             </div>
 
             <div class="pt-4 border-t border-gray-200 dark:border-gray-800">
-              <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Gérant Assigné</label>
+              <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Gérant Assigné <span class="text-gray-400">(Optionnel)</span></label>
               <select v-model="newAgency.gerantId" class="w-full px-4 bg-[#F3F4F6] dark:bg-transparent border border-gray-300 dark:border-gray-700 rounded-xl py-2.5 outline-none focus:border-[#2563EB] dark:text-white text-sm">
-                <option value="">Sélectionner un gérant...</option>
+                <option value="">Sélectionner un gérant... (optionnel)</option>
                 <option v-for="user in eligibleGerants" :key="user.id" :value="user.id">
                   {{ user.firstName }} {{ user.lastName }} ({{ user.role }})
                 </option>

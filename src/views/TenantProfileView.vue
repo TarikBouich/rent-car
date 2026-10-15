@@ -39,7 +39,7 @@
                    Stockage
                 </div>
                 <!-- Logic for Stockage is mocked to 0.04 Go for demonstration as we don't have real media files weight measured -->
-                <span class="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded">{{ (0.04 / currentPlan.limits.storage * 100).toFixed(1) }}%</span>
+                <span class="text-xs font-bold text-white bg-red-400 px-2 py-0.5 rounded">{{ (0.04 / currentPlan.limits.storage * 100).toFixed(1) }}%</span>
              </div>
              <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mb-2">
                 <div class="bg-gray-400 h-1.5 rounded-full" :style="`width: ${(0.04 / currentPlan.limits.storage * 100)}%`"></div>
@@ -57,7 +57,7 @@
                    <svg class="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
                    Véhicules
                 </div>
-                <span :class="carsPercentage >= 100 ? 'text-red-600 bg-red-100' : 'text-blue-600 bg-blue-100'" class="text-xs font-bold px-2 py-0.5 rounded">
+                <span :class="carsPercentage >= 100 ? 'text-red-600 bg-red-100' : 'text-black bg-gray-100'" class="text-xs font-bold px-2 py-0.5 rounded">
                    {{ carsPercentage.toFixed(0) }}%
                 </span>
              </div>
@@ -77,7 +77,7 @@
                    <svg class="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                    Utilisateurs
                 </div>
-                <span :class="usersPercentage >= 100 ? 'text-red-600 bg-red-100' : 'text-blue-600 bg-blue-100'" class="text-xs font-bold px-2 py-0.5 rounded">
+                <span :class="usersPercentage >= 100 ? 'text-red-600 bg-red-100' : 'text-black bg-gray-100'" class="text-xs font-bold px-2 py-0.5 rounded">
                    {{ usersPercentage.toFixed(0) }}%
                 </span>
              </div>
@@ -97,7 +97,7 @@
                    <svg class="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
                    Agences
                 </div>
-                <span :class="agenciesPercentage >= 100 ? 'text-red-600 bg-red-100' : 'text-blue-600 bg-blue-100'" class="text-xs font-bold px-2 py-0.5 rounded">
+                <span :class="agenciesPercentage >= 100 ? 'text-red-600 bg-red-100' : 'text-black bg-gray-100'" class="text-xs font-bold px-2 py-0.5 rounded">
                    {{ agenciesPercentage.toFixed(0) }}%
                 </span>
              </div>

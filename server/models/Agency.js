@@ -16,7 +16,7 @@ const Agency = sequelize.define('Agency', {
   rc: { type: DataTypes.STRING },
   patente: { type: DataTypes.STRING },
   ice: { type: DataTypes.STRING },
-  gerantId: { type: DataTypes.STRING },
+  gerantId: { type: DataTypes.STRING, allowNull: true },
   documents: { type: DataTypes.JSON },
   initialEspece: { type: DataTypes.FLOAT, defaultValue: 0 },
   initialBanque: { type: DataTypes.FLOAT, defaultValue: 0 },

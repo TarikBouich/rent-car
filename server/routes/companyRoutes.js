@@ -8,6 +8,7 @@ router.use(authenticateToken); // Protect all routes
 router.get('/', companyController.getAll);
 router.get('/support-contact', companyController.getSupportContact);
 router.put('/support-contact', companyController.updateSupportContact);
+router.post('/:id/create-admin', companyController.createTenantAdmin);
 router.get('/:id', companyController.getById);
 router.post('/', companyController.create);
 router.put('/:id', companyController.update);

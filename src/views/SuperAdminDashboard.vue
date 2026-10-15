@@ -211,6 +211,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useCompanyStore } from '../stores/companyStore'
 import { generateNextId } from '../utils/idGenerator'
 import { SAAS_PLANS } from '../utils/planConstants'
+import api from '../services/api'
 
 const companyStore = useCompanyStore()
 
@@ -348,44 +349,42 @@ const formatMoney = (value) => {
 }
 
 const createTenantContext = async () => {
-   // 1. Create Company
-   const newCompany = await companyStore.addCompany({
-      name: form.value.companyName,
-      email: form.value.adminEmail,
-      planId: form.value.planId
-   })
+   try {
+      // 1. Create Company first
+      const companyId = `COMP-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+      const newCompany = await companyStore.addCompany({
+         id: companyId,
+         name: form.value.companyName,
+         email: form.value.adminEmail,
+         planId: form.value.planId
+      })
 
-   // 2. Provision Tenant Admin User Account associated to this Company
-   const users = JSON.parse(localStorage.getItem('users') || '[]')
-   const safeNextId = generateNextId(users) + Date.now().toString().slice(-4)
-   
-   // Giving full access permissions to this new admin
-   const defaultModules = [
-      'Tableau de bord', 'Agences', 'Clients', 'Voitures', 'Visites Techniques', 
-      'Assurances', 'Entretiens', 'Tâches', 'Contrats', 'Réservations', 
-      'Factures', 'Accidents', 'Versements', 'Financements', 'Traites', 'Comptabilité', 
-      'Statistiques', 'Rapports généraux', 'Employés', 'Paramètres'
-   ]
-   const permissionsMap = {}
-   defaultModules.forEach(mod => { permissionsMap[mod] = true })
+      // 2. Create Tenant Admin User in Database
+      try {
+         const response = await api.post(`/companies/${companyId}/create-admin`, {
+            companyId: newCompany.id,
+            email: form.value.adminEmail,
+            password: form.value.adminPassword,
+            name: `Admin ${form.value.companyName}`
+         })
+         console.log('User created:', response.data)
+      } catch (userError) {
+         console.error('User creation error:', userError.response?.data || userError.message)
+         throw userError
+      }
 
-   users.push({
-      id: `usr_${safeNextId}`,
-      email: form.value.adminEmail,
-      password: form.value.adminPassword,
-      name: `Admin ${form.value.companyName}`,
-      role: 'admin', // This role signifies "Tenant Admin" under a companyId
-      companyId: newCompany.id,
-      agencyId: null, // Admin commands all agencies in his company
-      permissions: permissionsMap,
-      isActive: true
-   })
+      alert(`✓ Espace SaaS déployé!\n\nTenant ID: ${newCompany.id}\n\nIdentifiants:\nEmail: ${form.value.adminEmail}\nMot de passe: ${form.value.adminPassword}`)
 
-   localStorage.setItem('users', JSON.stringify(users))
-   alert(`L'espace SaaS de ${form.value.companyName} a bien été déployé. \nTenant ID: ${newCompany.id}`)
-   
-   form.value = { companyName: '', adminEmail: '', adminPassword: '' }
-   showAddCompanyModal.value = false
+      form.value = { companyName: '', adminEmail: '', adminPassword: '', planId: 'pro' }
+      showAddCompanyModal.value = false
+
+      // Refresh companies list
+      await companyStore.fetchCompanies()
+   } catch (error) {
+      console.error('Tenant creation failed:', error)
+      const errorMsg = error.response?.data?.message || error.message
+      alert(`✗ Erreur:\n${errorMsg}`)
+   }
 }
 
 const deleteTenant = (id) => {

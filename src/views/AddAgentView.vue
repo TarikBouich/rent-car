@@ -124,13 +124,13 @@
 
                   <!-- Agence -->
                   <div v-if="form.role !== 'admin'">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Affectation d'Agence</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Affectation d'Agence <span class="text-gray-400">(Optionnel)</span></label>
                     <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
                 </div>
-                <select v-model="form.agencyId" required class="w-full form-select border border-gray-300 rounded-lg pl-10 pr-4 py-2 text-gray-900 dark:text-white focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] bg-white dark:bg-transparent">
-                      <option value="" disabled>Sélectionner une Agence</option>
+                <select v-model="form.agencyId" class="w-full form-select border border-gray-300 rounded-lg pl-10 pr-4 py-2 text-gray-900 dark:text-white focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] bg-white dark:bg-transparent">
+                      <option value="">Sélectionner une Agence (optionnel)</option>
                       <option v-for="agency in agencies" :key="agency.id" :value="agency.id">
                         {{ agency.name }}
                       </option>

@@ -55,6 +55,72 @@ exports.create = async (req, res) => {
   }
 };
 
+exports.createTenantAdmin = async (req, res) => {
+  try {
+    if (req.user.role !== 'superadmin') {
+      return res.status(403).json({ message: 'Forbidden - superadmin role required' });
+    }
+
+    const { companyId, email, password, name } = req.body;
+
+    if (!companyId || !email || !password) {
+      return res.status(400).json({ message: 'companyId, email, and password are required' });
+    }
+
+    const { User } = require('../models');
+
+    // Check if company exists
+    const company = await Company.findByPk(companyId);
+    if (!company) {
+      return res.status(404).json({ message: 'Company not found' });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      return res.status(400).json({ message: 'Email already exists' });
+    }
+
+    // Create tenant admin user
+    const userId = `usr_${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+
+    const defaultModules = [
+      'Tableau de bord', 'Agences', 'Clients', 'Voitures', 'Visites Techniques',
+      'Assurances', 'Entretiens', 'Tâches', 'Contrats', 'Réservations',
+      'Factures', 'Accidents', 'Versements', 'Financements', 'Traites', 'Comptabilité',
+      'Statistiques', 'Rapports généraux', 'Employés', 'Paramètres'
+    ];
+    const permissionsMap = {};
+    defaultModules.forEach(mod => { permissionsMap[mod] = true });
+
+    const user = await User.create({
+      id: userId,
+      name: name || `Admin ${company.name}`,
+      email,
+      password,
+      role: 'admin',
+      companyId,
+      agencyId: null,
+      permissions: permissionsMap,
+      isActive: true
+    });
+
+    res.status(201).json({
+      message: 'Tenant admin user created successfully',
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        companyId: user.companyId,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error('Error creating tenant admin:', error);
+    res.status(400).json({ message: error.message });
+  }
+};
+
 exports.update = async (req, res) => {
   try {
     // Only superadmin or the company's admin can update

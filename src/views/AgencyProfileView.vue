@@ -1,6 +1,25 @@
 <template>
     <div class="p-6 bg-[#F3F4F6] dark:bg-[#151923] min-h-screen text-gray-800 dark:text-gray-200">
 
+      <!-- Toast Notification -->
+      <transition name="slide-down">
+        <div v-if="notification.show" :class="[
+          'fixed top-6 right-6 z-[100] px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 max-w-md animate-fadeIn',
+          notification.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+        ]">
+          <svg v-if="notification.type === 'success'" class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          </svg>
+          <svg v-else class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          </svg>
+          <span class="flex-1 font-medium">{{ notification.message }}</span>
+          <button @click="notification.show = false" class="text-white hover:opacity-75">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </transition>
+
       <!-- Document Viewer Modal -->
       <div v-if="showDocModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
         <div class="relative bg-white dark:bg-[#1C1F2B] w-full max-w-5xl rounded-xl shadow-2xl flex flex-col max-h-[90vh]">
@@ -231,6 +250,7 @@ const agencyForm = ref({ address: '', phone: '', email: '', if: '', rc: '', pate
 const openSections = ref(['Voitures']); // Keep Voitures open by default
 const showDocModal = ref(false);
 const viewingDocument = ref(null);
+const notification = ref({ show: false, message: '', type: 'success' });
 const normalizeRole = (role) =>
   String(role || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 const isAgencyRestrictedRole = computed(() => {
@@ -318,10 +338,35 @@ const loadAgency = () => {
 };
 
 const updateAgency = () => {
-  const updated = { ...agency.value, ...agencyForm.value };
-  agencyStore.updateAgency(updated);
-  agency.value = { ...updated };
-  // Add a non-blocking notification here
+  try {
+    const updated = { ...agency.value, ...agencyForm.value };
+    agencyStore.updateAgency(updated);
+    agency.value = { ...updated };
+
+    // Show success notification
+    notification.value = {
+      show: true,
+      message: 'Agence mise à jour avec succès',
+      type: 'success'
+    };
+
+    // Auto-hide notification after 3 seconds
+    setTimeout(() => {
+      notification.value.show = false;
+    }, 3000);
+  } catch (error) {
+    // Show error notification
+    notification.value = {
+      show: true,
+      message: error.message || 'Une erreur est survenue lors de la mise à jour',
+      type: 'error'
+    };
+
+    // Auto-hide notification after 4 seconds
+    setTimeout(() => {
+      notification.value.show = false;
+    }, 4000);
+  }
 };
 
 // Document Management Handlers
@@ -414,3 +459,37 @@ onMounted(async () => {
   loadAgency();
 });
 </script>
+
+<style scoped>
+@keyframes slideDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.slide-down-enter-active {
+  animation: slideDown 0.3s ease-out;
+}
+
+.slide-down-leave-active {
+  animation: slideDown 0.3s ease-out reverse;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+</style>
