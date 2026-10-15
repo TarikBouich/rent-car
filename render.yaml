@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: rentcar-api
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: DB_HOST
+        value: rentcar-db-tarik-048e.i.aivencloud.com
+      - key: DB_PORT
+        value: 24950
+      - key: DB_NAME
+        value: defaultdb
+      - key: DB_USER
+        value: avnadmin
+      - key: DB_PASS
+        sync: false
+      - key: JWT_SECRET
+        sync: false
