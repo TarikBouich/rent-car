@@ -518,17 +518,17 @@ export default {
         </div>
         <!-- Notes Input -->
         <div class="p-4 bg-gray-100 dark:bg-gray-800/30 rounded-lg border border-gray-300 dark:border-gray-700 mb-4">
-          <div class="flex gap-2">
+          <div class="flex flex-col min-[993px]:flex-row gap-2">
             <input
               v-model="newNote"
               @keyup.enter="addNote"
               placeholder="Tapez une note rapide (Entrée pour ajouter)..."
-              class="flex-1 bg-white dark:bg-transparent border border-gray-600 focus:border-blue-500 rounded-lg px-4 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500/50 transition-all"
+              class="w-full min-w-0 flex-1 bg-white dark:bg-transparent border border-gray-600 focus:border-blue-500 rounded-lg px-4 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500/50 transition-all"
             >
             <button
               @click="addNote"
               :disabled="!newNote.trim()"
-              class="flex items-center gap-2 px-4 py-2 bg-[#fa5b0f] text-[#fff] rounded-[8px] transition-colors font-bold border border-[#fa5b0f] hover:bg-transparent hover:text-[#fa5b0f] disabled:bg-gray-600 disabled:cursor-not-allowed whitespace-nowrap"
+              class="w-full min-[993px]:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-[#fa5b0f] text-[#fff] rounded-[8px] transition-colors font-bold border border-[#fa5b0f] hover:bg-transparent hover:text-[#fa5b0f] disabled:bg-gray-600 disabled:cursor-not-allowed whitespace-nowrap"
             >
               Ajouter
             </button>
