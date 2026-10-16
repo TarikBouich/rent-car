@@ -158,13 +158,19 @@ export default {
     const userName = computed(() => userStore.currentUser?.name || '')
     const userRole = computed(() => userStore.currentUser?.role === 'admin' ? 'Administrateur' : 'Agent')
     const userInitial = computed(() => userName.value?.charAt(0).toUpperCase() || 'T')
-    // Compact display to save header space (e.g. "Admin chaimeSARL" -> "Ch.Sa", "Administrateur" -> "Admin")
+    // Compact display to save header space (e.g. "Admin chaimeSARL" -> "chaimeSARL", "Administrateur" -> "Admin")
     const compactUserName = computed(() => {
       const raw = (userName.value || '').trim()
       if (!raw) return ''
-      const words = raw.split(/\s+/).filter(Boolean)
-      // Use last 2 words so "Admin chaime SARL" -> "Ch.Sa"
-      const relevant = words.length > 2 ? words.slice(-2) : words
+      let words = raw.split(/\s+/).filter(Boolean)
+      // Drop leading role prefix ("Admin ...", "Agent ...", "Superadmin ...")
+      if (words.length > 1 && /^(admin|agent|superadmin|super-admin)$/i.test(words[0])) {
+        words = words.slice(1)
+      }
+      // Single word left -> show as-is ("chaimeSARL")
+      if (words.length === 1) return words[0].length <= 14 ? words[0] : words[0].slice(0, 14)
+      // Multiple words -> abbreviate last 2 ("chaime SARL" -> "Ch.Sa")
+      const relevant = words.slice(-2)
       const short = relevant
         .map(w => w.charAt(0).toUpperCase() + w.slice(1, 2).toLowerCase())
         .join('.')
