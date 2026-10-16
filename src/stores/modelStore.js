@@ -19,13 +19,14 @@ export const useModelStore = defineStore('model', {
         console.error('Failed to fetch models:', error);
       }
     },
-    async addModel(brandId, name, category) {
+    async addModel(brandId, name, category, image) {
       try {
         const newModel = {
           id: 'model_' + Date.now(),
           brandId,
           name,
-          category
+          category,
+          image: image || null
         };
         const response = await modelService.create(newModel);
         this.models.unshift(response.data);

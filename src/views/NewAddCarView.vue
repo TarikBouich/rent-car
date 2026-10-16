@@ -154,6 +154,13 @@
                 </option>
               </select>
             </div>
+            <!-- Model default photo: one click to reuse it for this car -->
+            <div v-if="selectedModel?.image" class="mt-2 flex items-center gap-3 p-2 bg-gray-50 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-700 rounded-lg">
+              <img :src="selectedModel.image" alt="Modèle" class="w-16 h-12 object-cover rounded" @error="$event.target.style.display = 'none'" />
+              <button type="button" @click="useModelImage" class="text-xs font-semibold text-[#fa5b0f] hover:text-orange-600">
+                Utiliser la photo du modèle
+              </button>
+            </div>
           </div>
 
         <!-- License Plate -->
@@ -597,6 +604,15 @@
               class="w-full px-4 py-2.5 bg-white dark:bg-transparent text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#fa5b0f]"
             />
           </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Photo par défaut <span class="font-normal text-gray-500">(lien net, réutilisée à chaque voiture)</span></label>
+            <input
+              v-model.trim="newModelImage"
+              type="url"
+              placeholder="Ex: https://.../clio.jpg"
+              class="w-full px-4 py-2.5 bg-white dark:bg-transparent text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#fa5b0f]"
+            />
+          </div>
           <p v-if="modelModalError" class="text-sm text-red-500">{{ modelModalError }}</p>
         </div>
         <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-800">
@@ -738,12 +754,34 @@ export default {
       return modelStore.getModelsByBrandId(carData.value.brandId)
     })
 
+    const selectedModel = computed(() => {
+      if (!carData.value.modelId) return null
+      return modelStore.getModelById(carData.value.modelId) || null
+    })
+
+    // Auto-fill car photo from model default when the car has no photo yet
+    watch(() => carData.value.modelId, () => {
+      const img = selectedModel.value?.image
+      if (img && (!carData.value.images || carData.value.images.length === 0)) {
+        carData.value.images = [img]
+        carData.value.image = img
+      }
+    })
+
+    const useModelImage = () => {
+      const img = selectedModel.value?.image
+      if (!img) return
+      if (!carData.value.images.includes(img)) carData.value.images.unshift(img)
+      carData.value.image = img
+    }
+
     const validationErrors = ref([])
     const showBrandModal = ref(false)
     const newBrandName = ref('')
     const brandModalError = ref('')
     const showModelModal = ref(false)
     const newModelName = ref('')
+    const newModelImage = ref('')
     const modelModalError = ref('')
 
     const selectedBrandName = computed(() => {
@@ -793,6 +831,7 @@ export default {
       }
       modelModalError.value = ''
       newModelName.value = ''
+      newModelImage.value = ''
       showModelModal.value = true
     }
 
@@ -820,7 +859,7 @@ export default {
         return
       }
 
-      const created = await modelStore.addModel(carData.value.brandId, name, '')
+      const created = await modelStore.addModel(carData.value.brandId, name, '', newModelImage.value.trim() || null)
       if (!created?.id) {
         modelModalError.value = "Impossible d'ajouter le modèle."
         return
@@ -888,11 +927,14 @@ export default {
       brandStore,
       modelStore,
       filteredModels,
+      selectedModel,
+      useModelImage,
       showBrandModal,
       newBrandName,
       brandModalError,
       showModelModal,
       newModelName,
+      newModelImage,
       modelModalError,
       selectedBrandName,
       openBrandModal,

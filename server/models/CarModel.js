@@ -8,6 +8,7 @@ const CarModel = sequelize.define('CarModel', {
   },
   name: { type: DataTypes.STRING, allowNull: false },
   category: { type: DataTypes.STRING }, // Berline, SUV, Citadine, etc.
+  image: { type: DataTypes.TEXT }, // default photo URL (net link or /cars/xxx.jpg), reused for every car of this model
   brandId: { type: DataTypes.STRING, allowNull: false } // Foreign key
 });
 
