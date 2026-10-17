@@ -6,6 +6,8 @@
   >
     <router-view :mode="mode"></router-view>
   </component>
+  <!-- AI assistant hidden for now — uncomment to bring it back -->
+  <!-- <AiAssistant v-if="showAi" :mode="mode" /> -->
 </template>
 
 <script>
@@ -13,6 +15,7 @@ import AuthLayout from './layouts/AuthLayout.vue'
 import NewDefaultLayout from './layouts/NewDefaultLayout.vue'
 import PrintLayout from './layouts/PrintLayout.vue'
 import LandingLayout from './layouts/LandingLayout.vue'
+import AiAssistant from './components/AiAssistant.vue'
 import { useUserStore } from './stores/userStore'
 import { useCarStore } from './stores/carStore'
 import { useClientStore } from './stores/clientStore'
@@ -38,7 +41,8 @@ export default {
     AuthLayout,
     NewDefaultLayout,
     PrintLayout,
-    LandingLayout
+    LandingLayout,
+    AiAssistant
   },
   setup() {
     const userStore = useUserStore()
@@ -94,6 +98,11 @@ export default {
       if (layout === 'print') return PrintLayout
       if (layout === 'landing') return LandingLayout
       return NewDefaultLayout
+    },
+    showAi() {
+      // Sticky assistant is hidden on the login screen and print views.
+      const layout = this.$route.meta.layout || 'new-default'
+      return this.userStore.isAuthenticated && layout !== 'print' && layout !== 'auth'
     }
   },
   methods: {
