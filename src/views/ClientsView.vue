@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="p-4">
+    <div class="px-0 sm:px-4 py-4">
       <div
         class="rounded-xl shadow-card overflow-hidden"
         :class="mode === 'dark' ? 'bg-dark-70' : 'bg-white'"

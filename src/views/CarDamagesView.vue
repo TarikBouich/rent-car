@@ -1,5 +1,5 @@
 <template>
-  <div class="px-6 py-8 h-full flex flex-col">
+  <div class="px-0 sm:px-6 py-8 h-full flex flex-col">
     <!-- Header -->
     <div class="flex items-center justify-between mb-8">
       <div>

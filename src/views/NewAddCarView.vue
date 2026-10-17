@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 bg-[#F3F4F6] dark:bg-[#151923] min-h-[calc(100vh-4rem)] font-[Inter]">
+  <div class="px-0 sm:px-6 py-6 bg-[#F3F4F6] dark:bg-[#151923] min-h-[calc(100vh-4rem)] font-[Inter]">
     <!-- Page Header -->
     <div class="mb-6">
       <div class="flex items-center gap-4 mb-2">

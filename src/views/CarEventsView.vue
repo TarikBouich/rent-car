@@ -1,9 +1,9 @@
 <template>
-  <div class="p-6 bg-[#F3F4F6] dark:bg-[#151923] min-h-[calc(100vh-4rem)] font-[Inter]">
+  <div class="px-0 sm:px-6 py-6 bg-[#F3F4F6] dark:bg-[#151923] min-h-[calc(100vh-4rem)] font-[Inter]">
     <div
       class="rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden bg-white dark:bg-[#1E2330]"
     >
-      <div class="p-6 bg-[#F3F4F6] dark:bg-[#151923] min-h-[calc(100vh-4rem)] font-[Inter]">
+      <div class="px-0 sm:px-6 py-6 bg-[#F3F4F6] dark:bg-[#151923] min-h-[calc(100vh-4rem)] font-[Inter]">
         <FullCalendar
           ref="calendar"
           :options="calendarOptions"

@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 bg-[#F3F4F6] dark:bg-[#151923] min-h-[calc(100vh-4rem)] font-inter">
+  <div class="px-0 sm:px-6 py-6 bg-[#F3F4F6] dark:bg-[#151923] min-h-[calc(100vh-4rem)] font-inter">
     <!-- Header -->
     <div class="flex items-center justify-between mb-6 border-b border-gray-200 dark:border-gray-800 pb-4">
       <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Financial Statistics</h1>

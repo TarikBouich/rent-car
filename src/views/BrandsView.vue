@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 bg-[#F3F4F6] dark:bg-[#151923] min-h-screen text-gray-800 dark:text-gray-200">
+  <div class="px-0 sm:px-6 py-6 bg-[#F3F4F6] dark:bg-[#151923] min-h-screen text-gray-800 dark:text-gray-200">
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
       <div>
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Marques & Constructeurs</h1>

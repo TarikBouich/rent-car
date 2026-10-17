@@ -1,5 +1,5 @@
 <template>
-    <div class="p-6 bg-[#F3F4F6] dark:bg-[#151923] min-h-screen text-gray-800 dark:text-gray-200">
+    <div class="px-0 sm:px-6 py-6 bg-[#F3F4F6] dark:bg-[#151923] min-h-screen text-gray-800 dark:text-gray-200">
 
       <!-- Toast Notification -->
       <transition name="slide-down">
@@ -43,7 +43,7 @@
         </div>
       </div>
 
-      <div class="flex items-center justify-between mb-6">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div class="flex items-center gap-4">
           <button
             v-if="!isAgencyRestrictedRole"
@@ -60,7 +60,7 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-6 overflow-x-auto">
         
         <div :class="isAgencyRestrictedRole ? 'lg:col-span-12 space-y-6' : 'lg:col-span-7 space-y-6'">
           <div v-if="!isAgencyRestrictedRole" class="bg-white dark:bg-[#1C1F2B] border border-gray-200 dark:border-gray-800 rounded-xl p-6">
@@ -127,7 +127,7 @@
           <div class="bg-white dark:bg-[#1C1F2B] border border-gray-200 dark:border-gray-800 rounded-xl p-6">
             <h2 class="text-lg font-semibold mb-4">Documents de l'agence</h2>
             <div class="space-y-3">
-              <div v-for="docType in ['Logo', 'Cachet', 'Conditions Générales', 'En-tête']" :key="docType" class="flex items-center justify-between p-3 bg-[#F3F4F6] dark:bg-[#151923] border border-gray-200 dark:border-gray-800 rounded-lg">
+              <div v-for="docType in ['Logo', 'Cachet', 'Conditions Générales', 'En-tête']" :key="docType" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-[#F3F4F6] dark:bg-[#151923] border border-gray-200 dark:border-gray-800 rounded-lg">
                 <div class="flex items-center gap-3">
                   <span class="text-sm font-medium">{{ docType }}</span>
                   <span v-if="getDocumentByType(docType)" class="text-xs text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded truncate max-w-[120px]">

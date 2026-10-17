@@ -1,5 +1,5 @@
 <template>
-    <div class="p-6 bg-[#F3F4F6] dark:bg-[#151923] min-h-screen font-[Inter]">
+    <div class="px-0 sm:px-6 py-6 bg-[#F3F4F6] dark:bg-[#151923] min-h-screen font-[Inter]">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center">

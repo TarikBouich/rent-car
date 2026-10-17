@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 bg-[#F3F4F6] dark:bg-[#151923] min-h-[calc(100vh-4rem)]">
+  <div class="px-0 sm:px-6 py-6 bg-[#F3F4F6] dark:bg-[#151923] min-h-[calc(100vh-4rem)]">
     <!-- Confirmation Modal -->
     <div v-if="showConfirmationModal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
       <div class="bg-white dark:bg-[#1E2330] border border-gray-200 dark:border-gray-800 p-6 rounded-xl shadow-lg max-w-md w-full">

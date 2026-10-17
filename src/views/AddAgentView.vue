@@ -1,5 +1,5 @@
 <template>
-<div class="p-6 min-h-[calc(100vh-4rem)] bg-[#F3F4F6] dark:bg-[#151923] font-[Inter]">
+<div class="px-0 sm:px-6 py-6 min-h-[calc(100vh-4rem)] bg-[#F3F4F6] dark:bg-[#151923] font-[Inter]">
 
     <!-- Header with Back Button -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-4 border-b border-gray-200 dark:border-gray-800">

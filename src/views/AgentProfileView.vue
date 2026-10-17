@@ -1,5 +1,5 @@
 <template>
-  <div v-if="agent" class="p-6 min-h-[calc(100vh-4rem)] bg-[#F3F4F6] dark:bg-[#151923] font-[Inter]">
+  <div v-if="agent" class="px-0 sm:px-6 py-6 min-h-[calc(100vh-4rem)] bg-[#F3F4F6] dark:bg-[#151923] font-[Inter]">
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-4 border-b border-gray-200 dark:border-gray-800">
       <div class="flex items-center gap-4">
