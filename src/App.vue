@@ -6,8 +6,8 @@
   >
     <router-view :mode="mode"></router-view>
   </component>
-  <!-- AI assistant: visible only for the "Entreprise" plan -->
-  <AiAssistant v-if="showAi" :mode="mode" />
+  <!-- AI assistant hidden (Entreprise plan) — uncomment to show it again -->
+  <!-- <AiAssistant v-if="showAi" :mode="mode" /> -->
 </template>
 
 <script>

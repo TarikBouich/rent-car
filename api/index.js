@@ -1,5 +1,12 @@
 // Vercel serverless entry: runs Express app without listen().
 // DB sync is cached between warm invocations.
+// Local/dev only: load server/.env when present. On Vercel this file is not
+// deployed, so the real Environment Variables are used instead.
+try {
+  require('dotenv').config({ path: require('path').join(__dirname, '..', 'server', '.env') });
+} catch {
+  /* dotenv unavailable: rely on process.env */
+}
 // Explicit mysql2 require: sequelize loads dialect dynamically,
 // Vercel NFT bundler misses it otherwise -> "Please install mysql2 manually".
 require('mysql2');

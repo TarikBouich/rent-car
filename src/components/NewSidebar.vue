@@ -465,8 +465,8 @@ export default {
               ]
             },
            /* { name: 'Réservations', path: '/reservations', icon: ReservationsIcon },*/
-            { name: 'Factures', path: '/factures', icon: FacturesIcon },
-            { name: 'Accidents', path: '/accidents', icon: AccidentsIcon }
+            { name: 'Factures', path: '/factures', icon: FacturesIcon }
+            // { name: 'Accidents', path: '/accidents', icon: AccidentsIcon }
           ]
         },
         {
@@ -474,7 +474,7 @@ export default {
           items: [
          /* { name: 'Versements', path: '/versements', icon: VersementsIcon },
           { name: 'Financements', path: '/financements', icon: FinancementsIcon },*/
-          { name: 'Traites', path: '/traites', icon: TraitesIcon },
+          // { name: 'Traites', path: '/traites', icon: TraitesIcon },
           { name: 'Comptabilité', path: '/accounting', icon: AccountingIcon }
         ]
       },

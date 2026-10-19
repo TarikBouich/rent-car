@@ -93,6 +93,28 @@
           </div>
         </div>
 
+        <!-- Microphone permission helper -->
+        <div v-if="micSupported && micPermission !== 'granted'" class="shrink-0 px-3 pt-3">
+          <div
+            class="rounded-xl border p-2.5 text-xs flex items-start gap-2"
+            :class="isDark ? 'border-amber-500/40 bg-amber-500/10 text-amber-200' : 'border-amber-300 bg-amber-50 text-amber-800'"
+          >
+            <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3zM19 10v2a7 7 0 01-14 0v-2M12 19v4m-4 0h8" />
+            </svg>
+            <div class="flex-1 min-w-0">
+              <p class="leading-snug">{{ micHelperText }}</p>
+              <button
+                @click="requestMicAccess"
+                :disabled="requestingMic"
+                class="mt-2 px-3 py-1.5 rounded-lg bg-[#fa5b0f] text-white font-bold text-[11px] disabled:opacity-60"
+              >
+                {{ requestingMic ? micBusyText : micEnableText }}
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- Composer -->
         <div class="shrink-0 border-t p-3 flex items-center gap-2" :class="isDark ? 'border-[#2a2f3e] bg-[#1E2330]' : 'border-gray-200 bg-white'">
           <input
@@ -193,6 +215,26 @@ const micLang = ref('fr-FR')
 const availableVoices = ref([])
 const liveMode = ref(false)
 const speaking = ref(false)
+const micPermission = ref('unknown') // granted | denied | prompt | unknown
+const requestingMic = ref(false)
+
+const micHelperText = computed(() => {
+  const denied = micPermission.value === 'denied'
+  if (uiLang.value === 'ar') {
+    return denied
+      ? 'الميكروفون ممنوع. اضغط على أيقونة القفل في شريط العنوان، اسمح بالميكروفون، ثم أعد المحاولة.'
+      : 'للحديث مع المساعد، اسمح باستخدام الميكروفون.'
+  }
+  return denied
+    ? 'Microphone bloqué. Cliquez sur l’icône de verrouillage dans la barre d’adresse, autorisez le micro, puis réessayez.'
+    : 'Pour parler à l’assistant, autorisez l’accès au microphone.'
+})
+const micEnableText = computed(() => {
+  const denied = micPermission.value === 'denied'
+  if (uiLang.value === 'ar') return denied ? 'إعادة المحاولة' : 'السماح بالميكروفون'
+  return denied ? 'Réessayer' : 'Autoriser le micro'
+})
+const micBusyText = computed(() => (uiLang.value === 'ar' ? 'جاري الطلب…' : 'Demande…'))
 
 const isDark = computed(() => props.mode === 'dark')
 const uiLang = computed(() => (micLang.value.startsWith('ar') ? 'ar' : 'fr'))
@@ -263,8 +305,13 @@ const getRecognition = () => {
     clearTimeout(silenceTimer)
     silenceTimer = setTimeout(flushSpeech, 1100)
   }
+  r.onstart = () => {
+    micPermission.value = 'granted'
+    listening.value = true
+  }
   r.onerror = (e) => {
     if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+      micPermission.value = 'denied'
       liveMode.value = false
       listening.value = false
       push('assistant', labels.micDenied[uiLang.value])
@@ -314,10 +361,51 @@ const stopListening = () => {
   liveTranscript.value = ''
 }
 
-const toggleLive = () => {
+// --- Microphone permission ---------------------------------------------------
+const refreshMicPermission = async () => {
+  if (typeof navigator === 'undefined' || !navigator.permissions?.query) return
+  try {
+    const status = await navigator.permissions.query({ name: 'microphone' })
+    micPermission.value = status.state
+    status.onchange = () => { micPermission.value = status.state }
+  } catch {
+    /* Permission API unsupported (e.g. older Safari): keep 'unknown' */
+  }
+}
+
+const requestMicAccess = async () => {
+  if (!micSupported) {
+    push('assistant', labels.micUnsupported[uiLang.value])
+    return false
+  }
+  // If the browser has no mediaDevices, let SpeechRecognition ask itself.
+  if (!navigator.mediaDevices?.getUserMedia) {
+    micPermission.value = 'granted'
+    return true
+  }
+  requestingMic.value = true
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    stream.getTracks().forEach((track) => track.stop())
+    micPermission.value = 'granted'
+    return true
+  } catch {
+    micPermission.value = 'denied'
+    push('assistant', labels.micDenied[uiLang.value])
+    return false
+  } finally {
+    requestingMic.value = false
+  }
+}
+
+const toggleLive = async () => {
   if (!micSupported) {
     push('assistant', labels.micUnsupported[uiLang.value])
     return
+  }
+  if (!liveMode.value && micPermission.value !== 'granted') {
+    const ok = await requestMicAccess()
+    if (!ok) return
   }
   liveMode.value = !liveMode.value
   if (liveMode.value) {
@@ -328,7 +416,7 @@ const toggleLive = () => {
   }
 }
 
-const toggleMic = () => {
+const toggleMic = async () => {
   if (!micSupported) {
     push('assistant', labels.micUnsupported[uiLang.value])
     return
@@ -341,6 +429,10 @@ const toggleMic = () => {
   if (listening.value) {
     stopListening()
     return
+  }
+  if (micPermission.value !== 'granted') {
+    const ok = await requestMicAccess()
+    if (!ok) return
   }
   beginListening()
 }
@@ -472,15 +564,19 @@ const askAI = async (text) => {
           : 'J\'ai été trop sollicité (quota gratuit). Attends quelques secondes et réessaie.'
       } else if (status === 503) {
         why = lang === 'ar'
-          ? ' الكلمة السرية ديال Gemini ناقصة فـ server/.env.'
-          : ' la clé GEMINI_API_KEY est absente de server/.env'
+          ? ' مفتاح Gemini غير مضبوط على السيرفر (GEMINI_API_KEY).'
+          : ' la clé GEMINI_API_KEY n’est pas configurée sur le serveur'
       } else {
         why = lang === 'ar' ? ' ما قدرتش نوصل لـ Gemini.' : " je n'ai pas pu joindre Gemini"
       }
       return {
-        reply: lang === 'ar'
-          ? `${why}الخدمة غادي ترجع تخدم فجوة دابا.`
-          : `${why}. Relance le serveur si le problème continue.`,
+        reply: status === 503
+          ? (lang === 'ar'
+              ? `${why} أضِف GEMINI_API_KEY إلى متغيرات بيئة السيرفر (Vercel) ثم أعد النشر.`
+              : `${why}. Ajoutez GEMINI_API_KEY aux variables d’environnement du serveur (Vercel), puis redéployez.`)
+          : (lang === 'ar'
+              ? `${why}الخدمة غادي ترجع تخدم فجوة دابا.`
+              : `${why}. Réessayez dans un instant.`),
         actions: [],
         lang,
       }
@@ -707,6 +803,7 @@ const togglePanel = async () => {
 watch(open, () => nextTick(() => { if (scroller.value) scroller.value.scrollTop = scroller.value.scrollHeight }))
 
 onMounted(() => {
+  refreshMicPermission()
   if (micSupported) recognition = getRecognition()
   if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
     loadVoices()
