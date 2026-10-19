@@ -26,6 +26,19 @@
             <a href="#flotte" @click.prevent="scrollToSection('flotte')" class="hover:text-slate-900 transition-colors">Notre Flotte</a>
             <a href="#apropos" @click.prevent="scrollToSection('apropos')" class="hover:text-slate-900 transition-colors">À propos</a>
             <a href="#contact" @click.prevent="scrollToSection('contact')" class="hover:text-slate-900 transition-colors">Contact</a>
+            <button
+              @click="pickerOpen = !pickerOpen"
+              class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 text-slate-600 hover:text-slate-900 hover:border-slate-400 transition-colors"
+              :style="{ color: theme.primary, borderColor: theme.primary + '55' }"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3a9 9 0 100 18h1.5a2.5 2.5 0 000-5H12a2 2 0 010-4h4.5A3.5 3.5 0 0020 8.5 5.5 5.5 0 0014.5 3H12z"/>
+                <circle cx="7.5" cy="11.5" r="1" fill="currentColor"/>
+                <circle cx="10" cy="7.5" r="1" fill="currentColor"/>
+                <circle cx="15" cy="7.5" r="1" fill="currentColor"/>
+              </svg>
+              Thèmes
+            </button>
           </nav>
           <a
             :href="agency.phone ? 'tel:' + agency.phone : '#'"
