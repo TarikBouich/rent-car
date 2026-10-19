@@ -67,7 +67,7 @@
             <div class="grid grid-cols-4 gap-4 mb-2">
                <div><span class="font-bold text-[#1e3a8a] text-[10px]">Libellé</span><br><span class="uppercase">{{ carData?.name || '-' }}</span></div>
                <div><span class="font-bold text-[#1e3a8a] text-[10px]">Matricule</span><br><span class="uppercase tracking-widest font-mono">{{ carData?.licensePlate || '-' }}</span></div>
-               <div><span class="font-bold text-[#1e3a8a] text-[10px]">Carburant</span><br><span class="uppercase">{{ carData?.fuel || 'Diesel' }}</span></div>
+               <div><span class="font-bold text-[#1e3a8a] text-[10px]">Carburant</span><br><span class="uppercase">{{ carData?.fuelType || carData?.fuel || 'Diesel' }}</span></div>
                <div><span class="font-bold text-[#1e3a8a] text-[10px]">Transmission</span><br><span class="uppercase">{{ carData?.transmission || 'Automatique' }}</span></div>
             </div>
             <div class="flex items-center gap-4 text-[10px] text-gray-800 mt-3 pt-2">
