@@ -233,6 +233,86 @@
         </div>
       </div>
     </div>
+    <!-- ===== Landing page preview modal ===== -->
+    <div
+      v-if="showLandingModal"
+      class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/70 backdrop-blur-sm"
+      @click.self="closeLandingModal"
+    >
+      <div class="bg-white dark:bg-[#1E2330] rounded-2xl shadow-2xl w-full max-w-6xl max-h-[94vh] flex flex-col overflow-hidden border border-gray-200 dark:border-gray-800">
+        <!-- Modal header -->
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 px-4 sm:px-6 py-4 border-b border-gray-200 dark:border-gray-800">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-10 h-10 rounded-xl bg-[#fa5b0f]/10 text-[#fa5b0f] flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3a9 9 0 100 18h1.5a2.5 2.5 0 000-5H12a2 2 0 010-4h4.5A3.5 3.5 0 0020 8.5 5.5 5.5 0 0014.5 3H12z"/>
+                <circle cx="7.5" cy="11.5" r="1" fill="currentColor"/>
+                <circle cx="10" cy="7.5" r="1" fill="currentColor"/>
+                <circle cx="15" cy="7.5" r="1" fill="currentColor"/>
+              </svg>
+            </div>
+            <div class="min-w-0">
+              <h3 class="text-base font-bold text-gray-900 dark:text-white truncate">Aperçu landing page</h3>
+              <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ landingAgency?.name }}</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 flex-wrap">
+            <!-- Theme options -->
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <button
+                v-for="t in LANDING_THEMES"
+                :key="t.id"
+                @click="selectLandingTheme(t.id)"
+                class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-[11px] font-bold transition-all"
+                :class="landingTheme === t.id ? 'border-transparent text-white shadow-md' : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-gray-400'"
+                :style="landingTheme === t.id ? { background: `linear-gradient(135deg, ${t.primary}, ${t.dark})` } : {}"
+              >
+                <span
+                  class="w-3 h-3 rounded-full border border-white/60"
+                  :style="{ background: `linear-gradient(135deg, ${t.primary}, ${t.dark})` }"
+                ></span>
+                {{ t.name }}
+              </button>
+            </div>
+
+            <!-- Live page link -->
+            <a
+              :href="landingLiveUrl"
+              target="_blank"
+              rel="noopener"
+              class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#fa5b0f] text-white text-xs font-bold hover:bg-orange-600 transition-colors"
+            >
+              Ouvrir la page
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+              </svg>
+            </a>
+
+            <!-- Close -->
+            <button
+              @click="closeLandingModal"
+              class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              title="Fermer"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Preview -->
+        <div class="flex-1 bg-gray-100 dark:bg-[#151923] p-2 sm:p-4 overflow-hidden">
+          <iframe
+            ref="landingFrame"
+            :src="landingPreviewUrl"
+            title="Aperçu landing page"
+            class="w-full h-[68vh] rounded-xl border border-gray-200 dark:border-gray-800 bg-white"
+          ></iframe>
+        </div>
+      </div>
+    </div>
 </template>
 
 <script setup>
@@ -241,6 +321,7 @@ import { useRouter } from 'vue-router';
 import { useAgencyStore } from '../stores/agencyStore';
 import { useTransactionStore } from '../stores/transactionStore';
 import { useUserStore } from '../stores/userStore';
+import { LANDING_THEMES } from '../utils/landingThemes';
 
 const router = useRouter();
 const agencyStore = useAgencyStore();
@@ -306,7 +387,50 @@ const goToProfile = (id) => {
 };
 
 const goToLanding = (id) => {
-  window.open(`/agencies/${id}/landing`, '_blank');
+  const saved = localStorage.getItem(`landing-theme:${id}`);
+  const initial = LANDING_THEMES.some(t => t.id === saved) ? saved : LANDING_THEMES[0].id;
+  landingAgencyId.value = id;
+  landingTheme.value = initial;
+  landingInitialTheme.value = initial;
+  showLandingModal.value = true;
+};
+
+const showLandingModal = ref(false);
+const landingAgencyId = ref(null);
+const landingTheme = ref(LANDING_THEMES[0].id);
+const landingInitialTheme = ref(LANDING_THEMES[0].id);
+const landingFrame = ref(null);
+
+const landingAgency = computed(() =>
+  agencyStore.getAgencyById?.(landingAgencyId.value) ||
+  agencyStore.agencies.find(a => a.id === landingAgencyId.value)
+);
+
+const landingPreviewUrl = computed(() => {
+  if (!landingAgencyId.value) return 'about:blank';
+  return `/agencies/${landingAgencyId.value}/landing?embed=1&theme=${landingInitialTheme.value}`;
+});
+
+const landingLiveUrl = computed(() => {
+  if (!landingAgencyId.value) return '#';
+  return `/agencies/${landingAgencyId.value}/landing?theme=${landingTheme.value}`;
+});
+
+const selectLandingTheme = (id) => {
+  landingTheme.value = id;
+  if (landingAgencyId.value) {
+    localStorage.setItem(`landing-theme:${landingAgencyId.value}`, id);
+  }
+  // Update the preview live without reloading the iframe.
+  landingFrame.value?.contentWindow?.postMessage(
+    { type: 'landing-theme', theme: id },
+    window.location.origin
+  );
+};
+
+const closeLandingModal = () => {
+  showLandingModal.value = false;
+  landingAgencyId.value = null;
 };
 
 const deleteAgency = (id) => {

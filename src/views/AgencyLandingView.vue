@@ -27,6 +27,7 @@
             <a href="#apropos" @click.prevent="scrollToSection('apropos')" class="hover:text-slate-900 transition-colors">À propos</a>
             <a href="#contact" @click.prevent="scrollToSection('contact')" class="hover:text-slate-900 transition-colors">Contact</a>
             <button
+              v-if="!isEmbedded"
               @click="pickerOpen = !pickerOpen"
               class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 text-slate-600 hover:text-slate-900 hover:border-slate-400 transition-colors"
               :style="{ color: theme.primary, borderColor: theme.primary + '55' }"
@@ -382,7 +383,7 @@
     </footer>
 
     <!-- ===== Theme picker (3 professional presets) ===== -->
-    <div class="fixed bottom-5 right-5 z-[60] flex flex-col items-end gap-3">
+    <div v-if="!isEmbedded" class="fixed bottom-5 right-5 z-[60] flex flex-col items-end gap-3">
       <transition name="theme-pop">
         <div
           v-if="pickerOpen"
@@ -455,8 +456,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { LANDING_THEMES, getLandingTheme } from '../utils/landingThemes';
 import { useAgencyStore } from '../stores/agencyStore';
 import { useCarStore } from '../stores/carStore';
 import { useBrandStore } from '../stores/brandStore';
@@ -480,11 +482,7 @@ const carFilters = [
 ];
 
 // ---- Three professional, modern themes the agency can choose from ----
-const THEMES = [
-  { id: 'ocean',   name: 'Océan',    primary: '#0EA5E9', dark: '#0369A1', from: '#0C4A6E', to: '#38BDF8' },
-  { id: 'emerald', name: 'Émeraude', primary: '#10B981', dark: '#047857', from: '#064E3B', to: '#34D399' },
-  { id: 'rentcar', name: 'RentCar',  primary: '#FA5B0F', dark: '#C2410C', from: '#7C2D12', to: '#FB923C' }
-];
+const THEMES = LANDING_THEMES;
 
 const hashString = (str) => {
   let hash = 0;
@@ -497,8 +495,9 @@ const hashString = (str) => {
 
 const selectedThemeId = ref(null);
 const pickerOpen = ref(true);
+const isEmbedded = computed(() => route.query.embed === '1');
 
-const theme = computed(() => THEMES.find(t => t.id === selectedThemeId.value) || THEMES[0]);
+const theme = computed(() => getLandingTheme(selectedThemeId.value));
 
 const setTheme = (id) => {
   selectedThemeId.value = id;
@@ -593,11 +592,32 @@ onMounted(async () => {
   }
   agency.value = found;
 
+  const queryTheme = route.query.theme;
   const savedTheme = localStorage.getItem(`landing-theme:${found.id}`);
-  selectedThemeId.value = THEMES.some(t => t.id === savedTheme)
-    ? savedTheme
-    : defaultThemeId(`${found.id || ''}-${found.name || ''}`);
+  if (THEMES.some(t => t.id === queryTheme)) {
+    selectedThemeId.value = queryTheme;
+    localStorage.setItem(`landing-theme:${found.id}`, queryTheme);
+  } else {
+    selectedThemeId.value = THEMES.some(t => t.id === savedTheme)
+      ? savedTheme
+      : defaultThemeId(`${found.id || ''}-${found.name || ''}`);
+  }
+
+  window.addEventListener('message', onThemeMessage);
 });
+
+onBeforeUnmount(() => {
+  window.removeEventListener('message', onThemeMessage);
+});
+
+// Live theme updates from the preview modal (no iframe reload).
+const onThemeMessage = (event) => {
+  if (event.origin !== window.location.origin) return;
+  const data = event.data || {};
+  if (data.type === 'landing-theme' && THEMES.some(t => t.id === data.theme)) {
+    selectedThemeId.value = data.theme;
+  }
+};
 </script>
 
 <style scoped>
