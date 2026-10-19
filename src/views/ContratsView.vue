@@ -191,10 +191,36 @@
                 <CarDamageMap v-model="returnForm.retourDamages" />
              </div>
              
+             <!-- Early return billing choice -->
+             <div v-if="returnIsEarly" class="mb-6 p-4 bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-500/20 rounded-lg">
+                <h4 class="text-sm font-bold text-gray-800 dark:text-white mb-2">Retour anticipé</h4>
+                <p class="text-xs text-gray-600 dark:text-gray-400 mb-3">
+                   La date de retour prévue ({{ formatReturnDateDisplay(selectedReturnContrat.dateRetour) }}) est postérieure à aujourd'hui.
+                   Choisissez la période à facturer :
+                </p>
+                <div class="space-y-3">
+                   <label class="flex items-start gap-2 cursor-pointer">
+                      <input type="radio" value="full" v-model="returnMode" class="mt-1" />
+                      <span class="text-sm text-gray-700 dark:text-gray-300">
+                         <span class="font-bold">Période complète du contrat</span>
+                         <span class="block text-xs text-gray-500 dark:text-gray-400">Total {{ selectedReturnContrat.total }} DH — reste à payer {{ selectedReturnContrat.reste }} DH</span>
+                      </span>
+                   </label>
+                   <label class="flex items-start gap-2 cursor-pointer">
+                      <input type="radio" value="today" v-model="returnMode" class="mt-1" />
+                      <span class="text-sm text-gray-700 dark:text-gray-300">
+                         <span class="font-bold">Clôturer aujourd'hui</span>
+                         <span class="block text-xs text-gray-500 dark:text-gray-400">{{ returnUsedDays }} jour(s) × {{ returnDailyRate }} DH = {{ returnRecalculatedTotal }} DH — reste à payer {{ returnTodayReste }} DH</span>
+                      </span>
+                   </label>
+                </div>
+             </div>
+
              <!-- Financial Sum up -->
              <div class="p-4 bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-500/20 rounded-lg">
-                <p class="font-bold text-gray-800 dark:text-white">Reste à payer : <span class="text-[#fa5b0f] text-xl">{{ selectedReturnContrat.reste }} DH</span></p>
-                <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">L'encaissement de ce solde sera généré automatiquement.</p>
+                <p class="font-bold text-gray-800 dark:text-white">Reste à payer : <span class="text-[#fa5b0f] text-xl">{{ returnAmountToCollect }} DH</span></p>
+                <p v-if="returnIsEarly && returnMode === 'today'" class="text-xs text-gray-600 dark:text-gray-400 mt-1">Total recalculé pour {{ returnUsedDays }} jour(s). La date de retour sera fixée à aujourd'hui.</p>
+                <p v-else class="text-xs text-gray-600 dark:text-gray-400 mt-1">L'encaissement de ce solde sera généré automatiquement.</p>
              </div>
           </div>
           
@@ -380,9 +406,59 @@ const returnForm = ref({
    carburantRetour: 'reserve',
    retourDamages: []
 })
+const returnMode = ref('full')        // 'full' = whole contracted period, 'today' = close today
+const returnClosedAt = ref(new Date()) // stable "today" timestamp for this closure
+
+const DAY_MS = 24 * 60 * 60 * 1000
+
+const returnIsEarly = computed(() => {
+   const end = selectedReturnContrat.value?.dateRetour
+   if (!end) return false
+   const endTime = new Date(end).getTime()
+   if (Number.isNaN(endTime)) return false
+   return returnClosedAt.value.getTime() < endTime
+})
+
+const returnDailyRate = computed(() => {
+   const contrat = selectedReturnContrat.value
+   if (!contrat) return 0
+   const rate = Number(contrat.prixParJour)
+   if (rate > 0) return rate
+   const duree = Number(contrat.duree)
+   return duree > 0 ? (Number(contrat.total) || 0) / duree : 0
+})
+
+const returnUsedDays = computed(() => {
+   const contrat = selectedReturnContrat.value
+   if (!contrat) return 0
+   const startTime = new Date(contrat.dateSortie).getTime()
+   if (Number.isNaN(startTime)) return Number(contrat.duree) || 0
+   const diff = returnClosedAt.value.getTime() - startTime
+   if (diff <= 0) return 0
+   return Math.ceil(diff / DAY_MS)
+})
+
+const returnRecalculatedTotal = computed(() => returnUsedDays.value * returnDailyRate.value)
+
+const returnTodayReste = computed(() => {
+   const contrat = selectedReturnContrat.value
+   if (!contrat) return 0
+   return Math.max(0, returnRecalculatedTotal.value - (Number(contrat.avance) || 0))
+})
+
+const returnAmountToCollect = computed(() => {
+   const contrat = selectedReturnContrat.value
+   if (!contrat) return 0
+   if (returnIsEarly.value && returnMode.value === 'today') {
+      return returnTodayReste.value
+   }
+   return Number(contrat.reste) || 0
+})
 
 const cloturerContrat = (contrat) => {
    selectedReturnContrat.value = contrat
+   returnClosedAt.value = new Date()
+   returnMode.value = 'full'
    const defaultDamages = Array.isArray(contrat.departDamages) ? [...contrat.departDamages] : []
    returnForm.value = {
       kmRetour: contrat.kmDepart || 0,
@@ -401,12 +477,15 @@ const closeReturnModal = () => {
 
 const executeReturn = async () => {
    const contrat = selectedReturnContrat.value
+   const closeToday = returnIsEarly.value && returnMode.value === 'today'
+   const amountToCollect = returnAmountToCollect.value
+   const settledTotal = closeToday ? returnRecalculatedTotal.value : (Number(contrat.total) || 0)
    
-   if (contrat.reste > 0) {
+   if (amountToCollect > 0) {
        transactionStore.addTransaction({
            agencyId: contrat.agencyId,
            type: 'revenue',
-           amount: contrat.reste,
+           amount: amountToCollect,
            method: contrat.typePaiement === 'Espèces' ? 'espece' : 'banque',
            description: `Solde Final Restant - Contrat ${contrat.numero}`
        })
@@ -415,11 +494,18 @@ const executeReturn = async () => {
    const updated = {
        ...contrat,
        etat: 'Retournée',
-       avance: contrat.total,
+       avance: settledTotal,
        reste: 0,
        kmRetour: returnForm.value.kmRetour,
        carburantRetour: returnForm.value.carburantRetour,
-       retourDamages: returnForm.value.retourDamages
+       retourDamages: returnForm.value.retourDamages,
+       ...(closeToday
+          ? {
+               dateRetour: returnClosedAt.value.toISOString(),
+               duree: returnUsedDays.value,
+               total: returnRecalculatedTotal.value
+            }
+          : {})
    }
    
    // Sync the vehicle's permanent damage state and mileage
