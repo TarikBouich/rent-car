@@ -31,8 +31,9 @@ exports.getByKey = async (req, res) => {
         key: req.params.key
       }
     });
-    if (!row) return res.status(404).json({ message: 'State key not found' });
-    res.json({ key: row.key, value: row.value });
+    // A missing key is normal on first use (the client falls back to its default).
+    // Return 200 with value:null instead of 404 so the console stays clean.
+    res.json({ key: req.params.key, value: row ? row.value : null });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
