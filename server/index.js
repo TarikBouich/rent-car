@@ -7,8 +7,11 @@ const { app, sequelize } = require('./app');
 const PORT = process.env.PORT || 3000;
 
 if (!process.env.VERCEL) {
+  // Never alter by default: repeated alters add duplicate UNIQUE indexes until MySQL
+  // hits "max 64 keys". Opt in with DB_ALTER=true only for a deliberate migration.
+  const syncOptions = process.env.DB_ALTER === 'true' ? { alter: true } : {};
   sequelize
-    .sync({ alter: true }) // alter: true will automatically update tables to match models without dropping them
+    .sync(syncOptions)
     .then(() => {
       console.log('Database synced successfully.');
       app.listen(PORT, () => {

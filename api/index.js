@@ -9,8 +9,11 @@ let syncPromise = null;
 
 function ensureDb() {
   if (!syncPromise) {
-    // alter:true creates tables on first deploy (Aiven free included)
-    syncPromise = sequelize.sync({ alter: true }).catch((err) => {
+    // Never use alter:true by default: on serverless it runs on every cold start and
+    // repeatedly adds duplicate UNIQUE indexes until MySQL errors (ER_TOO_MANY_KEYS).
+    // Opt in with DB_ALTER=true only for a deliberate schema migration.
+    const options = process.env.DB_ALTER === 'true' ? { alter: true } : {};
+    syncPromise = sequelize.sync(options).catch((err) => {
       console.error('DB sync failed:', err);
       syncPromise = null; // retry on next invocation
       throw err;
@@ -23,7 +26,10 @@ module.exports = async (req, res) => {
   try {
     await ensureDb();
   } catch (e) {
-    res.status(500).json({ error: 'Database unavailable' });
+    // Expose only a machine code (no host/user/password) to make DB failures diagnosable.
+    const code = e?.parent?.code || e?.original?.code || e?.code || e?.name || 'UNKNOWN';
+    console.error('DB unavailable:', code, e?.message);
+    res.status(500).json({ error: 'Database unavailable', code });
     return;
   }
   return app(req, res);
