@@ -10,6 +10,7 @@ const Brand = require('./Brand');
 const CarModel = require('./CarModel');
 const AppState = require('./AppState');
 const Facture = require('./Facture');
+const SignatureSession = require('./SignatureSession');
 
 // Define Relationships
 // A Company has many of all these entities (Multi-Tenant Strategy)
@@ -50,5 +51,6 @@ module.exports = {
   Brand,
   CarModel,
   AppState,
-  Facture
+  Facture,
+  SignatureSession
 };

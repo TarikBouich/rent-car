@@ -22,6 +22,7 @@ const clientRoutes = require('./routes/clientRoutes');
 const stateRoutes = require('./routes/stateRoutes');
 const factureRoutes = require('./routes/factureRoutes');
 const aiRoutes = require('./routes/aiRoutes');
+const signatureRoutes = require('./routes/signatureRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/cars', carRoutes);
@@ -34,6 +35,7 @@ app.use('/api/clients', clientRoutes);
 app.use('/api/state', stateRoutes);
 app.use('/api/factures', factureRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/signature', signatureRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'API is running' });

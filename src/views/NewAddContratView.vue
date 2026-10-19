@@ -418,7 +418,14 @@ const requestSignatureWhatsApp = async () => {
    activeSignToken.value = signToken
    const pinCode = Math.floor(100000 + Math.random() * 900000).toString() // 6 digits
 
-   await signatureStore.createSession(signToken, pinCode)
+   try {
+      await signatureStore.createSession(signToken, pinCode)
+   } catch (e) {
+      console.error(e)
+      activeSignToken.value = null
+      alert("Impossible de créer le lien de signature. Vérifiez votre connexion et réessayez.")
+      return
+   }
    
    // 2. Build remote URL
    // Uses window.location object which will perfectly resolve to `http://192.168.x.x` if the host runs Vite optimally over LAN.
