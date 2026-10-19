@@ -6,8 +6,8 @@
   >
     <router-view :mode="mode"></router-view>
   </component>
-  <!-- AI assistant hidden for now — uncomment to bring it back -->
-  <!-- <AiAssistant v-if="showAi" :mode="mode" /> -->
+  <!-- AI assistant: visible only for the "Entreprise" plan -->
+  <AiAssistant v-if="showAi" :mode="mode" />
 </template>
 
 <script>
@@ -100,9 +100,12 @@ export default {
       return NewDefaultLayout
     },
     showAi() {
-      // Sticky assistant is hidden on the login screen and print views.
+      // Sticky assistant only on the Entreprise plan, and never on print/auth screens.
       const layout = this.$route.meta.layout || 'new-default'
-      return this.userStore.isAuthenticated && layout !== 'print' && layout !== 'auth'
+      if (!this.userStore.isAuthenticated) return false
+      if (layout === 'print' || layout === 'auth') return false
+      const company = this.companyStore.getCompanyById(this.userStore.userCompanyId)
+      return company?.planId === 'entreprise'
     }
   },
   methods: {

@@ -66,22 +66,61 @@
           </button>
 
           <!-- Notifications -->
-          <button class="hidden sm:flex relative p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5 text-gray-600 dark:text-gray-400 hover:text-gray-200 transition-colors"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+          <div class="relative" ref="notificationRoot">
+            <button
+              @click="toggleNotifications"
+              class="hidden sm:flex relative p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+              title="Notifications"
             >
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-            </svg>
-            <span class="absolute top-1 right-1 w-2 h-2 bg-[#fa5b0f] rounded-full"></span>
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-5 h-5 text-gray-600 dark:text-gray-400 hover:text-gray-200 transition-colors"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+              </svg>
+              <span
+                v-if="unreadCount > 0"
+                class="absolute top-0 right-0 min-w-4 h-4 px-1 bg-[#fa5b0f] text-white flex items-center justify-center text-[10px] font-bold rounded-full border-2 border-white dark:border-[#1E2330]"
+              >
+                {{ unreadCount > 9 ? '9+' : unreadCount }}
+              </span>
+            </button>
+
+            <div
+              v-if="showNotifications"
+              class="absolute right-0 mt-2 w-80 max-w-[calc(100vw-1.5rem)] bg-white dark:bg-[#1E2330] border border-gray-200 dark:border-gray-800 rounded-xl shadow-xl z-50 overflow-hidden"
+            >
+              <div class="p-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+                <h3 class="text-sm font-bold text-gray-900 dark:text-white">Notifications</h3>
+                <span class="text-xs text-gray-500 dark:text-gray-400">{{ unreadCount }}</span>
+              </div>
+              <div class="max-h-96 overflow-y-auto">
+                <div
+                  v-for="notification in notifications"
+                  :key="notification.id"
+                  class="p-3 border-b border-gray-100 dark:border-gray-800 last:border-b-0"
+                >
+                  <div class="flex items-start gap-2">
+                    <span class="mt-1.5 w-2 h-2 rounded-full shrink-0" :class="priorityDot(notification.priority)"></span>
+                    <div class="min-w-0">
+                      <p class="text-sm text-gray-700 dark:text-gray-200" v-html="notification.message"></p>
+                      <p class="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400 mt-1">{{ notification.type }}</p>
+                    </div>
+                  </div>
+                </div>
+                <div v-if="notifications.length === 0" class="p-6 text-center text-sm text-gray-500 dark:text-gray-400">
+                  Aucune notification
+                </div>
+              </div>
+            </div>
+          </div>
 
           <!-- User Profile -->
           <div class="relative">
@@ -125,10 +164,11 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/userStore'
 import { useChatStore } from '../stores/chatStore'
+import { useAlertStore } from '../stores/alertStore'
 import NewSidebar from '../components/NewSidebar.vue'
 import ChatDrawer from '../components/ChatDrawer.vue'
 
@@ -180,6 +220,47 @@ export default {
     
     const unreadChatCount = computed(() => chatStore.getUnreadCount(userStore.currentUser?.id))
 
+    // Notifications (alerts computed by alertStore)
+    const alertStore = useAlertStore()
+    const showNotifications = ref(false)
+    const notificationRoot = ref(null)
+    const notifications = computed(() => alertStore.filteredAlerts || [])
+    const unreadCount = computed(() => alertStore.totalAlerts || 0)
+
+    const toggleNotifications = () => {
+      showNotifications.value = !showNotifications.value
+      showDropdown.value = false
+    }
+
+    const priorityDot = (priority) => {
+      if (priority === 'high') return 'bg-red-500'
+      if (priority === 'medium') return 'bg-yellow-500'
+      return 'bg-blue-500'
+    }
+
+    const handleClickOutside = (event) => {
+      if (notificationRoot.value && !notificationRoot.value.contains(event.target)) {
+        showNotifications.value = false
+      }
+    }
+
+    let alertsInterval = null
+    onMounted(async () => {
+      try {
+        await alertStore.initialize()
+      } catch (e) {
+        console.error('Error initializing alerts:', e)
+      }
+      alertsInterval = setInterval(() => {
+        alertStore.checkAlerts().catch(() => {})
+      }, 60 * 60 * 1000)
+      document.addEventListener('click', handleClickOutside)
+    })
+    onBeforeUnmount(() => {
+      if (alertsInterval) clearInterval(alertsInterval)
+      document.removeEventListener('click', handleClickOutside)
+    })
+
     const handleLogout = () => {
       showDropdown.value = false
       if (userStore.logout) {
@@ -198,7 +279,14 @@ export default {
       userInitial,
       handleLogout,
       chatStore,
-      unreadChatCount
+      unreadChatCount,
+      alertStore,
+      showNotifications,
+      notificationRoot,
+      notifications,
+      unreadCount,
+      toggleNotifications,
+      priorityDot
     }
   }
 }
