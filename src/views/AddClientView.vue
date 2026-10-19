@@ -73,6 +73,15 @@
               </div>
               <ArabicKeyboard :is-open="activeKeyboard === 'firstNameAR'" v-model="clientData.firstNameAR" @close="activeKeyboard = null" />
             </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ville de naissance</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                </div>
+                <input v-model="clientData.birthPlace" type="text" class="input-field !pl-10 !pr-4" />
+              </div>
+            </div>
             <div class="relative">
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">مكان الإزدياد</label>
               <div class="relative">
@@ -82,15 +91,6 @@
                 </button>
               </div>
               <ArabicKeyboard :is-open="activeKeyboard === 'birthPlaceAR'" v-model="clientData.birthPlaceAR" @close="activeKeyboard = null" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ville de naissance</label>
-              <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                </div>
-                <input v-model="clientData.birthPlace" type="text" class="input-field !pl-10 !pr-4" />
-              </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date de naissance</label>
