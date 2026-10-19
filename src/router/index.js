@@ -19,6 +19,12 @@ const router = createRouter({
       meta: { requiresAuth: false, layout: 'auth' } // Use empty layout
     },
     {
+      path: "/p/:id",
+      name: "public-landing",
+      component: () => import("../views/PublicLandingView.vue"),
+      meta: { requiresAuth: false, layout: 'landing' }
+    },
+    {
       path: "/dashboard",
       name: "dashboard",
       component: () => import("../views/NewDashboardView.vue"),
