@@ -284,11 +284,15 @@ const MODULE_DESCRIPTIONS = {
 }
 
 const permissionsList = computed(() => {
-  if (!agent.value || !agent.value.permissions) return []
-  return Object.keys(agent.value.permissions).map(key => ({
+  if (!agent.value) return []
+  const perms = agent.value.permissions || {}
+  // Show every known module (plus any extra keys the user already has) so an admin
+  // can always enable a module that was missing from the stored permissions object.
+  const keys = Array.from(new Set([...defaultModules, ...Object.keys(perms)]))
+  return keys.map((key) => ({
     name: key,
     desc: MODULE_DESCRIPTIONS[key] || 'Accès au module',
-    allowed: agent.value.permissions[key]
+    allowed: perms[key] === true,
   }))
 })
 
@@ -299,10 +303,11 @@ const togglePermission = async (permName) => {
   // Only admins can click to change
   if (!userStore.isAdmin || !agent.value) return;
 
-  agent.value.permissions[permName] = !agent.value.permissions[permName];
+  if (!agent.value.permissions) agent.value.permissions = {}
+  agent.value.permissions[permName] = agent.value.permissions[permName] !== true;
 
   try {
-     await userStore.updateUser({ id: agent.value.id, permissions: agent.value.permissions })
+     await userStore.updateUser({ id: agent.value.id, permissions: { ...agent.value.permissions } })
   } catch(e) {
      console.error('Toggle perm error', e)
   }

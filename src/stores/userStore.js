@@ -159,6 +159,25 @@ export const useUserStore = defineStore('user', {
       return normalized;
     },
 
+    // Re-read the current user (role + permissions) from the server so changes an
+    // admin makes to this account take effect without requiring a re-login.
+    async refreshCurrentUser() {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      try {
+        const response = await authService.getMe();
+        const u = response.data || {};
+        this.currentUser = {
+          ...this.currentUser,
+          ...u,
+          permissions: this._normalizePermissions(u.permissions),
+        };
+        localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
+      } catch (e) {
+        // Keep the cached user if the refresh fails (offline / token issue).
+      }
+    },
+
     async fetchUsers() {
        try {
          const response = await userService.getAll();
@@ -184,7 +203,8 @@ export const useUserStore = defineStore('user', {
         const response = await userService.update(updatedUser.id, updatedUser);
         const index = this.users.findIndex(u => u.id === updatedUser.id);
         if (index !== -1) {
-          this.users[index] = { ...this.users[index], ...response.data };
+          // Merge in place so references (e.g. the agent being edited) stay live.
+          Object.assign(this.users[index], response.data);
         }
       } catch (error) {
         console.error('Failed to update user:', error);

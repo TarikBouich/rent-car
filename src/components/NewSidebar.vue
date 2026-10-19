@@ -125,7 +125,7 @@
 </template>
 
 <script>
-import { h, computed, ref } from 'vue'
+import { h, computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '../stores/userStore'
 
@@ -537,6 +537,22 @@ export default {
     // Initialize user store to get current user data
     userStore.initializeFromStorage()
 
+    // Keep role/permissions in sync with the server so an admin's changes are
+    // reflected here without a re-login. Admins/superadmins bypass checks anyway.
+    const refreshAccess = () => {
+      if (!userStore.isAdmin && !userStore.isSuperAdmin) userStore.refreshCurrentUser()
+    }
+    const onVisibility = () => { if (document.visibilityState === 'visible') refreshAccess() }
+    onMounted(() => {
+      refreshAccess()
+      window.addEventListener('focus', refreshAccess)
+      document.addEventListener('visibilitychange', onVisibility)
+    })
+    onBeforeUnmount(() => {
+      window.removeEventListener('focus', refreshAccess)
+      document.removeEventListener('visibilitychange', onVisibility)
+    })
+
     const userName = computed(() => userStore.currentUser?.name || 'User')
     const userRole = computed(() => userStore.currentUser?.role === 'admin' ? 'Admin' : 'Agent')
     const userInitial = computed(() => userName.value?.charAt(0).toUpperCase() || 'U')
@@ -544,14 +560,24 @@ export default {
     const hasPermission = (itemName) => {
       if (userStore.isSuperAdmin) return true;
       if (userStore.isAdmin) return true;
-      if (!userStore.currentUser || !userStore.currentUser.permissions) return false;
-      
-      // Map variations between sidebar interface elements and logical permission names globally
-      if (itemName === 'Véhicules') itemName = 'Voitures';
-      if (itemName === 'Visites techniques') itemName = 'Visites Techniques';
-      if (itemName === 'Paramètres') return true;
+      const perms = userStore.currentUser?.permissions;
+      if (!perms || typeof perms !== 'object') return false;
 
-      return userStore.currentUser.permissions[itemName] === true;
+      // Normalize keys/names (case- and accent-insensitive) and map the few labels
+      // whose sidebar name differs from the stored permission key.
+      const norm = (s) => String(s || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim();
+      const aliases = { 'vehicules': 'voitures', 'visites techniques': 'visites techniques' };
+      let key = norm(itemName);
+      key = aliases[key] || key;
+
+      for (const k of Object.keys(perms)) {
+        if (norm(k) === key) return perms[k] === true;
+      }
+      return false;
     }
 
     return {
