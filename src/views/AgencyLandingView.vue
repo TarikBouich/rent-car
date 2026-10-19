@@ -367,6 +367,69 @@
         </div>
       </div>
     </footer>
+
+    <!-- ===== Theme picker (3 professional presets) ===== -->
+    <div class="fixed bottom-5 right-5 z-[60] flex flex-col items-end gap-3">
+      <transition name="theme-pop">
+        <div
+          v-if="pickerOpen"
+          class="w-[280px] rounded-2xl border border-slate-200 bg-white/95 backdrop-blur-xl shadow-2xl p-4"
+        >
+          <div class="flex items-start justify-between mb-3">
+            <div>
+              <p class="text-[11px] font-black uppercase tracking-widest text-slate-400">Thème du site</p>
+              <p class="text-sm font-bold text-slate-800">{{ theme.name }}</p>
+            </div>
+            <button
+              @click="pickerOpen = false"
+              class="p-1 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+              title="Fermer"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2">
+            <button
+              v-for="t in THEMES"
+              :key="t.id"
+              @click="setTheme(t.id)"
+              class="rounded-xl overflow-hidden border-2 bg-white transition-all text-left"
+              :class="theme.id === t.id ? 'border-slate-900 shadow-md scale-[1.02]' : 'border-slate-200 hover:border-slate-400'"
+            >
+              <span class="block h-14 relative" :style="{ background: `linear-gradient(135deg, ${t.from}, ${t.to})` }">
+                <span
+                  v-if="theme.id === t.id"
+                  class="absolute top-1 right-1 w-4 h-4 rounded-full bg-white text-slate-900 flex items-center justify-center shadow"
+                >
+                  <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                </span>
+              </span>
+              <span class="block px-1.5 py-1.5 text-[10px] font-bold text-center text-slate-600">{{ t.name }}</span>
+            </button>
+          </div>
+
+          <p class="mt-3 text-[10px] leading-snug text-slate-400 text-center">
+            3 thèmes professionnels. Votre choix est enregistré pour cette agence.
+          </p>
+        </div>
+      </transition>
+
+      <button
+        v-if="!pickerOpen"
+        @click="pickerOpen = true"
+        class="w-12 h-12 rounded-full text-white shadow-xl shadow-slate-900/20 flex items-center justify-center hover:scale-105 transition-transform"
+        :style="ctaStyle"
+        title="Choisir un thème"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 3a9 9 0 100 18h1.5a2.5 2.5 0 000-5H12a2 2 0 010-4h4.5A3.5 3.5 0 0020 8.5 5.5 5.5 0 0014.5 3H12z"/>
+          <circle cx="7.5" cy="11.5" r="1" fill="currentColor"/>
+          <circle cx="10" cy="7.5" r="1" fill="currentColor"/>
+          <circle cx="15" cy="7.5" r="1" fill="currentColor"/>
+        </svg>
+      </button>
+    </div>
   </div>
 
   <!-- ===== Loading State ===== -->
@@ -403,14 +466,11 @@ const carFilters = [
   { label: 'Disponibles', value: 'available' }
 ];
 
-// ---- Deterministic brand theme from agency name (agencies have no color field) ----
+// ---- Three professional, modern themes the agency can choose from ----
 const THEMES = [
-  { primary: '#0EA5E9', dark: '#0369A1', from: '#0C4A6E', to: '#0EA5E9' },  // sky
-  { primary: '#10B981', dark: '#047857', from: '#065F46', to: '#34D399' },  // emerald
-  { primary: '#FA5B0F', dark: '#C2410C', from: '#7C2D12', to: '#FB923C' },  // RentCar orange
-  { primary: '#6366F1', dark: '#4338CA', from: '#312E81', to: '#818CF8' },  // indigo
-  { primary: '#ED4890', dark: '#BE185D', from: '#831843', to: '#F472B6' },  // pink
-  { primary: '#8B5CF6', dark: '#6D28D9', from: '#4C1D95', to: '#A78BFA' }   // violet
+  { id: 'ocean',   name: 'Océan',    primary: '#0EA5E9', dark: '#0369A1', from: '#0C4A6E', to: '#38BDF8' },
+  { id: 'emerald', name: 'Émeraude', primary: '#10B981', dark: '#047857', from: '#064E3B', to: '#34D399' },
+  { id: 'rentcar', name: 'RentCar',  primary: '#FA5B0F', dark: '#C2410C', from: '#7C2D12', to: '#FB923C' }
 ];
 
 const hashString = (str) => {
@@ -422,10 +482,19 @@ const hashString = (str) => {
   return Math.abs(hash);
 };
 
-const theme = computed(() => {
-  const source = agency.value ? `${agency.value.id || ''}-${agency.value.name || ''}` : 'rentcar';
-  return THEMES[hashString(source) % THEMES.length];
-});
+const selectedThemeId = ref(null);
+const pickerOpen = ref(true);
+
+const theme = computed(() => THEMES.find(t => t.id === selectedThemeId.value) || THEMES[0]);
+
+const setTheme = (id) => {
+  selectedThemeId.value = id;
+  if (agency.value?.id) {
+    localStorage.setItem(`landing-theme:${agency.value.id}`, id);
+  }
+};
+
+const defaultThemeId = (source) => THEMES[hashString(source) % THEMES.length].id;
 
 // ---- Helpers ----
 const initials = computed(() => {
@@ -510,6 +579,11 @@ onMounted(async () => {
     return;
   }
   agency.value = found;
+
+  const savedTheme = localStorage.getItem(`landing-theme:${found.id}`);
+  selectedThemeId.value = THEMES.some(t => t.id === savedTheme)
+    ? savedTheme
+    : defaultThemeId(`${found.id || ''}-${found.name || ''}`);
 });
 </script>
 
@@ -518,5 +592,15 @@ onMounted(async () => {
 #apropos,
 #contact {
   scroll-margin-top: 5rem;
+}
+
+.theme-pop-enter-active,
+.theme-pop-leave-active {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.theme-pop-enter-from,
+.theme-pop-leave-to {
+  opacity: 0;
+  transform: translateY(12px) scale(0.96);
 }
 </style>
